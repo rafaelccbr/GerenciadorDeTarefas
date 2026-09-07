@@ -1,0 +1,23 @@
+# Dependências
+node_modules/
+
+# Variáveis de Ambiente e Chaves Secretas (NUNCA subir para o GitHub!)
+.env
+.env.local
+.env.*.local
+*.env
+
+# Builds de Produção
+dist/
+dist-ssr/
+*.local
+
+# Logs e arquivos de sistema
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+

@@ -1,0 +1,122 @@
+### ============================================================================
+### TESTES DA API (REST Client para VS Code)
+### ============================================================================
+### Dica: Instale a extensão "REST Client" no VS Code para executar as requisições
+### diretamente clicando no botão "Send Request" acima de cada bloco.
+
+@baseUrl = http://localhost:3000
+
+### ----------------------------------------------------------------------------
+### 1. CADASTRO DE NOVO USUÁRIO
+### ----------------------------------------------------------------------------
+POST {{baseUrl}}/auth/cadastro
+Content-Type: application/json
+
+{
+    "nome": "Usuário Teste",
+    "email": "usuario.teste@exemplo.com",
+    "senha": "senha123"
+}
+
+### ----------------------------------------------------------------------------
+### 2. LOGIN (Autenticação e geração de Token JWT)
+### ----------------------------------------------------------------------------
+# @name login
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+
+{
+    "email": "usuario.teste@exemplo.com",
+    "senha": "senha123"
+}
+
+### Armazena o token retornado na resposta do login acima
+@token = {{login.response.body.token}}
+
+### ----------------------------------------------------------------------------
+### 3. CRIAR UMA NOVA TAREFA
+### ----------------------------------------------------------------------------
+# Campos obrigatórios:
+# - nome (text)
+# - data_come (date formato YYYY-MM-DD)
+# - data_termi (date formato YYYY-MM-DD)
+# - status (status_tipo: 'pendente' | 'em_andamento' | 'concluido')
+# @name criarTarefa
+POST {{baseUrl}}/tarefas
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+    "nome": "Desenvolver trabalho de FullStack",
+    "data_come": "2026-09-07",
+    "data_termi": "2026-09-15",
+    "status": "pendente"
+}
+
+### Armazena o ID da tarefa recém-criada para os testes seguintes
+@tarefaId = {{criarTarefa.response.body.tarefa.id}}
+
+### ----------------------------------------------------------------------------
+### 4. LISTAR TODAS AS TAREFAS DO USUÁRIO LOGADO
+### ----------------------------------------------------------------------------
+GET {{baseUrl}}/tarefas
+Authorization: Bearer {{token}}
+
+### ----------------------------------------------------------------------------
+### 5. ATUALIZAR UMA TAREFA COMPLETA
+### ----------------------------------------------------------------------------
+PUT {{baseUrl}}/tarefas/{{tarefaId}}
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+    "nome": "Desenvolver trabalho de FullStack - Versão Final",
+    "data_come": "2026-09-07",
+    "data_termi": "2026-09-20",
+    "status": "em_andamento"
+}
+
+### ----------------------------------------------------------------------------
+### 6. ATUALIZAR APENAS O STATUS DA TAREFA (PATCH)
+### ----------------------------------------------------------------------------
+PATCH {{baseUrl}}/tarefas/{{tarefaId}}/status
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+    "status": "concluido"
+}
+
+### ----------------------------------------------------------------------------
+### 7. EXCLUIR UMA TAREFA
+### ----------------------------------------------------------------------------
+DELETE {{baseUrl}}/tarefas/{{tarefaId}}
+Authorization: Bearer {{token}}
+
+### ----------------------------------------------------------------------------
+### 8. RECUPERAR SENHA (ESQUECEU A SENHA)
+### ----------------------------------------------------------------------------
+POST {{baseUrl}}/auth/recuperar-senha
+Content-Type: application/json
+
+{
+    "email": "usuario.teste@exemplo.com"
+}
+
+### ----------------------------------------------------------------------------
+### 9. ATUALIZAR DADOS DO PERFIL (Nome, E-mail ou Senha)
+### ----------------------------------------------------------------------------
+PUT {{baseUrl}}/auth/perfil
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+    "nome": "Usuário Teste Atualizado",
+    "senha": "novaSenha123"
+}
+
+### ----------------------------------------------------------------------------
+### 10. EXCLUIR PERMANENTEMENTE A CONTA E SUAS TAREFAS
+### ----------------------------------------------------------------------------
+DELETE {{baseUrl}}/auth/conta
+Authorization: Bearer {{token}}
