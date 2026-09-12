@@ -71,7 +71,7 @@ export function ListaTarefas({ usuario, aoDeslogar, aoAbrirConta }) {
     concluido: 'Concluído'
   };
 
-  // Alterna o status da tarefa ao clicar no badge
+  // Alterna o status da tarefa ao clicar no badge (com Atualização Otimista Instantânea)
   const alternarProximoStatus = async (tarefa) => {
     const proximaOrdem = {
       pendente: 'em_andamento',
@@ -79,15 +79,22 @@ export function ListaTarefas({ usuario, aoDeslogar, aoAbrirConta }) {
       concluido: 'pendente'
     };
     const novoStatus = proximaOrdem[tarefa.status] || 'pendente';
+    const statusAnterior = tarefa.status;
 
+    // 1. Atualização Otimista Imediata (0ms de delay na interface)
+    setTarefas((atuais) =>
+      atuais.map((t) => (t.id === tarefa.id ? { ...t, status: novoStatus } : t))
+    );
+
+    // 2. Persistência assíncrona em segundo plano
     try {
       await atualizarStatusApi(tarefa.id, novoStatus);
-      // Atualiza o estado local imediatamente
-      setTarefas((atuais) =>
-        atuais.map((t) => (t.id === tarefa.id ? { ...t, status: novoStatus } : t))
-      );
     } catch (err) {
-      alert(`Falha ao alterar status: ${err.message}`);
+      // Se houver erro de rede, reverte o status para o anterior e avisa
+      setTarefas((atuais) =>
+        atuais.map((t) => (t.id === tarefa.id ? { ...t, status: statusAnterior } : t))
+      );
+      alert(`Falha ao salvar alteração de status: ${err.message}`);
     }
   };
 
@@ -103,17 +110,22 @@ export function ListaTarefas({ usuario, aoDeslogar, aoAbrirConta }) {
     setModalAberto(true);
   };
 
-  // Exclui a tarefa com confirmação
+  // Exclui a tarefa com confirmação (com Atualização Otimista)
   const handleExcluir = async (id, nome) => {
     if (!window.confirm(`Tem certeza que deseja excluir a tarefa "${nome}"?`)) {
       return;
     }
 
+    const tarefasAnteriores = tarefas;
+
+    // Remove imediatamente da interface (0ms)
+    setTarefas((atuais) => atuais.filter((t) => t.id !== id));
+
     try {
       await excluirTarefaApi(id);
-      // Remove do estado da tela
-      setTarefas((atuais) => atuais.filter((t) => t.id !== id));
     } catch (err) {
+      // Reverte se a exclusão falhar
+      setTarefas(tarefasAnteriores);
       alert(`Erro ao excluir: ${err.message}`);
     }
   };
