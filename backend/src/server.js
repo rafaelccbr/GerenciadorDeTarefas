@@ -39,6 +39,10 @@ await fastify.register(cors, {
  * - `/auth`: Rotas de cadastro e login de usuários (/auth/cadastro, /auth/login)
  * - `/tarefas`: CRUD completo protegido por autenticação (/tarefas, /tarefas/:id, etc.)
  */
+fastify.get('/', async () => {
+    return { status: 'ok', mensagem: 'API Gerenciador de Tarefas ativa e operante! 🚀' };
+});
+
 fastify.register(authRoutes, { prefix: '/auth' });
 fastify.register(tarefasRoutes, { prefix: '/tarefas' });
 
