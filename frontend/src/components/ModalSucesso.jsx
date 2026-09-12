@@ -1,3 +1,4 @@
+import { useTheme } from '../context/ThemeContext.jsx';
 
 /**
  * ============================================================================
@@ -9,10 +10,17 @@
  * usuário que as instruções/confirmação foram enviadas para o seu e-mail.
  */
 export function ModalSucesso({ email, aoFechar }) {
+  const { tema } = useTheme();
+  const ehDark = tema === 'dark';
+
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-md p-4">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/65 backdrop-blur-md p-4">
       {/* Card do Modal com Glassmorphism Translúcido e Borda com Brilho */}
-      <div className="relative w-full max-w-lg bg-gradient-to-b from-white/[0.14] via-[#2f0440]/65 to-[#1c0228]/85 backdrop-blur-2xl border border-white/25 rounded-3xl p-8 sm:p-10 text-center text-white shadow-[0_25px_60px_-15px_rgba(0,0,0,0.7),0_0_45px_rgba(168,85,247,0.2),inset_0_1px_1px_rgba(255,255,255,0.3)] animate-fade-in">
+      <div className={`relative w-full max-w-lg backdrop-blur-2xl rounded-3xl p-8 sm:p-10 text-center text-white transition-all duration-500 animate-fade-in ${
+        ehDark
+          ? 'bg-gradient-to-b from-white/[0.08] via-[#140b20]/95 to-[#0a0610]/95 border border-white/15 shadow-[0_25px_60px_-15px_rgba(0,0,0,0.9),0_0_40px_rgba(168,85,247,0.14),inset_0_1px_1px_rgba(255,255,255,0.15)]'
+          : 'bg-gradient-to-b from-white/[0.14] via-[#2f0440]/65 to-[#1c0228]/85 border border-white/25 shadow-[0_25px_60px_-15px_rgba(0,0,0,0.7),0_0_45px_rgba(168,85,247,0.2),inset_0_1px_1px_rgba(255,255,255,0.3)]'
+      }`}>
         
         {/* Título Principal */}
         <h2 className="text-2xl sm:text-3xl font-bold mb-4 text-white drop-shadow-sm">

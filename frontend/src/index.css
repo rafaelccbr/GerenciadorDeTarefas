@@ -42,14 +42,14 @@
   background-repeat: no-repeat;
 }
 
-/* 2. Tema Dark (Obsidian Glass / Carvão Profundo) */
+/* 2. Tema Dark (Midnight Amethyst / Obsidian Violet) */
 .bg-theme-dark {
-  background-color: #09090b;
+  background-color: #07050a;
   background-image: 
-    radial-gradient(ellipse 65% 55% at 90% 15%, rgba(30, 41, 59, 0.45) 0%, rgba(15, 23, 42, 0.2) 45%, transparent 70%),
-    radial-gradient(ellipse 65% 65% at 85% 85%, rgba(24, 24, 27, 0.7) 0%, rgba(9, 9, 11, 0.35) 45%, transparent 70%),
-    radial-gradient(ellipse 55% 45% at 50% 5%, rgba(39, 39, 42, 0.4) 0%, rgba(24, 24, 27, 0.15) 40%, transparent 65%),
-    linear-gradient(135deg, #09090b 0%, #111116 45%, #050507 100%);
+    radial-gradient(ellipse 65% 55% at 90% 15%, rgba(76, 12, 140, 0.45) 0%, rgba(45, 8, 90, 0.15) 50%, transparent 70%),
+    radial-gradient(ellipse 65% 65% at 80% 85%, rgba(95, 10, 160, 0.35) 0%, rgba(35, 6, 65, 0.15) 45%, transparent 70%),
+    radial-gradient(ellipse 55% 45% at 50% 5%, rgba(65, 10, 120, 0.3) 0%, rgba(20, 4, 40, 0.1) 40%, transparent 65%),
+    linear-gradient(135deg, #07050a 0%, #0e0a16 45%, #050408 100%);
   background-attachment: fixed;
   background-size: cover;
   background-repeat: no-repeat;

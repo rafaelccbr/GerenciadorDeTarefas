@@ -192,7 +192,7 @@ export function ListaTarefas({ usuario, aoDeslogar, aoAbrirConta }) {
                 onClick={aoAbrirConta}
                 className={`flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-1.5 sm:py-2 rounded-full backdrop-blur-md shadow-md transition-all active:scale-95 cursor-pointer group text-xs sm:text-sm ${
                   ehDark
-                    ? 'bg-zinc-800/80 hover:bg-zinc-700/80 border border-zinc-700/60 text-zinc-200 hover:text-white'
+                    ? 'bg-purple-950/40 hover:bg-purple-900/50 border border-purple-500/30 text-purple-200 hover:text-white shadow-[0_0_15px_rgba(168,85,247,0.15)]'
                     : 'bg-white/10 hover:bg-white/20 border border-white/20 hover:border-white/40 text-purple-200 hover:text-white'
                 }`}
                 title="Clique para gerenciar sua conta"
@@ -201,7 +201,7 @@ export function ListaTarefas({ usuario, aoDeslogar, aoAbrirConta }) {
                   Olá, <strong className="text-white font-bold">{usuario.nome}</strong>
                 </span>
                 <Settings className={`w-3.5 h-3.5 sm:w-4 sm:h-4 group-hover:rotate-45 transition-transform duration-300 shrink-0 ${
-                  ehDark ? 'text-zinc-400 group-hover:text-white' : 'text-purple-200 group-hover:text-white'
+                  ehDark ? 'text-purple-300 group-hover:text-white' : 'text-purple-200 group-hover:text-white'
                 }`} />
               </button>
             )}
@@ -210,9 +210,9 @@ export function ListaTarefas({ usuario, aoDeslogar, aoAbrirConta }) {
         </div>
 
         {/* Card Central com Efeito Glassmorphism e Sombra Suave (Adapta ao tema Violeta ou Dark) */}
-        <div className={`w-full backdrop-blur-2xl rounded-2xl sm:rounded-3xl p-4 sm:p-6 md:p-8 min-h-[480px] sm:min-h-[520px] flex flex-col transition-colors duration-500 ${
+        <div className={`w-full backdrop-blur-2xl rounded-2xl sm:rounded-3xl p-4 sm:p-6 md:p-8 min-h-[480px] sm:min-h-[520px] flex flex-col transition-all duration-500 ${
           ehDark
-            ? 'bg-zinc-900/90 border border-white/10 shadow-[0_20px_60px_rgba(0,0,0,0.8),inset_0_1px_1px_rgba(255,255,255,0.08)] text-zinc-100'
+            ? 'bg-gradient-to-b from-white/[0.08] via-[#140b20]/90 to-[#0a0610]/95 border border-white/15 shadow-[0_25px_60px_-15px_rgba(0,0,0,0.9),0_0_40px_rgba(168,85,247,0.12),inset_0_1px_1px_rgba(255,255,255,0.15)] text-purple-100'
             : 'bg-white/95 border border-white/60 shadow-[0_16px_50px_rgba(0,0,0,0.25)] text-gray-800'
         }`}>
           
@@ -256,7 +256,7 @@ export function ListaTarefas({ usuario, aoDeslogar, aoAbrirConta }) {
                     key={`card-${tarefa.id}`}
                     className={`rounded-2xl p-4 shadow-sm transition-all text-left flex flex-col justify-between gap-3 border ${
                       ehDark
-                        ? 'bg-zinc-800/70 hover:bg-zinc-800/95 border-zinc-700/60 text-zinc-100 shadow-md'
+                        ? 'bg-white/[0.05] hover:bg-white/[0.08] border-purple-500/20 text-purple-100 shadow-md'
                         : 'bg-purple-50/50 hover:bg-purple-50/80 border-purple-100/80 text-gray-900'
                     }`}
                   >
@@ -274,7 +274,7 @@ export function ListaTarefas({ usuario, aoDeslogar, aoAbrirConta }) {
                             ? ehDark ? 'bg-emerald-500/25 text-emerald-300 border border-emerald-500/40' : 'bg-green-100 text-green-800 border border-green-300'
                             : tarefa.status === 'em_andamento'
                             ? ehDark ? 'bg-purple-500/25 text-purple-300 border border-purple-500/40' : 'bg-purple-100 text-purple-800 border border-purple-300'
-                            : ehDark ? 'bg-zinc-700/80 text-zinc-300 border border-zinc-600 hover:bg-zinc-700' : 'bg-gray-200 text-gray-700 hover:bg-gray-300 border border-gray-300'
+                            : ehDark ? 'bg-purple-950/50 text-purple-300 border border-purple-500/30 hover:bg-purple-900/50' : 'bg-gray-200 text-gray-700 hover:bg-gray-300 border border-gray-300'
                         }`}
                       >
                         {rotuloStatus[tarefa.status] || tarefa.status}
@@ -283,28 +283,28 @@ export function ListaTarefas({ usuario, aoDeslogar, aoAbrirConta }) {
 
                     {/* Meio: Datas de Início e Término */}
                     <div className={`flex items-center justify-between text-xs pt-2 border-t ${
-                      ehDark ? 'border-zinc-700/60 text-zinc-400' : 'border-purple-100/60 text-gray-500'
+                      ehDark ? 'border-purple-500/15 text-purple-300/70' : 'border-purple-100/60 text-gray-500'
                     }`}>
                       <div>
-                        <span className={ehDark ? 'text-zinc-500' : 'text-gray-400'}>Início: </span>
-                        <span className={`font-semibold ${ehDark ? 'text-zinc-200' : 'text-gray-700'}`}>{formatarData(tarefa.data_come)}</span>
+                        <span className={ehDark ? 'text-purple-400/60' : 'text-gray-400'}>Início: </span>
+                        <span className={`font-semibold ${ehDark ? 'text-purple-200' : 'text-gray-700'}`}>{formatarData(tarefa.data_come)}</span>
                       </div>
                       <div>
-                        <span className={ehDark ? 'text-zinc-500' : 'text-gray-400'}>Término: </span>
-                        <span className={`font-semibold ${ehDark ? 'text-zinc-200' : 'text-gray-700'}`}>{formatarData(tarefa.data_termi)}</span>
+                        <span className={ehDark ? 'text-purple-400/60' : 'text-gray-400'}>Término: </span>
+                        <span className={`font-semibold ${ehDark ? 'text-purple-200' : 'text-gray-700'}`}>{formatarData(tarefa.data_termi)}</span>
                       </div>
                     </div>
 
                     {/* Rodapé: Ações Editar e Excluir com touch targets confortáveis */}
                     <div className={`flex items-center justify-end gap-2 pt-2 border-t ${
-                      ehDark ? 'border-zinc-700/60' : 'border-purple-100/60'
+                      ehDark ? 'border-purple-500/15' : 'border-purple-100/60'
                     }`}>
                       <button
                         type="button"
                         onClick={() => handleEditar(tarefa)}
                         className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-xl transition-colors cursor-pointer active:scale-95 ${
                           ehDark
-                            ? 'text-zinc-200 hover:text-white bg-zinc-700/60 hover:bg-zinc-700 border border-zinc-600/50'
+                            ? 'text-purple-200 hover:text-white bg-purple-950/40 hover:bg-purple-900/60 border border-purple-500/30'
                             : 'text-purple-700 hover:bg-purple-100/80 bg-purple-100/40'
                         }`}
                       >
@@ -335,7 +335,7 @@ export function ListaTarefas({ usuario, aoDeslogar, aoAbrirConta }) {
                   {/* Cabeçalho da Tabela */}
                   <thead>
                     <tr className={`border-b text-base sm:text-lg font-bold ${
-                      ehDark ? 'border-zinc-800 text-zinc-100' : 'border-gray-200 text-gray-900'
+                      ehDark ? 'border-purple-500/20 text-purple-200' : 'border-gray-200 text-gray-900'
                     }`}>
                       <th className="py-4 px-4 font-bold">Tarefa</th>
                       <th className="py-4 px-4 font-bold text-center sm:text-left">Começa</th>
@@ -346,28 +346,28 @@ export function ListaTarefas({ usuario, aoDeslogar, aoAbrirConta }) {
                   </thead>
 
                   {/* Corpo da Tabela */}
-                  <tbody className={`divide-y ${ehDark ? 'divide-zinc-800/80' : 'divide-gray-200'}`}>
+                  <tbody className={`divide-y ${ehDark ? 'divide-purple-500/15' : 'divide-gray-200'}`}>
                     {tarefas.map((tarefa) => (
                       <tr 
                         key={tarefa.id} 
                         className={`transition-colors text-sm sm:text-base ${
                           ehDark
-                            ? 'hover:bg-zinc-800/50 text-zinc-200'
+                            ? 'hover:bg-purple-500/10 text-purple-200'
                             : 'hover:bg-purple-50/40 text-gray-800'
                         }`}
                       >
                         {/* Coluna: Nome/Título */}
-                        <td className={`py-4 px-4 font-medium max-w-xs sm:max-w-md break-words ${ehDark ? 'text-zinc-100 font-semibold' : 'text-gray-900'}`}>
+                        <td className={`py-4 px-4 font-medium max-w-xs sm:max-w-md break-words ${ehDark ? 'text-white font-semibold' : 'text-gray-900'}`}>
                           {tarefa.nome}
                         </td>
 
                         {/* Coluna: Data de Início */}
-                        <td className={`py-4 px-4 whitespace-nowrap text-center sm:text-left ${ehDark ? 'text-zinc-400' : 'text-gray-600'}`}>
+                        <td className={`py-4 px-4 whitespace-nowrap text-center sm:text-left ${ehDark ? 'text-purple-300/80' : 'text-gray-600'}`}>
                           {formatarData(tarefa.data_come)}
                         </td>
 
                         {/* Coluna: Data de Término */}
-                        <td className={`py-4 px-4 whitespace-nowrap text-center sm:text-left ${ehDark ? 'text-zinc-400' : 'text-gray-600'}`}>
+                        <td className={`py-4 px-4 whitespace-nowrap text-center sm:text-left ${ehDark ? 'text-purple-300/80' : 'text-gray-600'}`}>
                           {formatarData(tarefa.data_termi)}
                         </td>
 
@@ -382,7 +382,7 @@ export function ListaTarefas({ usuario, aoDeslogar, aoAbrirConta }) {
                                 ? ehDark ? 'bg-emerald-500/25 text-emerald-300 border border-emerald-500/40' : 'bg-green-100 text-green-800 border border-green-300'
                                 : tarefa.status === 'em_andamento'
                                 ? ehDark ? 'bg-purple-500/25 text-purple-300 border border-purple-500/40' : 'bg-purple-100 text-purple-800 border border-purple-300'
-                                : ehDark ? 'bg-zinc-800 text-zinc-300 hover:bg-zinc-700 border border-zinc-700' : 'bg-gray-200 text-gray-700 hover:bg-gray-300 border border-gray-300'
+                                : ehDark ? 'bg-purple-950/50 text-purple-300 border border-purple-500/30 hover:bg-purple-900/50' : 'bg-gray-200 text-gray-700 hover:bg-gray-300 border border-gray-300'
                             }`}
                           >
                             {rotuloStatus[tarefa.status] || tarefa.status}
@@ -399,7 +399,7 @@ export function ListaTarefas({ usuario, aoDeslogar, aoAbrirConta }) {
                               title="Editar tarefa"
                               className={`p-1.5 rounded-lg transition-colors cursor-pointer ${
                                 ehDark
-                                  ? 'text-zinc-400 hover:text-white hover:bg-zinc-800'
+                                  ? 'text-purple-300 hover:text-white hover:bg-purple-500/20'
                                   : 'text-gray-700 hover:text-purple-600 hover:bg-purple-50'
                               }`}
                             >

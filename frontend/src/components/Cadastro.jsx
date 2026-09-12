@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { ChevronLeft } from 'lucide-react';
+import { useTheme } from '../context/ThemeContext.jsx';
 import { cadastroApi } from '../services/api.js';
 
 /**
@@ -7,14 +8,11 @@ import { cadastroApi } from '../services/api.js';
  * TELA DE CADASTRO
  * ============================================================================
  * Baseado no design do Figma: 'Cadastro.png'
- * 
- * Responsabilidades:
- * 1. Coletar Nome Completo, E-mail, Senha e Confirmação de Senha.
- * 2. Validar termos de uso e coincidência de senhas.
- * 3. Enviar requisição para POST /auth/cadastro.
- * 4. Ao cadastrar com sucesso, abrir o Modal de Confirmação (Autenticação.png).
+ * Suporta Tema Violeta e Tema Dark (Midnight Amethyst).
  */
 export function Cadastro({ aoVoltarParaLogin, aoAbrirTermos, aoCadastroSucesso }) {
+  const { tema } = useTheme();
+  const ehDark = tema === 'dark';
   const [nome, setNome] = useState('');
   const [email, setEmail] = useState('');
   const [senha, setSenha] = useState('');
@@ -79,7 +77,7 @@ export function Cadastro({ aoVoltarParaLogin, aoAbrirTermos, aoCadastroSucesso }
   };
 
   return (
-    <div className="min-h-screen min-h-dvh w-full flex flex-col items-center justify-center px-4 py-6 sm:py-10 bg-figma-gradient text-white">
+    <div className="min-h-screen min-h-dvh w-full flex flex-col items-center justify-center px-4 py-6 sm:py-10 text-white transition-colors duration-500">
       
       {/* Botão Voltar Adaptativo */}
       <div className="w-full max-w-xl flex justify-start mb-2 sm:mb-4">
@@ -94,7 +92,11 @@ export function Cadastro({ aoVoltarParaLogin, aoAbrirTermos, aoCadastroSucesso }
       </div>
 
       {/* Card Estilizado de Cadastro com Glassmorphism Translúcido e Borda com Brilho */}
-      <div className="w-full max-w-xl bg-gradient-to-b from-white/[0.13] via-[#2f0440]/60 to-[#1c0228]/80 backdrop-blur-2xl border border-white/25 rounded-2xl sm:rounded-3xl p-5 sm:p-10 shadow-[0_25px_60px_-15px_rgba(0,0,0,0.65),0_0_45px_rgba(168,85,247,0.18),inset_0_1px_1px_rgba(255,255,255,0.3)] flex flex-col items-center text-center transition-all animate-fade-in my-auto">
+      <div className={`w-full max-w-xl backdrop-blur-2xl rounded-2xl sm:rounded-3xl p-5 sm:p-10 flex flex-col items-center text-center transition-all duration-500 animate-fade-in my-auto ${
+        ehDark
+          ? 'bg-gradient-to-b from-white/[0.08] via-[#140b20]/90 to-[#0a0610]/95 border border-white/15 shadow-[0_25px_60px_-15px_rgba(0,0,0,0.9),0_0_40px_rgba(168,85,247,0.14),inset_0_1px_1px_rgba(255,255,255,0.15)]'
+          : 'bg-gradient-to-b from-white/[0.13] via-[#2f0440]/60 to-[#1c0228]/80 border border-white/25 shadow-[0_25px_60px_-15px_rgba(0,0,0,0.65),0_0_45px_rgba(168,85,247,0.18),inset_0_1px_1px_rgba(255,255,255,0.3)]'
+      }`}>
         
         {/* Título Principal */}
         <h1 className="text-3xl sm:text-5xl font-bold mb-2 tracking-wide text-white drop-shadow-sm">
@@ -102,7 +104,7 @@ export function Cadastro({ aoVoltarParaLogin, aoAbrirTermos, aoCadastroSucesso }
         </h1>
 
         {/* Subtítulo */}
-        <p className="text-sm sm:text-lg text-purple-200/90 mb-6 sm:mb-8 font-normal">
+        <p className={`text-sm sm:text-lg mb-6 sm:mb-8 font-normal ${ehDark ? 'text-purple-200/80' : 'text-purple-200/90'}`}>
           Preencha os dados abaixo para criar sua conta
         </p>
 
@@ -118,7 +120,7 @@ export function Cadastro({ aoVoltarParaLogin, aoAbrirTermos, aoCadastroSucesso }
           
           {/* Campo: Nome Completo */}
           <div>
-            <label className="block text-sm sm:text-base font-semibold text-purple-100 mb-1.5">
+            <label className={`block text-sm sm:text-base font-semibold mb-1.5 ${ehDark ? 'text-purple-200' : 'text-purple-100'}`}>
               Nome Completo
             </label>
             <input
@@ -126,14 +128,18 @@ export function Cadastro({ aoVoltarParaLogin, aoAbrirTermos, aoCadastroSucesso }
               value={nome}
               onChange={(e) => setNome(e.target.value)}
               placeholder="Digite seu nome completo"
-              className="w-full px-5 py-3 bg-[#d9d9d9]/95 hover:bg-white focus:bg-white text-gray-900 rounded-full focus:outline-none focus:ring-4 focus:ring-purple-400/50 shadow-md placeholder-gray-500 font-medium transition-all border border-white/30 focus:border-purple-400"
+              className={`w-full px-5 py-3 rounded-full focus:outline-none focus:ring-4 transition-all font-medium border shadow-md ${
+                ehDark
+                  ? 'bg-white/10 hover:bg-white/[0.14] focus:bg-white/[0.16] text-white placeholder-purple-200/50 border-white/20 focus:border-purple-400 focus:ring-purple-400/50'
+                  : 'bg-[#d9d9d9]/95 hover:bg-white focus:bg-white text-gray-900 placeholder-gray-500 border-white/30 focus:border-purple-400 focus:ring-purple-400/50'
+              }`}
               required
             />
           </div>
 
           {/* Campo: E-mail */}
           <div>
-            <label className="block text-sm sm:text-base font-semibold text-purple-100 mb-1.5">
+            <label className={`block text-sm sm:text-base font-semibold mb-1.5 ${ehDark ? 'text-purple-200' : 'text-purple-100'}`}>
               E-mail
             </label>
             <input
@@ -141,7 +147,11 @@ export function Cadastro({ aoVoltarParaLogin, aoAbrirTermos, aoCadastroSucesso }
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               placeholder="seuemail@exemplo.com"
-              className="w-full px-5 py-3 bg-[#d9d9d9]/95 hover:bg-white focus:bg-white text-gray-900 rounded-full focus:outline-none focus:ring-4 focus:ring-purple-400/50 shadow-md placeholder-gray-500 font-medium transition-all border border-white/30 focus:border-purple-400"
+              className={`w-full px-5 py-3 rounded-full focus:outline-none focus:ring-4 transition-all font-medium border shadow-md ${
+                ehDark
+                  ? 'bg-white/10 hover:bg-white/[0.14] focus:bg-white/[0.16] text-white placeholder-purple-200/50 border-white/20 focus:border-purple-400 focus:ring-purple-400/50'
+                  : 'bg-[#d9d9d9]/95 hover:bg-white focus:bg-white text-gray-900 placeholder-gray-500 border-white/30 focus:border-purple-400 focus:ring-purple-400/50'
+              }`}
               required
             />
           </div>
@@ -151,7 +161,7 @@ export function Cadastro({ aoVoltarParaLogin, aoAbrirTermos, aoCadastroSucesso }
             
             {/* Campo: Senha */}
             <div>
-              <label className="block text-sm sm:text-base font-semibold text-purple-100 mb-1.5">
+              <label className={`block text-sm sm:text-base font-semibold mb-1.5 ${ehDark ? 'text-purple-200' : 'text-purple-100'}`}>
                 Senha
               </label>
               <input
@@ -161,14 +171,18 @@ export function Cadastro({ aoVoltarParaLogin, aoAbrirTermos, aoCadastroSucesso }
                 onFocus={() => setSenhaFocada(true)}
                 onBlur={() => setSenhaFocada(false)}
                 placeholder="••••••••"
-                className="w-full px-5 py-3 bg-[#d9d9d9]/95 hover:bg-white focus:bg-white text-gray-900 rounded-full focus:outline-none focus:ring-4 focus:ring-purple-400/50 shadow-md placeholder-gray-500 font-medium transition-all border border-white/30 focus:border-purple-400"
+                className={`w-full px-5 py-3 rounded-full focus:outline-none focus:ring-4 transition-all font-medium border shadow-md ${
+                  ehDark
+                    ? 'bg-white/10 hover:bg-white/[0.14] focus:bg-white/[0.16] text-white placeholder-purple-200/50 border-white/20 focus:border-purple-400 focus:ring-purple-400/50'
+                    : 'bg-[#d9d9d9]/95 hover:bg-white focus:bg-white text-gray-900 placeholder-gray-500 border-white/30 focus:border-purple-400 focus:ring-purple-400/50'
+                }`}
                 required
               />
             </div>
 
             {/* Campo: Confirmar Senha */}
             <div>
-              <label className="block text-sm sm:text-base font-semibold text-purple-100 mb-1.5">
+              <label className={`block text-sm sm:text-base font-semibold mb-1.5 ${ehDark ? 'text-purple-200' : 'text-purple-100'}`}>
                 Confirmar senha
               </label>
               <input
@@ -176,7 +190,11 @@ export function Cadastro({ aoVoltarParaLogin, aoAbrirTermos, aoCadastroSucesso }
                 value={confirmarSenha}
                 onChange={(e) => setConfirmarSenha(e.target.value)}
                 placeholder="••••••••"
-                className="w-full px-5 py-3 bg-[#d9d9d9]/95 hover:bg-white focus:bg-white text-gray-900 rounded-full focus:outline-none focus:ring-4 focus:ring-purple-400/50 shadow-md placeholder-gray-500 font-medium transition-all border border-white/30 focus:border-purple-400"
+                className={`w-full px-5 py-3 rounded-full focus:outline-none focus:ring-4 transition-all font-medium border shadow-md ${
+                  ehDark
+                    ? 'bg-white/10 hover:bg-white/[0.14] focus:bg-white/[0.16] text-white placeholder-purple-200/50 border-white/20 focus:border-purple-400 focus:ring-purple-400/50'
+                    : 'bg-[#d9d9d9]/95 hover:bg-white focus:bg-white text-gray-900 placeholder-gray-500 border-white/30 focus:border-purple-400 focus:ring-purple-400/50'
+                }`}
                 required
               />
             </div>
@@ -185,8 +203,10 @@ export function Cadastro({ aoVoltarParaLogin, aoAbrirTermos, aoCadastroSucesso }
 
           {/* Indicadores Visuais de Requisitos da Senha - Aparece apenas quando a caixa da senha for clicada/focada */}
           {senhaFocada && (
-            <div className="text-xs text-purple-200/80 space-y-1.5 bg-white/5 border border-white/10 rounded-2xl p-3 text-left transition-all animate-fade-in shadow-inner">
-              <p className="font-semibold text-purple-100 text-xs mb-1">Requisitos de segurança:</p>
+            <div className={`text-xs space-y-1.5 border rounded-2xl p-3 text-left transition-all animate-fade-in shadow-inner ${
+              ehDark ? 'bg-black/40 border-white/15 text-purple-200/80' : 'bg-white/5 border-white/10 text-purple-200/80'
+            }`}>
+              <p className={`font-semibold text-xs mb-1 ${ehDark ? 'text-purple-200' : 'text-purple-100'}`}>Requisitos de segurança:</p>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                 <span className={`flex items-center gap-1.5 ${senha.length >= 8 ? 'text-green-400 font-semibold' : 'text-purple-300/70'}`}>
                   {senha.length >= 8 ? '✓' : '○'} Mínimo 8 caracteres
@@ -213,7 +233,7 @@ export function Cadastro({ aoVoltarParaLogin, aoAbrirTermos, aoCadastroSucesso }
               onChange={(e) => setAceitouTermos(e.target.checked)}
               className="w-5 h-5 accent-purple-600 rounded cursor-pointer"
             />
-            <label htmlFor="termos" className="text-xs sm:text-sm text-purple-100 select-none cursor-pointer">
+            <label htmlFor="termos" className={`text-xs sm:text-sm select-none cursor-pointer ${ehDark ? 'text-purple-200' : 'text-purple-100'}`}>
               Li e concordo com os{' '}
               <button
                 type="button"
@@ -233,7 +253,7 @@ export function Cadastro({ aoVoltarParaLogin, aoAbrirTermos, aoCadastroSucesso }
             </label>
           </div>
 
-          {/* Botão Criar Conta em Cristal Translúcido (Opção 3) */}
+          {/* Botão Criar Conta em Cristal Translúcido */}
           <div className="flex justify-center pt-4">
             <button
               type="submit"
@@ -248,7 +268,7 @@ export function Cadastro({ aoVoltarParaLogin, aoAbrirTermos, aoCadastroSucesso }
 
         {/* Rodapé: Link para Login */}
         <div className="mt-8 pt-6 border-t border-white/15 w-full">
-          <p className="text-sm sm:text-base text-purple-100 font-medium">
+          <p className={`text-sm sm:text-base font-medium ${ehDark ? 'text-purple-200' : 'text-purple-100'}`}>
             Já tem uma conta?{' '}
             <button
               type="button"

@@ -154,9 +154,9 @@ export function ModalGerenciarConta({ usuario, aoAtualizarUsuario, aoExcluirCont
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/65 backdrop-blur-md p-3 sm:p-4">
       {/* Card do Modal com Efeito Vidro Translúcido, Chanfro e Glow */}
-      <div className={`relative w-full max-w-lg backdrop-blur-2xl rounded-3xl p-5 sm:p-8 text-white animate-fade-in max-h-[90dvh] overflow-y-auto no-scrollbar transition-colors duration-500 ${
+      <div className={`relative w-full max-w-lg backdrop-blur-2xl rounded-3xl p-5 sm:p-8 text-white animate-fade-in max-h-[90dvh] overflow-y-auto no-scrollbar transition-all duration-500 ${
         ehDark
-          ? 'bg-gradient-to-b from-white/[0.08] via-zinc-900/90 to-black/95 border border-white/15 shadow-[0_25px_60px_-15px_rgba(0,0,0,0.95)]'
+          ? 'bg-gradient-to-b from-white/[0.08] via-[#140b20]/95 to-[#0a0610]/95 border border-white/15 shadow-[0_25px_60px_-15px_rgba(0,0,0,0.95),0_0_40px_rgba(168,85,247,0.14),inset_0_1px_1px_rgba(255,255,255,0.15)]'
           : 'bg-gradient-to-b from-white/[0.14] via-[#2f0440]/65 to-[#1c0228]/85 border border-white/25 shadow-[0_25px_60px_-15px_rgba(0,0,0,0.7),0_0_45px_rgba(168,85,247,0.2),inset_0_1px_1px_rgba(255,255,255,0.3)]'
       }`}>
         
@@ -246,7 +246,11 @@ export function ModalGerenciarConta({ usuario, aoAtualizarUsuario, aoExcluirCont
                 value={nome}
                 onChange={(e) => setNome(e.target.value)}
                 placeholder="Seu nome completo"
-                className="w-full px-5 py-3 bg-[#d9d9d9]/95 hover:bg-white focus:bg-white text-gray-900 rounded-2xl text-left focus:outline-none focus:ring-4 focus:ring-purple-400/50 shadow-md placeholder-gray-500 transition-all font-medium border border-white/30 focus:border-purple-400"
+                className={`w-full px-5 py-3 rounded-2xl text-left focus:outline-none focus:ring-4 transition-all font-medium border shadow-md ${
+                  ehDark
+                    ? 'bg-white/10 hover:bg-white/[0.14] focus:bg-white/[0.16] text-white placeholder-purple-200/50 border-white/20 focus:border-purple-400 focus:ring-purple-400/50'
+                    : 'bg-[#d9d9d9]/95 hover:bg-white focus:bg-white text-gray-900 placeholder-gray-500 border-white/30 focus:border-purple-400 focus:ring-purple-400/50'
+                }`}
                 required
               />
             </div>
@@ -260,7 +264,11 @@ export function ModalGerenciarConta({ usuario, aoAtualizarUsuario, aoExcluirCont
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="seuemail@exemplo.com"
-                className="w-full px-5 py-3 bg-[#d9d9d9]/95 hover:bg-white focus:bg-white text-gray-900 rounded-2xl text-left focus:outline-none focus:ring-4 focus:ring-purple-400/50 shadow-md placeholder-gray-500 transition-all font-medium border border-white/30 focus:border-purple-400"
+                className={`w-full px-5 py-3 rounded-2xl text-left focus:outline-none focus:ring-4 transition-all font-medium border shadow-md ${
+                  ehDark
+                    ? 'bg-white/10 hover:bg-white/[0.14] focus:bg-white/[0.16] text-white placeholder-purple-200/50 border-white/20 focus:border-purple-400 focus:ring-purple-400/50'
+                    : 'bg-[#d9d9d9]/95 hover:bg-white focus:bg-white text-gray-900 placeholder-gray-500 border-white/30 focus:border-purple-400 focus:ring-purple-400/50'
+                }`}
                 required
               />
               <p className="text-xs text-purple-200/70 mt-1.5 text-left pl-1">
@@ -291,11 +299,11 @@ export function ModalGerenciarConta({ usuario, aoAtualizarUsuario, aoExcluirCont
                   onClick={() => setTema('dark')}
                   className={`flex items-center justify-center gap-2 p-3 rounded-2xl border transition-all cursor-pointer text-xs sm:text-sm font-semibold ${
                     tema === 'dark'
-                      ? 'bg-zinc-800 border-zinc-500 text-white shadow-[0_0_20px_rgba(255,255,255,0.15)]'
+                      ? 'bg-purple-950/70 border-purple-400 text-white shadow-[0_0_20px_rgba(168,85,247,0.35)]'
                       : 'bg-white/5 border-white/15 text-purple-200/70 hover:bg-white/10 hover:text-white'
                   }`}
                 >
-                  <Moon className="w-4 h-4 text-zinc-300" />
+                  <Moon className="w-4 h-4 text-purple-300" />
                   Tema Dark
                 </button>
               </div>
@@ -336,11 +344,17 @@ export function ModalGerenciarConta({ usuario, aoAtualizarUsuario, aoExcluirCont
                 onFocus={() => setNovaSenhaFocada(true)}
                 onBlur={() => setNovaSenhaFocada(false)}
                 placeholder="Mínimo 8 caracteres"
-                className="w-full px-5 py-3 bg-[#d9d9d9]/95 hover:bg-white focus:bg-white text-gray-900 rounded-2xl text-left focus:outline-none focus:ring-4 focus:ring-purple-400/50 shadow-md placeholder-gray-500 transition-all font-medium border border-white/30 focus:border-purple-400"
+                className={`w-full px-5 py-3 rounded-2xl text-left focus:outline-none focus:ring-4 transition-all font-medium border shadow-md ${
+                  ehDark
+                    ? 'bg-white/10 hover:bg-white/[0.14] focus:bg-white/[0.16] text-white placeholder-purple-200/50 border-white/20 focus:border-purple-400 focus:ring-purple-400/50'
+                    : 'bg-[#d9d9d9]/95 hover:bg-white focus:bg-white text-gray-900 placeholder-gray-500 border-white/30 focus:border-purple-400 focus:ring-purple-400/50'
+                }`}
                 required
               />
               {novaSenhaFocada && (
-                <div className="text-xs text-purple-200/80 space-y-1.5 bg-white/5 border border-white/10 rounded-2xl p-3 text-left transition-all animate-fade-in shadow-inner mt-2">
+                <div className={`text-xs space-y-1.5 border rounded-2xl p-3 text-left transition-all animate-fade-in shadow-inner mt-2 ${
+                  ehDark ? 'bg-black/40 border-white/15 text-purple-200/80' : 'bg-white/5 border-white/10 text-purple-200/80'
+                }`}>
                   <p className="font-semibold text-purple-100 text-xs mb-1">Requisitos de segurança:</p>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                     <span className={`flex items-center gap-1.5 ${novaSenha.length >= 8 ? 'text-green-400 font-semibold' : 'text-purple-300/70'}`}>
@@ -369,7 +383,11 @@ export function ModalGerenciarConta({ usuario, aoAtualizarUsuario, aoExcluirCont
                 value={confirmarSenha}
                 onChange={(e) => setConfirmarSenha(e.target.value)}
                 placeholder="Repita a nova senha"
-                className="w-full px-5 py-3 bg-[#d9d9d9]/95 hover:bg-white focus:bg-white text-gray-900 rounded-2xl text-left focus:outline-none focus:ring-4 focus:ring-purple-400/50 shadow-md placeholder-gray-500 transition-all font-medium border border-white/30 focus:border-purple-400"
+                className={`w-full px-5 py-3 rounded-2xl text-left focus:outline-none focus:ring-4 transition-all font-medium border shadow-md ${
+                  ehDark
+                    ? 'bg-white/10 hover:bg-white/[0.14] focus:bg-white/[0.16] text-white placeholder-purple-200/50 border-white/20 focus:border-purple-400 focus:ring-purple-400/50'
+                    : 'bg-[#d9d9d9]/95 hover:bg-white focus:bg-white text-gray-900 placeholder-gray-500 border-white/30 focus:border-purple-400 focus:ring-purple-400/50'
+                }`}
                 required
               />
             </div>

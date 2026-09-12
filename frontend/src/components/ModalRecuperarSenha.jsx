@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { KeyRound, CheckCircle2, ArrowLeft } from 'lucide-react';
+import { useTheme } from '../context/ThemeContext.jsx';
 import { recuperarSenhaApi } from '../services/api.js';
 
 /**
@@ -15,6 +16,8 @@ import { recuperarSenhaApi } from '../services/api.js';
  * - Botão de fechar (X) e ícones elegantes da biblioteca Lucide
  */
 export function ModalRecuperarSenha({ aoFechar }) {
+  const { tema } = useTheme();
+  const ehDark = tema === 'dark';
   const [email, setEmail] = useState('');
   const [carregando, setCarregando] = useState(false);
   const [erro, setErro] = useState('');
@@ -44,7 +47,11 @@ export function ModalRecuperarSenha({ aoFechar }) {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/65 backdrop-blur-md p-3 sm:p-4">
       {/* Card Estilizado com Vidro, Chanfro Luminoso e Glow Violeta */}
-      <div className="relative w-full max-w-md bg-gradient-to-b from-white/[0.14] via-[#2f0440]/65 to-[#1c0228]/85 backdrop-blur-2xl border border-white/25 rounded-3xl p-6 sm:p-10 text-center text-white shadow-[0_25px_60px_-15px_rgba(0,0,0,0.7),0_0_45px_rgba(168,85,247,0.2),inset_0_1px_1px_rgba(255,255,255,0.3)] animate-fade-in max-h-[90dvh] overflow-y-auto no-scrollbar">
+      <div className={`relative w-full max-w-md backdrop-blur-2xl rounded-3xl p-6 sm:p-10 text-center text-white transition-all duration-500 animate-fade-in max-h-[90dvh] overflow-y-auto no-scrollbar ${
+        ehDark
+          ? 'bg-gradient-to-b from-white/[0.08] via-[#140b20]/95 to-[#0a0610]/95 border border-white/15 shadow-[0_25px_60px_-15px_rgba(0,0,0,0.9),0_0_40px_rgba(168,85,247,0.14),inset_0_1px_1px_rgba(255,255,255,0.15)]'
+          : 'bg-gradient-to-b from-white/[0.14] via-[#2f0440]/65 to-[#1c0228]/85 border border-white/25 shadow-[0_25px_60px_-15px_rgba(0,0,0,0.7),0_0_45px_rgba(168,85,247,0.2),inset_0_1px_1px_rgba(255,255,255,0.3)]'
+      }`}>
         
         {/* Botão Fechar no Topo Direito */}
         <button
@@ -114,7 +121,7 @@ export function ModalRecuperarSenha({ aoFechar }) {
 
             {/* Campo de E-mail */}
             <div className="flex flex-col items-center w-full">
-              <label className="text-sm font-medium text-purple-200 mb-2">
+              <label className={`text-sm font-medium mb-2 ${ehDark ? 'text-purple-200' : 'text-purple-100'}`}>
                 E-mail Cadastrado
               </label>
               <input
@@ -122,7 +129,11 @@ export function ModalRecuperarSenha({ aoFechar }) {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="seuemail@exemplo.com"
-                className="w-full px-6 py-3.5 bg-[#d9d9d9]/95 hover:bg-white focus:bg-white text-gray-900 rounded-full text-center focus:outline-none focus:ring-4 focus:ring-purple-400/50 shadow-md placeholder-gray-500 transition-all font-medium border border-white/30 focus:border-purple-400"
+                className={`w-full px-6 py-3.5 rounded-full text-center focus:outline-none focus:ring-4 transition-all font-medium border shadow-md ${
+                  ehDark
+                    ? 'bg-white/10 hover:bg-white/[0.14] focus:bg-white/[0.16] text-white placeholder-purple-200/50 border-white/20 focus:border-purple-400 focus:ring-purple-400/50'
+                    : 'bg-[#d9d9d9]/95 hover:bg-white focus:bg-white text-gray-900 placeholder-gray-500 border-white/30 focus:border-purple-400 focus:ring-purple-400/50'
+                }`}
                 required
                 autoFocus
               />

@@ -62,16 +62,16 @@ export function ModalTarefa({ tarefaParaEditar, aoSalvar, aoFechar }) {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-md p-3 sm:p-4">
       {/* Container do Modal com Leve Transparência, Bordas Suaves e Rolagem Segura */}
-      <div className={`relative w-full max-w-lg backdrop-blur-2xl rounded-3xl overflow-hidden shadow-[0_20px_60px_rgba(0,0,0,0.5)] animate-fade-in max-h-[90dvh] flex flex-col transition-colors duration-500 ${
+      <div className={`relative w-full max-w-lg backdrop-blur-2xl rounded-3xl overflow-hidden animate-fade-in max-h-[90dvh] flex flex-col transition-all duration-500 ${
         ehDark
-          ? 'bg-zinc-900/95 border border-white/15 text-zinc-100'
-          : 'bg-white/95 border border-white/60 text-gray-800'
+          ? 'bg-gradient-to-b from-[#180e25]/95 via-[#10091a]/95 to-[#09050e]/98 border border-purple-500/25 text-purple-100 shadow-[0_25px_60px_-15px_rgba(0,0,0,0.9),0_0_35px_rgba(168,85,247,0.12)]'
+          : 'bg-white/95 border border-white/60 text-gray-800 shadow-[0_20px_60px_rgba(0,0,0,0.5)]'
       }`}>
         
         {/* Cabeçalho com Degradê Violeta Profundo ou Carvão */}
         <div className={`py-3.5 sm:py-4 px-6 text-center shadow-md shrink-0 ${
           ehDark 
-            ? 'bg-gradient-to-r from-zinc-900 via-zinc-800 to-zinc-900 border-b border-zinc-700/80' 
+            ? 'bg-gradient-to-r from-[#2a0e44] via-[#3d1264] to-[#2a0e44] border-b border-purple-500/30' 
             : 'bg-gradient-to-r from-purple-800 via-[#3b075e] to-purple-900'
         }`}>
           <h2 className="text-lg sm:text-2xl font-bold text-white tracking-wide drop-shadow-sm">
@@ -96,7 +96,7 @@ export function ModalTarefa({ tarefaParaEditar, aoSalvar, aoFechar }) {
           {/* Campo: Título da Tarefa */}
           <div>
             <label className={`block text-sm sm:text-base font-bold mb-1.5 sm:mb-2 ${
-              ehDark ? 'text-zinc-200' : 'text-gray-900'
+              ehDark ? 'text-purple-200' : 'text-gray-900'
             }`}>
               Título
             </label>
@@ -107,7 +107,7 @@ export function ModalTarefa({ tarefaParaEditar, aoSalvar, aoFechar }) {
               placeholder="Ex: Reunião com a equipe"
               className={`w-full px-4 sm:px-5 py-2.5 sm:py-3 rounded-2xl focus:outline-none focus:ring-4 transition-all text-sm sm:text-base shadow-sm ${
                 ehDark
-                  ? 'bg-zinc-800/90 border border-zinc-700 text-white placeholder-zinc-500 focus:ring-zinc-500/30 focus:border-zinc-500'
+                  ? 'bg-white/10 hover:bg-white/[0.14] focus:bg-white/[0.16] border border-white/20 text-white placeholder-purple-200/50 focus:ring-purple-400/40 focus:border-purple-400'
                   : 'bg-white border border-purple-300/60 text-gray-800 placeholder-gray-400 focus:ring-purple-400/40 focus:border-purple-500'
               }`}
               required
@@ -120,7 +120,7 @@ export function ModalTarefa({ tarefaParaEditar, aoSalvar, aoFechar }) {
             {/* Campo: Status */}
             <div>
               <label className={`block text-sm sm:text-base font-bold mb-1.5 sm:mb-2 ${
-                ehDark ? 'text-zinc-200' : 'text-gray-900'
+                ehDark ? 'text-purple-200' : 'text-gray-900'
               }`}>
                 Status
               </label>
@@ -129,7 +129,7 @@ export function ModalTarefa({ tarefaParaEditar, aoSalvar, aoFechar }) {
                 onChange={(e) => setStatus(e.target.value)}
                 className={`w-full px-3 sm:px-4 py-2 sm:py-2.5 rounded-full font-medium text-xs sm:text-sm focus:outline-none focus:ring-4 transition-all cursor-pointer ${
                   ehDark
-                    ? 'bg-zinc-800 border border-zinc-700 text-white focus:ring-zinc-500/30 focus:border-zinc-500'
+                    ? 'bg-white/10 hover:bg-white/[0.14] border border-white/20 text-white focus:ring-purple-400/40 focus:border-purple-400 [&>option]:bg-[#140b20] [&>option]:text-white'
                     : 'bg-gray-100 hover:bg-gray-200 border border-purple-300/50 text-gray-800 focus:ring-purple-400/30 focus:border-purple-400'
                 }`}
               >
@@ -142,7 +142,7 @@ export function ModalTarefa({ tarefaParaEditar, aoSalvar, aoFechar }) {
             {/* Campo: Início */}
             <div>
               <label className={`block text-sm sm:text-base font-bold mb-1.5 sm:mb-2 ${
-                ehDark ? 'text-zinc-200' : 'text-gray-900'
+                ehDark ? 'text-purple-200' : 'text-gray-900'
               }`}>
                 Início
               </label>
@@ -152,7 +152,7 @@ export function ModalTarefa({ tarefaParaEditar, aoSalvar, aoFechar }) {
                 onChange={(e) => setDataCome(e.target.value)}
                 className={`w-full px-3 py-2 rounded-full text-xs sm:text-sm focus:outline-none focus:ring-4 transition-all shadow-sm ${
                   ehDark
-                    ? 'bg-zinc-800 border border-zinc-700 text-white [color-scheme:dark] focus:ring-zinc-500/30 focus:border-zinc-500'
+                    ? 'bg-white/10 hover:bg-white/[0.14] border border-white/20 text-white [color-scheme:dark] focus:ring-purple-400/40 focus:border-purple-400'
                     : 'bg-white border border-purple-300/60 text-gray-800 focus:ring-purple-400/30 focus:border-purple-400'
                 }`}
                 required
@@ -162,7 +162,7 @@ export function ModalTarefa({ tarefaParaEditar, aoSalvar, aoFechar }) {
             {/* Campo: Término */}
             <div>
               <label className={`block text-sm sm:text-base font-bold mb-1.5 sm:mb-2 ${
-                ehDark ? 'text-zinc-200' : 'text-gray-900'
+                ehDark ? 'text-purple-200' : 'text-gray-900'
               }`}>
                 Término
               </label>
@@ -172,7 +172,7 @@ export function ModalTarefa({ tarefaParaEditar, aoSalvar, aoFechar }) {
                 onChange={(e) => setDataTermi(e.target.value)}
                 className={`w-full px-3 py-2 rounded-full text-xs sm:text-sm focus:outline-none focus:ring-4 transition-all shadow-sm ${
                   ehDark
-                    ? 'bg-zinc-800 border border-zinc-700 text-white [color-scheme:dark] focus:ring-zinc-500/30 focus:border-zinc-500'
+                    ? 'bg-white/10 hover:bg-white/[0.14] border border-white/20 text-white [color-scheme:dark] focus:ring-purple-400/40 focus:border-purple-400'
                     : 'bg-white border border-purple-300/60 text-gray-800 focus:ring-purple-400/30 focus:border-purple-400'
                 }`}
                 required
