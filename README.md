@@ -29,22 +29,26 @@ A aplicação adota a estética visual **Glassmorphism / Liquid Glass**, combina
 ## ✨ Principais Funcionalidades
 
 - 🔐 **Autenticação Completa & Segura**:
-  - Cadastro de novos usuários com validação em tempo real.
-  - Login com geração de tokens JWT seguros.
+  - Cadastro com requisitos de senha forte (mínimo 8 caracteres, letra maiúscula, número e caractere especial).
+  - Checklist interativo em tempo real que surge dinamicamente ao focar no campo de senha.
+  - Login seguro com geração de tokens JWT.
   - Recuperação de senha por e-mail integrada ao Supabase Auth.
 - 📋 **CRUD Completo de Tarefas**:
   - Criação de tarefas com prazos (data de início e de término).
-  - Listagem ordenada e isolada por usuário.
-  - Edição completa e atualização dinâmica de status.
-  - Exclusão com confirmação visual.
+  - Listagem ordenada e isolada por usuário autenticado.
+  - Edição completa e atualização dinâmica de informações.
+  - ⚡ **Atualização Otimista (Optimistic UI - 0ms)**: alternância instantânea de status e exclusão de tarefas sem delay perceptível.
 - 🏷️ **Controle de Status com Badges**:
-  - `Pendente` (Amarelo / Destaque)
-  - `Em andamento` (Azul Ciano)
-  - `Concluído` (Verde Esmeralda)
+  - `Pendente` (Neutro / Aguardando início)
+  - `Em andamento` (Violeta / Em progresso)
+  - `Concluído` (Verde Esmeralda / Finalizada)
+- 📱 **Design Responsivo & Mobile-First**:
+  - **Exibição Híbrida Inteligente**: Tabela ampla de 5 colunas no Desktop/Tablet e **Cards de Tarefas Individuais** no celular, eliminando completamente a rolagem horizontal em telas pequenas.
+  - Modais com proteção de altura dinâmica (`max-h-[90dvh]`), garantindo acessibilidade mesmo quando o teclado virtual estiver aberto.
 - ⚙️ **Gerenciamento de Conta ("Minha Conta")**:
   - Centralizado no badge do usuário com engrenagem animada.
   - Atualização cadastral de **Nome** e **E-mail**.
-  - Redefinição de senha com dupla validação.
+  - Redefinição de senha com validação completa dos 4 requisitos.
   - Zona de perigo: exclusão definitiva de conta e tarefas associadas com confirmação textual (`EXCLUIR`).
 - 📜 **Termos de Uso e Privacidade**:
   - Modal translúcido com scroll suave e aceite inteligente automatizado.
@@ -53,9 +57,9 @@ A aplicação adota a estética visual **Glassmorphism / Liquid Glass**, combina
 
 ## 🎨 Design & Identidade Visual
 
-A interface foi projetada sob o conceito de **Vidro Translúcido Líquido**:
+A interface foi projetada sob o conceito de **Vidro Translúcido Líquido (Liquid Glass)**:
 * **Cards & Modais**: Gradientes profundos de violeta escuro (`#2f0440` a `#1c0228`) com `backdrop-blur-2xl` e chanfro reflexivo (`inset_0_1px_1px_rgba(255,255,255,0.3)`).
-* **Botões de Cristal Translúcido**: Acabamento fosco jateado com reflexo superior e *glow* cósmico ao passar o mouse.
+* **Botões em Vidro com Brilho Funcional**: Ações de cadastro/salvamento em esmeralda translúcido nítido e ações de perigo/saída em rosé/ruby translúcido, com alto contraste e leitura em branco puro.
 * **Inputs de Alto Contraste**: Fundo claro com anel luminoso de foco neon violeta (`focus:ring-4 focus:ring-purple-400/50`).
 
 ---
@@ -86,3 +90,41 @@ flowchart TD
     AuthMid --> Routes
     Routes -->|Supabase SDK| SupaAuth
     Routes -->|Queries Parametrizadas| Postgres
+```
+
+---
+
+## 🚀 Como Executar o Projeto Localmente
+
+### Pré-requisitos
+- [Node.js](https://nodejs.org/) (versão 18 ou superior)
+- Gerenciador de pacotes `npm`
+
+### 1. Clonar o Repositório
+```bash
+git clone https://github.com/rafaelccbr/GerenciadorDeTarefas.git
+cd GerenciadorDeTarefas
+```
+
+### 2. Configurar e Iniciar o Backend
+```bash
+cd backend
+npm install
+npm run dev
+```
+> O servidor Fastify iniciará em `http://localhost:3000`.
+
+### 3. Configurar e Iniciar o Frontend
+Em um novo terminal:
+```bash
+cd frontend
+npm install
+npm run dev
+```
+> A aplicação React + Vite estará disponível em `http://localhost:5173`.
+
+---
+
+## 📄 Licença
+
+Este projeto está sob a licença [MIT](LICENSE).
