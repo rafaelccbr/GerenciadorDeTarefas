@@ -246,10 +246,10 @@ export function ModalGerenciarConta({ usuario, aoAtualizarUsuario, aoExcluirCont
                 value={nome}
                 onChange={(e) => setNome(e.target.value)}
                 placeholder="Seu nome completo"
-                className={`w-full px-5 py-3 rounded-2xl text-left focus:outline-none focus:ring-4 transition-all font-medium border shadow-md ${
+                className={`w-full px-5 py-3 rounded-2xl text-left focus:outline-none transition-all font-medium border shadow-md ${
                   ehDark
-                    ? 'bg-white/10 hover:bg-white/[0.14] focus:bg-white/[0.16] text-white placeholder-purple-200/50 border-white/20 focus:border-purple-400 focus:ring-purple-400/50'
-                    : 'bg-[#d9d9d9]/95 hover:bg-white focus:bg-white text-gray-900 placeholder-gray-500 border-white/30 focus:border-purple-400 focus:ring-purple-400/50'
+                    ? 'bg-white/10 hover:bg-white/[0.14] focus:bg-white/[0.16] text-white placeholder-purple-200/50 border-white/20 focus:border-purple-400 focus:ring-4 focus:ring-purple-500/30 focus:shadow-[0_0_20px_rgba(168,85,247,0.35)]'
+                    : 'bg-[#d9d9d9]/95 hover:bg-white focus:bg-white text-gray-900 placeholder-gray-500 border-white/30 focus:border-purple-400 focus:ring-4 focus:ring-purple-400/50'
                 }`}
                 required
               />
@@ -264,10 +264,10 @@ export function ModalGerenciarConta({ usuario, aoAtualizarUsuario, aoExcluirCont
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="seuemail@exemplo.com"
-                className={`w-full px-5 py-3 rounded-2xl text-left focus:outline-none focus:ring-4 transition-all font-medium border shadow-md ${
+                className={`w-full px-5 py-3 rounded-2xl text-left focus:outline-none transition-all font-medium border shadow-md ${
                   ehDark
-                    ? 'bg-white/10 hover:bg-white/[0.14] focus:bg-white/[0.16] text-white placeholder-purple-200/50 border-white/20 focus:border-purple-400 focus:ring-purple-400/50'
-                    : 'bg-[#d9d9d9]/95 hover:bg-white focus:bg-white text-gray-900 placeholder-gray-500 border-white/30 focus:border-purple-400 focus:ring-purple-400/50'
+                    ? 'bg-white/10 hover:bg-white/[0.14] focus:bg-white/[0.16] text-white placeholder-purple-200/50 border-white/20 focus:border-purple-400 focus:ring-4 focus:ring-purple-500/30 focus:shadow-[0_0_20px_rgba(168,85,247,0.35)]'
+                    : 'bg-[#d9d9d9]/95 hover:bg-white focus:bg-white text-gray-900 placeholder-gray-500 border-white/30 focus:border-purple-400 focus:ring-4 focus:ring-purple-400/50'
                 }`}
                 required
               />
@@ -344,10 +344,10 @@ export function ModalGerenciarConta({ usuario, aoAtualizarUsuario, aoExcluirCont
                 onFocus={() => setNovaSenhaFocada(true)}
                 onBlur={() => setNovaSenhaFocada(false)}
                 placeholder="Mínimo 8 caracteres"
-                className={`w-full px-5 py-3 rounded-2xl text-left focus:outline-none focus:ring-4 transition-all font-medium border shadow-md ${
+                className={`w-full px-5 py-3 rounded-2xl text-left focus:outline-none transition-all font-medium border shadow-md ${
                   ehDark
-                    ? 'bg-white/10 hover:bg-white/[0.14] focus:bg-white/[0.16] text-white placeholder-purple-200/50 border-white/20 focus:border-purple-400 focus:ring-purple-400/50'
-                    : 'bg-[#d9d9d9]/95 hover:bg-white focus:bg-white text-gray-900 placeholder-gray-500 border-white/30 focus:border-purple-400 focus:ring-purple-400/50'
+                    ? 'bg-white/10 hover:bg-white/[0.14] focus:bg-white/[0.16] text-white placeholder-purple-200/50 border-white/20 focus:border-purple-400 focus:ring-4 focus:ring-purple-500/30 focus:shadow-[0_0_20px_rgba(168,85,247,0.35)]'
+                    : 'bg-[#d9d9d9]/95 hover:bg-white focus:bg-white text-gray-900 placeholder-gray-500 border-white/30 focus:border-purple-400 focus:ring-4 focus:ring-purple-400/50'
                 }`}
                 required
               />
@@ -383,10 +383,10 @@ export function ModalGerenciarConta({ usuario, aoAtualizarUsuario, aoExcluirCont
                 value={confirmarSenha}
                 onChange={(e) => setConfirmarSenha(e.target.value)}
                 placeholder="Repita a nova senha"
-                className={`w-full px-5 py-3 rounded-2xl text-left focus:outline-none focus:ring-4 transition-all font-medium border shadow-md ${
+                className={`w-full px-5 py-3 rounded-2xl text-left focus:outline-none transition-all font-medium border shadow-md ${
                   ehDark
-                    ? 'bg-white/10 hover:bg-white/[0.14] focus:bg-white/[0.16] text-white placeholder-purple-200/50 border-white/20 focus:border-purple-400 focus:ring-purple-400/50'
-                    : 'bg-[#d9d9d9]/95 hover:bg-white focus:bg-white text-gray-900 placeholder-gray-500 border-white/30 focus:border-purple-400 focus:ring-purple-400/50'
+                    ? 'bg-white/10 hover:bg-white/[0.14] focus:bg-white/[0.16] text-white placeholder-purple-200/50 border-white/20 focus:border-purple-400 focus:ring-4 focus:ring-purple-500/30 focus:shadow-[0_0_20px_rgba(168,85,247,0.35)]'
+                    : 'bg-[#d9d9d9]/95 hover:bg-white focus:bg-white text-gray-900 placeholder-gray-500 border-white/30 focus:border-purple-400 focus:ring-4 focus:ring-purple-400/50'
                 }`}
                 required
               />

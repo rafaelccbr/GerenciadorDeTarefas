@@ -105,10 +105,10 @@ export function ModalTarefa({ tarefaParaEditar, aoSalvar, aoFechar }) {
               value={nome}
               onChange={(e) => setNome(e.target.value)}
               placeholder="Ex: Reunião com a equipe"
-              className={`w-full px-4 sm:px-5 py-2.5 sm:py-3 rounded-2xl focus:outline-none focus:ring-4 transition-all text-sm sm:text-base shadow-sm ${
+              className={`w-full px-4 sm:px-5 py-2.5 sm:py-3 rounded-2xl focus:outline-none transition-all text-sm sm:text-base shadow-sm ${
                 ehDark
-                  ? 'bg-white/10 hover:bg-white/[0.14] focus:bg-white/[0.16] border border-white/20 text-white placeholder-purple-200/50 focus:ring-purple-400/40 focus:border-purple-400'
-                  : 'bg-white border border-purple-300/60 text-gray-800 placeholder-gray-400 focus:ring-purple-400/40 focus:border-purple-500'
+                  ? 'bg-white/10 hover:bg-white/[0.14] focus:bg-white/[0.16] border border-white/20 text-white placeholder-purple-200/50 focus:border-purple-400 focus:ring-4 focus:ring-purple-500/30 focus:shadow-[0_0_20px_rgba(168,85,247,0.35)]'
+                  : 'bg-white border border-purple-300/60 text-gray-800 placeholder-gray-400 focus:ring-purple-400/40 focus:border-purple-500 focus:ring-4'
               }`}
               required
             />
@@ -127,10 +127,10 @@ export function ModalTarefa({ tarefaParaEditar, aoSalvar, aoFechar }) {
               <select
                 value={status}
                 onChange={(e) => setStatus(e.target.value)}
-                className={`w-full px-3 sm:px-4 py-2 sm:py-2.5 rounded-full font-medium text-xs sm:text-sm focus:outline-none focus:ring-4 transition-all cursor-pointer ${
+                className={`w-full px-3 sm:px-4 py-2 sm:py-2.5 rounded-full font-medium text-xs sm:text-sm focus:outline-none transition-all cursor-pointer ${
                   ehDark
-                    ? 'bg-white/10 hover:bg-white/[0.14] border border-white/20 text-white focus:ring-purple-400/40 focus:border-purple-400 [&>option]:bg-[#140b20] [&>option]:text-white'
-                    : 'bg-gray-100 hover:bg-gray-200 border border-purple-300/50 text-gray-800 focus:ring-purple-400/30 focus:border-purple-400'
+                    ? 'bg-white/10 hover:bg-white/[0.14] border border-white/20 text-white focus:border-purple-400 focus:ring-4 focus:ring-purple-500/30 focus:shadow-[0_0_15px_rgba(168,85,247,0.3)] [&>option]:bg-[#140b20] [&>option]:text-white'
+                    : 'bg-gray-100 hover:bg-gray-200 border border-purple-300/50 text-gray-800 focus:ring-purple-400/30 focus:border-purple-400 focus:ring-4'
                 }`}
               >
                 <option value="pendente">Pendente</option>
@@ -150,10 +150,10 @@ export function ModalTarefa({ tarefaParaEditar, aoSalvar, aoFechar }) {
                 type="date"
                 value={dataCome}
                 onChange={(e) => setDataCome(e.target.value)}
-                className={`w-full px-3 py-2 rounded-full text-xs sm:text-sm focus:outline-none focus:ring-4 transition-all shadow-sm ${
+                className={`w-full px-3 py-2 rounded-full text-xs sm:text-sm focus:outline-none transition-all shadow-sm ${
                   ehDark
-                    ? 'bg-white/10 hover:bg-white/[0.14] border border-white/20 text-white [color-scheme:dark] focus:ring-purple-400/40 focus:border-purple-400'
-                    : 'bg-white border border-purple-300/60 text-gray-800 focus:ring-purple-400/30 focus:border-purple-400'
+                    ? 'bg-white/10 hover:bg-white/[0.14] border border-white/20 text-white [color-scheme:dark] focus:border-purple-400 focus:ring-4 focus:ring-purple-500/30 focus:shadow-[0_0_15px_rgba(168,85,247,0.3)]'
+                    : 'bg-white border border-purple-300/60 text-gray-800 focus:ring-purple-400/30 focus:border-purple-400 focus:ring-4'
                 }`}
                 required
               />
@@ -170,10 +170,10 @@ export function ModalTarefa({ tarefaParaEditar, aoSalvar, aoFechar }) {
                 type="date"
                 value={dataTermi}
                 onChange={(e) => setDataTermi(e.target.value)}
-                className={`w-full px-3 py-2 rounded-full text-xs sm:text-sm focus:outline-none focus:ring-4 transition-all shadow-sm ${
+                className={`w-full px-3 py-2 rounded-full text-xs sm:text-sm focus:outline-none transition-all shadow-sm ${
                   ehDark
-                    ? 'bg-white/10 hover:bg-white/[0.14] border border-white/20 text-white [color-scheme:dark] focus:ring-purple-400/40 focus:border-purple-400'
-                    : 'bg-white border border-purple-300/60 text-gray-800 focus:ring-purple-400/30 focus:border-purple-400'
+                    ? 'bg-white/10 hover:bg-white/[0.14] border border-white/20 text-white [color-scheme:dark] focus:border-purple-400 focus:ring-4 focus:ring-purple-500/30 focus:shadow-[0_0_15px_rgba(168,85,247,0.3)]'
+                    : 'bg-white border border-purple-300/60 text-gray-800 focus:ring-purple-400/30 focus:border-purple-400 focus:ring-4'
                 }`}
                 required
               />
@@ -197,11 +197,15 @@ export function ModalTarefa({ tarefaParaEditar, aoSalvar, aoFechar }) {
               Cancelar
             </button>
 
-            {/* Botão Salvar */}
+            {/* Botão Salvar com Acento Neon Esmeralda */}
             <button
               type="submit"
               disabled={salvando}
-              className="w-full sm:w-auto px-8 py-2.5 bg-emerald-600 hover:bg-emerald-500 active:scale-95 text-white font-bold rounded-full shadow-[0_4px_15px_rgba(16,185,129,0.35)] hover:shadow-[0_6px_20px_rgba(16,185,129,0.5)] transition-all cursor-pointer disabled:opacity-50 text-sm"
+              className={`w-full sm:w-auto px-8 py-2.5 active:scale-95 text-white font-bold rounded-full transition-all duration-300 cursor-pointer disabled:opacity-50 text-sm ${
+                ehDark
+                  ? 'bg-emerald-600 hover:bg-emerald-500 border border-emerald-400/40 shadow-[0_4px_15px_rgba(16,185,129,0.35)] hover:shadow-[0_0_25px_rgba(16,185,129,0.55),0_0_10px_rgba(52,211,153,0.35)]'
+                  : 'bg-emerald-600 hover:bg-emerald-500 shadow-[0_4px_15px_rgba(16,185,129,0.35)] hover:shadow-[0_6px_20px_rgba(16,185,129,0.5)]'
+              }`}
             >
               {salvando ? 'Salvando...' : 'Salvar'}
             </button>

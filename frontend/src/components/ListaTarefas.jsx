@@ -171,10 +171,14 @@ export function ListaTarefas({ usuario, aoDeslogar, aoAbrirConta }) {
               Sair
             </button>
 
-            {/* Botão Cadastrar (Vidro Semi-Translúcido Esmeralda com Alta Nitidez) */}
+            {/* Botão Cadastrar (Vidro Semi-Translúcido Esmeralda com Acento Neon) */}
             <button
               onClick={handleNovoCadastro}
-              className="flex items-center gap-1.5 sm:gap-2 px-3.5 sm:px-6 py-2 sm:py-2.5 bg-emerald-500/40 hover:bg-emerald-500/55 border border-emerald-300/60 hover:border-emerald-200/80 backdrop-blur-md text-white font-bold rounded-full shadow-[0_4px_15px_rgba(16,185,129,0.3),inset_0_1px_1px_rgba(255,255,255,0.3)] hover:shadow-[0_6px_25px_rgba(16,185,129,0.45),inset_0_1px_2px_rgba(255,255,255,0.5)] transition-all duration-300 active:scale-95 cursor-pointer group text-xs sm:text-sm"
+              className={`flex items-center gap-1.5 sm:gap-2 px-3.5 sm:px-6 py-2 sm:py-2.5 backdrop-blur-md text-white font-bold rounded-full transition-all duration-300 active:scale-95 cursor-pointer group text-xs sm:text-sm ${
+                ehDark
+                  ? 'bg-emerald-500/35 hover:bg-emerald-500/50 border border-emerald-400/60 hover:border-emerald-300 shadow-[0_4px_15px_rgba(16,185,129,0.3),inset_0_1px_1px_rgba(255,255,255,0.3)] hover:shadow-[0_0_25px_rgba(16,185,129,0.55),0_0_10px_rgba(52,211,153,0.4),inset_0_1px_2px_rgba(255,255,255,0.6)]'
+                  : 'bg-emerald-500/40 hover:bg-emerald-500/55 border border-emerald-300/60 hover:border-emerald-200/80 shadow-[0_4px_15px_rgba(16,185,129,0.3),inset_0_1px_1px_rgba(255,255,255,0.3)] hover:shadow-[0_6px_25px_rgba(16,185,129,0.45),inset_0_1px_2px_rgba(255,255,255,0.5)]'
+              }`}
             >
               <PlusCircle className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-emerald-100 group-hover:text-white transition-colors" />
               Cadastrar
@@ -271,10 +275,10 @@ export function ListaTarefas({ usuario, aoDeslogar, aoAbrirConta }) {
                         title="Clique para alternar o status"
                         className={`shrink-0 inline-flex items-center justify-center px-3 py-1 rounded-full font-semibold text-xs cursor-pointer transition-all shadow-sm active:scale-95 ${
                           tarefa.status === 'concluido'
-                            ? ehDark ? 'bg-emerald-500/25 text-emerald-300 border border-emerald-500/40' : 'bg-green-100 text-green-800 border border-green-300'
+                            ? ehDark ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-400/50 shadow-[0_0_12px_rgba(16,185,129,0.25)] hover:shadow-[0_0_18px_rgba(16,185,129,0.45)]' : 'bg-green-100 text-green-800 border border-green-300'
                             : tarefa.status === 'em_andamento'
-                            ? ehDark ? 'bg-purple-500/25 text-purple-300 border border-purple-500/40' : 'bg-purple-100 text-purple-800 border border-purple-300'
-                            : ehDark ? 'bg-purple-950/50 text-purple-300 border border-purple-500/30 hover:bg-purple-900/50' : 'bg-gray-200 text-gray-700 hover:bg-gray-300 border border-gray-300'
+                            ? ehDark ? 'bg-purple-500/20 text-purple-200 border border-purple-400/50 shadow-[0_0_12px_rgba(168,85,247,0.25)] hover:shadow-[0_0_18px_rgba(168,85,247,0.45)]' : 'bg-purple-100 text-purple-800 border border-purple-300'
+                            : ehDark ? 'bg-purple-950/60 text-purple-300 border border-purple-500/30 hover:shadow-[0_0_12px_rgba(168,85,247,0.25)]' : 'bg-gray-200 text-gray-700 hover:bg-gray-300 border border-gray-300'
                         }`}
                       >
                         {rotuloStatus[tarefa.status] || tarefa.status}
@@ -379,10 +383,10 @@ export function ListaTarefas({ usuario, aoDeslogar, aoAbrirConta }) {
                             title="Clique para alternar o status"
                             className={`inline-flex items-center justify-center px-4 py-1.5 rounded-full font-medium text-xs sm:text-sm cursor-pointer transition-all shadow-sm active:scale-95 ${
                               tarefa.status === 'concluido'
-                                ? ehDark ? 'bg-emerald-500/25 text-emerald-300 border border-emerald-500/40' : 'bg-green-100 text-green-800 border border-green-300'
+                                ? ehDark ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-400/50 shadow-[0_0_12px_rgba(16,185,129,0.25)] hover:shadow-[0_0_18px_rgba(16,185,129,0.45)]' : 'bg-green-100 text-green-800 border border-green-300'
                                 : tarefa.status === 'em_andamento'
-                                ? ehDark ? 'bg-purple-500/25 text-purple-300 border border-purple-500/40' : 'bg-purple-100 text-purple-800 border border-purple-300'
-                                : ehDark ? 'bg-purple-950/50 text-purple-300 border border-purple-500/30 hover:bg-purple-900/50' : 'bg-gray-200 text-gray-700 hover:bg-gray-300 border border-gray-300'
+                                ? ehDark ? 'bg-purple-500/20 text-purple-200 border border-purple-400/50 shadow-[0_0_12px_rgba(168,85,247,0.25)] hover:shadow-[0_0_18px_rgba(168,85,247,0.45)]' : 'bg-purple-100 text-purple-800 border border-purple-300'
+                                : ehDark ? 'bg-purple-950/60 text-purple-300 border border-purple-500/30 hover:shadow-[0_0_12px_rgba(168,85,247,0.25)]' : 'bg-gray-200 text-gray-700 hover:bg-gray-300 border border-gray-300'
                             }`}
                           >
                             {rotuloStatus[tarefa.status] || tarefa.status}
