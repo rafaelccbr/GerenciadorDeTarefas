@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { Eye, EyeOff } from 'lucide-react';
 import { useTheme } from '../context/ThemeContext.jsx';
 import { loginApi, salvarSessao } from '../services/api.js';
 
@@ -14,6 +15,7 @@ export function Login({ aoIrParaCadastro, aoLogarComSucesso, aoEsqueceuSenha }) 
   const ehDark = tema === 'dark';
   const [email, setEmail] = useState('');
   const [senha, setSenha] = useState('');
+  const [mostrarSenha, setMostrarSenha] = useState(false);
   const [carregando, setCarregando] = useState(false);
   const [erro, setErro] = useState('');
 
@@ -96,18 +98,34 @@ export function Login({ aoIrParaCadastro, aoLogarComSucesso, aoEsqueceuSenha }) 
             <label className={`text-base sm:text-lg font-medium mb-2 ${ehDark ? 'text-purple-200' : 'text-purple-100'}`}>
               Senha
             </label>
-            <input
-              type="password"
-              value={senha}
-              onChange={(e) => setSenha(e.target.value)}
-              placeholder="••••••••"
-              className={`w-full max-w-sm px-6 py-3.5 rounded-full text-center focus:outline-none focus:ring-4 transition-all font-medium border shadow-md ${
-                ehDark
-                  ? 'bg-white/10 hover:bg-white/[0.14] focus:bg-white/[0.16] text-white placeholder-purple-200/50 border-white/20 focus:border-purple-400 focus:ring-purple-400/50'
-                  : 'bg-[#d9d9d9]/95 hover:bg-white focus:bg-white text-gray-900 placeholder-gray-500 border-white/30 focus:border-purple-400 focus:ring-purple-400/50'
-              }`}
-              required
-            />
+            <div className="relative w-full max-w-sm flex items-center">
+              <input
+                type={mostrarSenha ? 'text' : 'password'}
+                value={senha}
+                onChange={(e) => setSenha(e.target.value)}
+                placeholder="••••••••"
+                className={`w-full px-12 py-3.5 rounded-full text-center focus:outline-none focus:ring-4 transition-all font-medium border shadow-md ${
+                  ehDark
+                    ? 'bg-white/10 hover:bg-white/[0.14] focus:bg-white/[0.16] text-white placeholder-purple-200/50 border-white/20 focus:border-purple-400 focus:ring-purple-400/50'
+                    : 'bg-[#d9d9d9]/95 hover:bg-white focus:bg-white text-gray-900 placeholder-gray-500 border-white/30 focus:border-purple-400 focus:ring-purple-400/50'
+                }`}
+                required
+              />
+              <button
+                type="button"
+                onMouseDown={(e) => e.preventDefault()}
+                onClick={() => setMostrarSenha(!mostrarSenha)}
+                className={`absolute right-3.5 p-1.5 rounded-full transition-colors cursor-pointer focus:outline-none ${
+                  ehDark
+                    ? 'text-purple-200/70 hover:text-white hover:bg-white/10'
+                    : 'text-gray-500 hover:text-gray-900 hover:bg-gray-300/50'
+                }`}
+                title={mostrarSenha ? 'Ocultar senha' : 'Ver senha'}
+                aria-label={mostrarSenha ? 'Ocultar senha' : 'Ver senha'}
+              >
+                {mostrarSenha ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+              </button>
+            </div>
             {/* Link Esqueceu a Senha */}
             <div className="w-full max-w-sm flex justify-end mt-2 pr-1">
               <button

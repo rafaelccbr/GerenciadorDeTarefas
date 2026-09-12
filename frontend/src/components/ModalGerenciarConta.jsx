@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Sparkles, Moon } from 'lucide-react';
+import { Sparkles, Moon, Eye, EyeOff } from 'lucide-react';
 import { useTheme } from '../context/ThemeContext.jsx';
 import { atualizarPerfilApi, excluirContaApi } from '../services/api.js';
 
@@ -30,6 +30,8 @@ export function ModalGerenciarConta({ usuario, aoAtualizarUsuario, aoExcluirCont
   // Estados da Aba: Senha
   const [novaSenha, setNovaSenha] = useState('');
   const [confirmarSenha, setConfirmarSenha] = useState('');
+  const [mostrarNovaSenha, setMostrarNovaSenha] = useState(false);
+  const [mostrarConfirmarSenha, setMostrarConfirmarSenha] = useState(false);
   const [salvandoSenha, setSalvandoSenha] = useState(false);
   const [novaSenhaFocada, setNovaSenhaFocada] = useState(false);
 
@@ -337,20 +339,36 @@ export function ModalGerenciarConta({ usuario, aoAtualizarUsuario, aoExcluirCont
               <label className="block text-sm font-medium text-purple-200 mb-1.5 text-left pl-1">
                 Nova Senha
               </label>
-              <input
-                type="password"
-                value={novaSenha}
-                onChange={(e) => setNovaSenha(e.target.value)}
-                onFocus={() => setNovaSenhaFocada(true)}
-                onBlur={() => setNovaSenhaFocada(false)}
-                placeholder="Mínimo 8 caracteres"
-                className={`w-full px-5 py-3 rounded-2xl text-left focus:outline-none focus:ring-4 transition-all font-medium border shadow-md ${
-                  ehDark
-                    ? 'bg-white/10 hover:bg-white/[0.14] focus:bg-white/[0.16] text-white placeholder-purple-200/50 border-white/20 focus:border-purple-400 focus:ring-purple-400/50'
-                    : 'bg-[#d9d9d9]/95 hover:bg-white focus:bg-white text-gray-900 placeholder-gray-500 border-white/30 focus:border-purple-400 focus:ring-purple-400/50'
-                }`}
-                required
-              />
+              <div className="relative flex items-center">
+                <input
+                  type={mostrarNovaSenha ? 'text' : 'password'}
+                  value={novaSenha}
+                  onChange={(e) => setNovaSenha(e.target.value)}
+                  onFocus={() => setNovaSenhaFocada(true)}
+                  onBlur={() => setNovaSenhaFocada(false)}
+                  placeholder="Mínimo 8 caracteres"
+                  className={`w-full pl-5 pr-11 py-3 rounded-2xl text-left focus:outline-none focus:ring-4 transition-all font-medium border shadow-md ${
+                    ehDark
+                      ? 'bg-white/10 hover:bg-white/[0.14] focus:bg-white/[0.16] text-white placeholder-purple-200/50 border-white/20 focus:border-purple-400 focus:ring-purple-400/50'
+                      : 'bg-[#d9d9d9]/95 hover:bg-white focus:bg-white text-gray-900 placeholder-gray-500 border-white/30 focus:border-purple-400 focus:ring-purple-400/50'
+                  }`}
+                  required
+                />
+                <button
+                  type="button"
+                  onMouseDown={(e) => e.preventDefault()}
+                  onClick={() => setMostrarNovaSenha(!mostrarNovaSenha)}
+                  className={`absolute right-3.5 p-1 rounded-full transition-colors cursor-pointer focus:outline-none ${
+                    ehDark
+                      ? 'text-purple-200/70 hover:text-white hover:bg-white/10'
+                      : 'text-gray-500 hover:text-gray-900 hover:bg-gray-300/50'
+                  }`}
+                  title={mostrarNovaSenha ? 'Ocultar senha' : 'Ver senha'}
+                  aria-label={mostrarNovaSenha ? 'Ocultar senha' : 'Ver senha'}
+                >
+                  {mostrarNovaSenha ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                </button>
+              </div>
               {novaSenhaFocada && (
                 <div className={`text-xs space-y-1.5 border rounded-2xl p-3 text-left transition-all animate-fade-in shadow-inner mt-2 ${
                   ehDark ? 'bg-black/40 border-white/15 text-purple-200/80' : 'bg-white/5 border-white/10 text-purple-200/80'
@@ -378,18 +396,34 @@ export function ModalGerenciarConta({ usuario, aoAtualizarUsuario, aoExcluirCont
               <label className="block text-sm font-medium text-purple-200 mb-1.5 text-left pl-1">
                 Confirmar Nova Senha
               </label>
-              <input
-                type="password"
-                value={confirmarSenha}
-                onChange={(e) => setConfirmarSenha(e.target.value)}
-                placeholder="Repita a nova senha"
-                className={`w-full px-5 py-3 rounded-2xl text-left focus:outline-none focus:ring-4 transition-all font-medium border shadow-md ${
-                  ehDark
-                    ? 'bg-white/10 hover:bg-white/[0.14] focus:bg-white/[0.16] text-white placeholder-purple-200/50 border-white/20 focus:border-purple-400 focus:ring-purple-400/50'
-                    : 'bg-[#d9d9d9]/95 hover:bg-white focus:bg-white text-gray-900 placeholder-gray-500 border-white/30 focus:border-purple-400 focus:ring-purple-400/50'
-                }`}
-                required
-              />
+              <div className="relative flex items-center">
+                <input
+                  type={mostrarConfirmarSenha ? 'text' : 'password'}
+                  value={confirmarSenha}
+                  onChange={(e) => setConfirmarSenha(e.target.value)}
+                  placeholder="Repita a nova senha"
+                  className={`w-full pl-5 pr-11 py-3 rounded-2xl text-left focus:outline-none focus:ring-4 transition-all font-medium border shadow-md ${
+                    ehDark
+                      ? 'bg-white/10 hover:bg-white/[0.14] focus:bg-white/[0.16] text-white placeholder-purple-200/50 border-white/20 focus:border-purple-400 focus:ring-purple-400/50'
+                      : 'bg-[#d9d9d9]/95 hover:bg-white focus:bg-white text-gray-900 placeholder-gray-500 border-white/30 focus:border-purple-400 focus:ring-purple-400/50'
+                  }`}
+                  required
+                />
+                <button
+                  type="button"
+                  onMouseDown={(e) => e.preventDefault()}
+                  onClick={() => setMostrarConfirmarSenha(!mostrarConfirmarSenha)}
+                  className={`absolute right-3.5 p-1 rounded-full transition-colors cursor-pointer focus:outline-none ${
+                    ehDark
+                      ? 'text-purple-200/70 hover:text-white hover:bg-white/10'
+                      : 'text-gray-500 hover:text-gray-900 hover:bg-gray-300/50'
+                  }`}
+                  title={mostrarConfirmarSenha ? 'Ocultar senha' : 'Ver senha'}
+                  aria-label={mostrarConfirmarSenha ? 'Ocultar senha' : 'Ver senha'}
+                >
+                  {mostrarConfirmarSenha ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                </button>
+              </div>
             </div>
 
             <div className="pt-3 flex flex-col-reverse sm:flex-row justify-end gap-2.5 sm:gap-3">

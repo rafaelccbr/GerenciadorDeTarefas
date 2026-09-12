@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { ChevronLeft } from 'lucide-react';
+import { ChevronLeft, Eye, EyeOff } from 'lucide-react';
 import { useTheme } from '../context/ThemeContext.jsx';
 import { cadastroApi } from '../services/api.js';
 
@@ -17,6 +17,8 @@ export function Cadastro({ aoVoltarParaLogin, aoAbrirTermos, aoCadastroSucesso }
   const [email, setEmail] = useState('');
   const [senha, setSenha] = useState('');
   const [confirmarSenha, setConfirmarSenha] = useState('');
+  const [mostrarSenha, setMostrarSenha] = useState(false);
+  const [mostrarConfirmarSenha, setMostrarConfirmarSenha] = useState(false);
   const [aceitouTermos, setAceitouTermos] = useState(false);
   const [carregando, setCarregando] = useState(false);
   const [erro, setErro] = useState('');
@@ -164,20 +166,36 @@ export function Cadastro({ aoVoltarParaLogin, aoAbrirTermos, aoCadastroSucesso }
               <label className={`block text-sm sm:text-base font-semibold mb-1.5 ${ehDark ? 'text-purple-200' : 'text-purple-100'}`}>
                 Senha
               </label>
-              <input
-                type="password"
-                value={senha}
-                onChange={(e) => setSenha(e.target.value)}
-                onFocus={() => setSenhaFocada(true)}
-                onBlur={() => setSenhaFocada(false)}
-                placeholder="••••••••"
-                className={`w-full px-5 py-3 rounded-full focus:outline-none focus:ring-4 transition-all font-medium border shadow-md ${
-                  ehDark
-                    ? 'bg-white/10 hover:bg-white/[0.14] focus:bg-white/[0.16] text-white placeholder-purple-200/50 border-white/20 focus:border-purple-400 focus:ring-purple-400/50'
-                    : 'bg-[#d9d9d9]/95 hover:bg-white focus:bg-white text-gray-900 placeholder-gray-500 border-white/30 focus:border-purple-400 focus:ring-purple-400/50'
-                }`}
-                required
-              />
+              <div className="relative flex items-center">
+                <input
+                  type={mostrarSenha ? 'text' : 'password'}
+                  value={senha}
+                  onChange={(e) => setSenha(e.target.value)}
+                  onFocus={() => setSenhaFocada(true)}
+                  onBlur={() => setSenhaFocada(false)}
+                  placeholder="••••••••"
+                  className={`w-full pl-5 pr-11 py-3 rounded-full focus:outline-none focus:ring-4 transition-all font-medium border shadow-md ${
+                    ehDark
+                      ? 'bg-white/10 hover:bg-white/[0.14] focus:bg-white/[0.16] text-white placeholder-purple-200/50 border-white/20 focus:border-purple-400 focus:ring-purple-400/50'
+                      : 'bg-[#d9d9d9]/95 hover:bg-white focus:bg-white text-gray-900 placeholder-gray-500 border-white/30 focus:border-purple-400 focus:ring-purple-400/50'
+                  }`}
+                  required
+                />
+                <button
+                  type="button"
+                  onMouseDown={(e) => e.preventDefault()}
+                  onClick={() => setMostrarSenha(!mostrarSenha)}
+                  className={`absolute right-3.5 p-1 rounded-full transition-colors cursor-pointer focus:outline-none ${
+                    ehDark
+                      ? 'text-purple-200/70 hover:text-white hover:bg-white/10'
+                      : 'text-gray-500 hover:text-gray-900 hover:bg-gray-300/50'
+                  }`}
+                  title={mostrarSenha ? 'Ocultar senha' : 'Ver senha'}
+                  aria-label={mostrarSenha ? 'Ocultar senha' : 'Ver senha'}
+                >
+                  {mostrarSenha ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                </button>
+              </div>
             </div>
 
             {/* Campo: Confirmar Senha */}
@@ -185,18 +203,34 @@ export function Cadastro({ aoVoltarParaLogin, aoAbrirTermos, aoCadastroSucesso }
               <label className={`block text-sm sm:text-base font-semibold mb-1.5 ${ehDark ? 'text-purple-200' : 'text-purple-100'}`}>
                 Confirmar senha
               </label>
-              <input
-                type="password"
-                value={confirmarSenha}
-                onChange={(e) => setConfirmarSenha(e.target.value)}
-                placeholder="••••••••"
-                className={`w-full px-5 py-3 rounded-full focus:outline-none focus:ring-4 transition-all font-medium border shadow-md ${
-                  ehDark
-                    ? 'bg-white/10 hover:bg-white/[0.14] focus:bg-white/[0.16] text-white placeholder-purple-200/50 border-white/20 focus:border-purple-400 focus:ring-purple-400/50'
-                    : 'bg-[#d9d9d9]/95 hover:bg-white focus:bg-white text-gray-900 placeholder-gray-500 border-white/30 focus:border-purple-400 focus:ring-purple-400/50'
-                }`}
-                required
-              />
+              <div className="relative flex items-center">
+                <input
+                  type={mostrarConfirmarSenha ? 'text' : 'password'}
+                  value={confirmarSenha}
+                  onChange={(e) => setConfirmarSenha(e.target.value)}
+                  placeholder="••••••••"
+                  className={`w-full pl-5 pr-11 py-3 rounded-full focus:outline-none focus:ring-4 transition-all font-medium border shadow-md ${
+                    ehDark
+                      ? 'bg-white/10 hover:bg-white/[0.14] focus:bg-white/[0.16] text-white placeholder-purple-200/50 border-white/20 focus:border-purple-400 focus:ring-purple-400/50'
+                      : 'bg-[#d9d9d9]/95 hover:bg-white focus:bg-white text-gray-900 placeholder-gray-500 border-white/30 focus:border-purple-400 focus:ring-purple-400/50'
+                  }`}
+                  required
+                />
+                <button
+                  type="button"
+                  onMouseDown={(e) => e.preventDefault()}
+                  onClick={() => setMostrarConfirmarSenha(!mostrarConfirmarSenha)}
+                  className={`absolute right-3.5 p-1 rounded-full transition-colors cursor-pointer focus:outline-none ${
+                    ehDark
+                      ? 'text-purple-200/70 hover:text-white hover:bg-white/10'
+                      : 'text-gray-500 hover:text-gray-900 hover:bg-gray-300/50'
+                  }`}
+                  title={mostrarConfirmarSenha ? 'Ocultar senha' : 'Ver senha'}
+                  aria-label={mostrarConfirmarSenha ? 'Ocultar senha' : 'Ver senha'}
+                >
+                  {mostrarConfirmarSenha ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                </button>
+              </div>
             </div>
 
           </div>
