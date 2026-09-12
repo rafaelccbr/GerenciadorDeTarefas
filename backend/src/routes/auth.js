@@ -1,6 +1,8 @@
 import { supabase, supabaseAdmin } from '../lib/supabase.js';
 import { autenticar } from '../middlewares/autenticar.js';
 
+const FRONTEND_URL = process.env.FRONTEND_URL || 'https://gerenciador-de-tarefas-flame.vercel.app';
+
 /**
  * Validação de requisitos de segurança para senha forte:
  * - Mínimo de 8 caracteres
@@ -58,9 +60,6 @@ export async function authRoutes(fastify) {
                 detalhes: 'Por favor, informe nome, email e senha.' 
             });
         }
-
-const FRONTEND_URL = process.env.FRONTEND_URL || 'https://gerenciador-de-tarefas-flame.vercel.app';
-
         // Validação de requisitos de senha forte
         const erroSenha = validarRequisitosSenha(senha);
         if (erroSenha) {
