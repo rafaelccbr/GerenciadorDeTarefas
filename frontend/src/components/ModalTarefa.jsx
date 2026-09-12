@@ -71,9 +71,9 @@ export function ModalTarefa({ tarefaParaEditar, aoSalvar, aoFechar }) {
       {/* Container do Modal com Leve Transparência e Bordas Suaves */}
       <div className="relative w-full max-w-lg bg-white/95 backdrop-blur-xl border border-white/60 rounded-3xl overflow-hidden shadow-[0_20px_60px_rgba(0,0,0,0.35)] animate-fade-in text-gray-800">
         
-        {/* Cabeçalho Ciano/Azul (conforme Figma) */}
-        <div className="bg-[#00b4d8] py-4 px-6 text-center">
-          <h2 className="text-xl sm:text-2xl font-bold text-gray-900 tracking-wide">
+        {/* Cabeçalho com Degradê Violeta Profundo */}
+        <div className="bg-gradient-to-r from-purple-800 via-[#3b075e] to-purple-900 py-4 px-6 text-center shadow-md">
+          <h2 className="text-xl sm:text-2xl font-bold text-white tracking-wide drop-shadow-sm">
             {tarefaParaEditar ? 'Editar Tarefa' : 'Cadastro de Tarefa'}
           </h2>
         </div>
@@ -98,7 +98,7 @@ export function ModalTarefa({ tarefaParaEditar, aoSalvar, aoFechar }) {
               value={nome}
               onChange={(e) => setNome(e.target.value)}
               placeholder="Ex: Reunião com a equipe"
-              className="w-full px-5 py-3 border-2 border-[#1e88e5] rounded-2xl focus:outline-none focus:ring-2 focus:ring-[#00b4d8] transition-all text-base text-gray-800 placeholder-gray-400"
+              className="w-full px-5 py-3 border border-purple-300/60 rounded-2xl focus:outline-none focus:ring-4 focus:ring-purple-400/40 focus:border-purple-500 transition-all text-base text-gray-800 placeholder-gray-400 shadow-sm"
               required
             />
           </div>
@@ -114,7 +114,7 @@ export function ModalTarefa({ tarefaParaEditar, aoSalvar, aoFechar }) {
               <select
                 value={status}
                 onChange={(e) => setStatus(e.target.value)}
-                className="w-full px-4 py-2.5 bg-gray-200 hover:bg-gray-300 border border-gray-300 rounded-full font-medium text-gray-800 focus:outline-none focus:ring-2 focus:ring-[#00b4d8] transition-all cursor-pointer"
+                className="w-full px-4 py-2.5 bg-gray-100 hover:bg-gray-200 border border-purple-300/50 rounded-full font-medium text-gray-800 focus:outline-none focus:ring-4 focus:ring-purple-400/30 focus:border-purple-400 transition-all cursor-pointer"
               >
                 <option value="pendente">Pendente</option>
                 <option value="em_andamento">Em andamento</option>
@@ -131,7 +131,7 @@ export function ModalTarefa({ tarefaParaEditar, aoSalvar, aoFechar }) {
                 type="date"
                 value={dataCome}
                 onChange={(e) => setDataCome(e.target.value)}
-                className="w-full px-3 py-2 border-2 border-[#1e88e5] rounded-full text-sm text-gray-800 focus:outline-none focus:ring-2 focus:ring-[#00b4d8] transition-all"
+                className="w-full px-3 py-2 border border-purple-300/60 rounded-full text-sm text-gray-800 focus:outline-none focus:ring-4 focus:ring-purple-400/30 focus:border-purple-400 transition-all shadow-sm"
                 required
               />
             </div>
@@ -145,7 +145,7 @@ export function ModalTarefa({ tarefaParaEditar, aoSalvar, aoFechar }) {
                 type="date"
                 value={dataTermi}
                 onChange={(e) => setDataTermi(e.target.value)}
-                className="w-full px-3 py-2 border-2 border-[#1e88e5] rounded-full text-sm text-gray-800 focus:outline-none focus:ring-2 focus:ring-[#00b4d8] transition-all"
+                className="w-full px-3 py-2 border border-purple-300/60 rounded-full text-sm text-gray-800 focus:outline-none focus:ring-4 focus:ring-purple-400/30 focus:border-purple-400 transition-all shadow-sm"
                 required
               />
             </div>
@@ -155,20 +155,20 @@ export function ModalTarefa({ tarefaParaEditar, aoSalvar, aoFechar }) {
           {/* Botões de Ação (Salvar e Cancelar) */}
           <div className="flex justify-center items-center gap-4 pt-4">
             
-            {/* Botão Salvar (Verde claro conforme Figma) */}
+            {/* Botão Salvar */}
             <button
               type="submit"
               disabled={salvando}
-              className="px-8 py-2.5 bg-[#bbf7d0] hover:bg-[#86efac] active:scale-95 text-gray-900 font-semibold rounded-full shadow-md transition-all cursor-pointer disabled:opacity-50"
+              className="px-8 py-2.5 bg-emerald-200 hover:bg-emerald-300 active:scale-95 text-emerald-950 font-bold rounded-full shadow-md hover:shadow-lg transition-all cursor-pointer disabled:opacity-50 border border-emerald-300"
             >
               {salvando ? 'Salvando...' : 'Salvar'}
             </button>
 
-            {/* Botão Cancelar (Coral/Salmão conforme Figma) */}
+            {/* Botão Cancelar */}
             <button
               type="button"
               onClick={aoFechar}
-              className="px-8 py-2.5 bg-[#fca5a5] hover:bg-[#f87171] active:scale-95 text-gray-900 font-semibold rounded-full shadow-md transition-all cursor-pointer"
+              className="px-8 py-2.5 bg-rose-200 hover:bg-rose-300 active:scale-95 text-rose-950 font-bold rounded-full shadow-md hover:shadow-lg transition-all cursor-pointer border border-rose-300"
             >
               Cancelar
             </button>

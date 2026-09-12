@@ -81,8 +81,18 @@ export function ModalGerenciarConta({ usuario, aoAtualizarUsuario, aoExcluirCont
     setErro('');
     setMensagemSucesso('');
 
-    if (novaSenha.length < 6) {
-      setErro('A nova senha deve ter no mínimo 6 caracteres.');
+    if (novaSenha.length < 8) {
+      setErro('A nova senha deve ter no mínimo 8 caracteres.');
+      return;
+    }
+
+    if (!/[A-Z]/.test(novaSenha)) {
+      setErro('A nova senha deve conter pelo menos uma letra maiúscula.');
+      return;
+    }
+
+    if (!/[!@#$%^&*()_+\-=[\]{}|;:,.<>?~`\\/'"]/.test(novaSenha)) {
+      setErro('A nova senha deve conter pelo menos um caractere especial (ex: !@#$%&*).');
       return;
     }
 
@@ -162,7 +172,7 @@ export function ModalGerenciarConta({ usuario, aoAtualizarUsuario, aoExcluirCont
             onClick={() => trocarAba('perfil')}
             className={`flex-1 py-2 px-3 text-xs sm:text-sm font-semibold rounded-full transition-all cursor-pointer ${
               abaAtiva === 'perfil'
-                ? 'bg-[#00b4d8] text-gray-900 shadow-md'
+                ? 'bg-purple-600 text-white shadow-[0_0_15px_rgba(168,85,247,0.4)]'
                 : 'text-purple-200 hover:text-white hover:bg-white/10'
             }`}
           >
@@ -174,7 +184,7 @@ export function ModalGerenciarConta({ usuario, aoAtualizarUsuario, aoExcluirCont
             onClick={() => trocarAba('senha')}
             className={`flex-1 py-2 px-3 text-xs sm:text-sm font-semibold rounded-full transition-all cursor-pointer ${
               abaAtiva === 'senha'
-                ? 'bg-[#00b4d8] text-gray-900 shadow-md'
+                ? 'bg-purple-600 text-white shadow-[0_0_15px_rgba(168,85,247,0.4)]'
                 : 'text-purple-200 hover:text-white hover:bg-white/10'
             }`}
           >
@@ -276,10 +286,13 @@ export function ModalGerenciarConta({ usuario, aoAtualizarUsuario, aoExcluirCont
                 type="password"
                 value={novaSenha}
                 onChange={(e) => setNovaSenha(e.target.value)}
-                placeholder="Mínimo 6 caracteres"
+                placeholder="Mínimo 8 caracteres"
                 className="w-full px-5 py-3 bg-[#d9d9d9]/95 hover:bg-white focus:bg-white text-gray-900 rounded-2xl text-left focus:outline-none focus:ring-4 focus:ring-purple-400/50 shadow-md placeholder-gray-500 transition-all font-medium border border-white/30 focus:border-purple-400"
                 required
               />
+              <p className="text-xs text-purple-200/70 mt-1.5 text-left pl-1">
+                * Mínimo 8 caracteres, com pelo menos 1 letra maiúscula e 1 caractere especial.
+              </p>
             </div>
 
             <div>

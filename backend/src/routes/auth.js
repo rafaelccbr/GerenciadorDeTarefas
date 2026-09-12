@@ -2,6 +2,25 @@ import { supabase, supabaseAdmin } from '../lib/supabase.js';
 import { autenticar } from '../middlewares/autenticar.js';
 
 /**
+ * Validação de requisitos de segurança para senha forte:
+ * - Mínimo de 8 caracteres
+ * - Pelo menos 1 letra maiúscula
+ * - Pelo menos 1 caractere especial
+ */
+function validarRequisitosSenha(senha) {
+    if (!senha || senha.length < 8) {
+        return 'A senha deve ter no mínimo 8 caracteres.';
+    }
+    if (!/[A-Z]/.test(senha)) {
+        return 'A senha deve conter pelo menos uma letra maiúscula.';
+    }
+    if (!/[!@#$%^&*()_+\-=[\]{}|;:,.<>?~`\\/'"]/.test(senha)) {
+        return 'A senha deve conter pelo menos um caractere especial (ex: !@#$%&*).';
+    }
+    return null;
+}
+
+/**
  * ============================================================================
  * ROTAS DE AUTENTICAÇÃO (Fastify Plugin)
  * ============================================================================
@@ -18,7 +37,7 @@ export async function authRoutes(fastify) {
      * Corpo da requisição (request.body):
      * - nome: string (salvo nos metadados do usuário)
      * - email: string
-     * - senha: string (mínimo 6 caracteres pelo padrão do Supabase)
+     * - senha: string (mínimo 8 caracteres, com maiúscula e caractere especial)
      * 
      * Retornos HTTP:
      * - 201 Created: Usuário criado com sucesso
@@ -33,6 +52,15 @@ export async function authRoutes(fastify) {
             return reply.code(400).send({ 
                 erro: 'Campos obrigatórios ausentes',
                 detalhes: 'Por favor, informe nome, email e senha.' 
+            });
+        }
+
+        // Validação de requisitos de senha forte
+        const erroSenha = validarRequisitosSenha(senha);
+        if (erroSenha) {
+            return reply.code(400).send({
+                erro: 'Senha fraca',
+                detalhes: erroSenha
             });
         }
 
@@ -180,11 +208,14 @@ export async function authRoutes(fastify) {
             });
         }
 
-        if (senha && senha.length < 6) {
-            return reply.code(400).send({
-                erro: 'Senha fraca',
-                detalhes: 'A nova senha deve possuir no mínimo 6 caracteres.'
-            });
+        if (senha) {
+            const erroSenha = validarRequisitosSenha(senha);
+            if (erroSenha) {
+                return reply.code(400).send({
+                    erro: 'Senha fraca',
+                    detalhes: erroSenha
+                });
+            }
         }
 
         // Se tivermos a chave administrativa (SUPABASE_SERVICE_ROLE_KEY), atualizamos via admin

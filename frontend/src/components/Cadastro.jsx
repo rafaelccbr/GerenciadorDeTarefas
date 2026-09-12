@@ -33,8 +33,18 @@ export function Cadastro({ aoVoltarParaLogin, aoAbrirTermos, aoCadastroSucesso }
       return;
     }
 
-    if (senha.length < 6) {
-      setErro('A senha deve possuir no mínimo 6 caracteres.');
+    if (senha.length < 8) {
+      setErro('A senha deve possuir no mínimo 8 caracteres.');
+      return;
+    }
+
+    if (!/[A-Z]/.test(senha)) {
+      setErro('A senha deve conter pelo menos uma letra maiúscula.');
+      return;
+    }
+
+    if (!/[!@#$%^&*()_+\-=[\]{}|;:,.<>?~`\\/'"]/.test(senha)) {
+      setErro('A senha deve conter pelo menos um caractere especial (ex: !@#$%&*).');
       return;
     }
 
@@ -163,6 +173,22 @@ export function Cadastro({ aoVoltarParaLogin, aoAbrirTermos, aoCadastroSucesso }
 
           </div>
 
+          {/* Indicadores Visuais de Requisitos da Senha */}
+          <div className="text-xs text-purple-200/80 space-y-1.5 bg-white/5 border border-white/10 rounded-2xl p-3 text-left">
+            <p className="font-semibold text-purple-100 text-xs mb-1">Requisitos de segurança:</p>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+              <span className={`flex items-center gap-1.5 ${senha.length >= 8 ? 'text-green-400 font-semibold' : 'text-purple-300/70'}`}>
+                {senha.length >= 8 ? '✓' : '○'} Mínimo 8 caracteres
+              </span>
+              <span className={`flex items-center gap-1.5 ${/[A-Z]/.test(senha) ? 'text-green-400 font-semibold' : 'text-purple-300/70'}`}>
+                {/[A-Z]/.test(senha) ? '✓' : '○'} 1 Letra maiúscula
+              </span>
+              <span className={`flex items-center gap-1.5 ${/[!@#$%^&*()_+\-=[\]{}|;:,.<>?~`\\/'"]/.test(senha) ? 'text-green-400 font-semibold' : 'text-purple-300/70'}`}>
+                {/[!@#$%^&*()_+\-=[\]{}|;:,.<>?~`\\/'"]/.test(senha) ? '✓' : '○'} 1 Caractere especial
+              </span>
+            </div>
+          </div>
+
           {/* Checkbox Termos de Uso */}
           <div className="flex items-center gap-3 pt-2">
             <input
@@ -170,7 +196,7 @@ export function Cadastro({ aoVoltarParaLogin, aoAbrirTermos, aoCadastroSucesso }
               id="termos"
               checked={aceitouTermos}
               onChange={(e) => setAceitouTermos(e.target.checked)}
-              className="w-5 h-5 accent-[#0d47a1] rounded cursor-pointer"
+              className="w-5 h-5 accent-purple-600 rounded cursor-pointer"
             />
             <label htmlFor="termos" className="text-xs sm:text-sm text-purple-100 select-none cursor-pointer">
               Li e concordo com os{' '}

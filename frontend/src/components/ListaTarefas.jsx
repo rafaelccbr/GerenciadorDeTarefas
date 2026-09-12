@@ -267,7 +267,7 @@ export function ListaTarefas({ usuario, aoDeslogar, aoAbrirConta }) {
                             tarefa.status === 'concluido'
                               ? 'bg-green-100 text-green-800 border border-green-300'
                               : tarefa.status === 'em_andamento'
-                              ? 'bg-blue-100 text-blue-800 border border-blue-300'
+                              ? 'bg-purple-100 text-purple-800 border border-purple-300'
                               : 'bg-gray-200 text-gray-700 hover:bg-gray-300 border border-gray-300'
                           }`}
                         >
@@ -283,7 +283,7 @@ export function ListaTarefas({ usuario, aoDeslogar, aoAbrirConta }) {
                             type="button"
                             onClick={() => handleEditar(tarefa)}
                             title="Editar tarefa"
-                            className="p-1.5 text-gray-700 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors cursor-pointer"
+                            className="p-1.5 text-gray-700 hover:text-purple-600 hover:bg-purple-50 rounded-lg transition-colors cursor-pointer"
                           >
                             <SquarePen className="w-5 h-5" />
                           </button>
