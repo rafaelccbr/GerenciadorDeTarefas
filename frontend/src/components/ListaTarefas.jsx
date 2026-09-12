@@ -153,21 +153,21 @@ export function ListaTarefas({ usuario, aoDeslogar, aoAbrirConta }) {
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 w-full">
           
           <div className="flex items-center gap-3">
-            {/* Botão Sair (Coral/Salmão com ícone e leve transparência) */}
+            {/* Botão Sair (Vidro Translúcido com Brilho Ruby Suave) */}
             <button
               onClick={aoDeslogar}
-              className="flex items-center gap-2 px-6 py-2.5 bg-[#fca5a5]/90 hover:bg-[#f87171] border border-red-200/50 backdrop-blur-sm text-gray-900 font-bold rounded-full shadow-md transition-all active:scale-95 cursor-pointer"
+              className="flex items-center gap-2 px-6 py-2.5 bg-red-500/15 hover:bg-red-500/25 border border-red-400/30 hover:border-red-400/50 backdrop-blur-md text-red-100 hover:text-white font-bold rounded-full shadow-[0_4px_15px_rgba(239,68,68,0.15)] hover:shadow-[0_4px_20px_rgba(239,68,68,0.3)] transition-all duration-300 active:scale-95 cursor-pointer group"
             >
-              <LogOut className="w-4 h-4 text-red-700" />
+              <LogOut className="w-4 h-4 text-red-300 group-hover:text-red-100 transition-colors" />
               Sair
             </button>
 
-            {/* Botão Cadastrar (Verde claro com ícone e leve transparência) */}
+            {/* Botão Cadastrar (Vidro Translúcido com Brilho Esmeralda) */}
             <button
               onClick={handleNovoCadastro}
-              className="flex items-center gap-2 px-6 py-2.5 bg-[#bbf7d0]/90 hover:bg-[#86efac] border border-green-200/50 backdrop-blur-sm text-gray-900 font-bold rounded-full shadow-md transition-all active:scale-95 cursor-pointer"
+              className="flex items-center gap-2 px-6 py-2.5 bg-emerald-500/20 hover:bg-emerald-500/30 border border-emerald-400/40 hover:border-emerald-300/60 backdrop-blur-md text-emerald-100 hover:text-white font-bold rounded-full shadow-[0_4px_15px_rgba(16,185,129,0.2),inset_0_1px_1px_rgba(255,255,255,0.25)] hover:shadow-[0_6px_25px_rgba(16,185,129,0.35),inset_0_1px_2px_rgba(255,255,255,0.4)] transition-all duration-300 active:scale-95 cursor-pointer group"
             >
-              <PlusCircle className="w-4 h-4 text-green-700" />
+              <PlusCircle className="w-4 h-4 text-emerald-300 group-hover:text-emerald-100 transition-colors" />
               Cadastrar
             </button>
           </div>
@@ -214,7 +214,7 @@ export function ListaTarefas({ usuario, aoDeslogar, aoAbrirConta }) {
               </p>
               <button
                 onClick={handleNovoCadastro}
-                className="px-6 py-2.5 bg-[#bbf7d0] hover:bg-[#86efac] text-gray-900 font-bold rounded-full shadow transition-all"
+                className="px-6 py-2.5 bg-emerald-600 hover:bg-emerald-500 active:scale-95 text-white font-bold rounded-full shadow-lg shadow-emerald-600/30 transition-all cursor-pointer"
               >
                 Criar primeira tarefa
               </button>

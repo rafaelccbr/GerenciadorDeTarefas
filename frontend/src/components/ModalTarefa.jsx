@@ -159,7 +159,7 @@ export function ModalTarefa({ tarefaParaEditar, aoSalvar, aoFechar }) {
             <button
               type="submit"
               disabled={salvando}
-              className="px-8 py-2.5 bg-emerald-200 hover:bg-emerald-300 active:scale-95 text-emerald-950 font-bold rounded-full shadow-md hover:shadow-lg transition-all cursor-pointer disabled:opacity-50 border border-emerald-300"
+              className="px-8 py-2.5 bg-emerald-600 hover:bg-emerald-500 active:scale-95 text-white font-bold rounded-full shadow-[0_4px_15px_rgba(16,185,129,0.35)] hover:shadow-[0_6px_20px_rgba(16,185,129,0.5)] transition-all cursor-pointer disabled:opacity-50"
             >
               {salvando ? 'Salvando...' : 'Salvar'}
             </button>
@@ -168,7 +168,7 @@ export function ModalTarefa({ tarefaParaEditar, aoSalvar, aoFechar }) {
             <button
               type="button"
               onClick={aoFechar}
-              className="px-8 py-2.5 bg-rose-200 hover:bg-rose-300 active:scale-95 text-rose-950 font-bold rounded-full shadow-md hover:shadow-lg transition-all cursor-pointer border border-rose-300"
+              className="px-8 py-2.5 bg-rose-50 hover:bg-rose-100 active:scale-95 text-rose-700 hover:text-rose-800 font-bold rounded-full border border-rose-200/80 shadow-sm transition-all cursor-pointer"
             >
               Cancelar
             </button>
