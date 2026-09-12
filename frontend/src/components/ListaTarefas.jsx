@@ -153,21 +153,21 @@ export function ListaTarefas({ usuario, aoDeslogar, aoAbrirConta }) {
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 w-full">
           
           <div className="flex items-center gap-3">
-            {/* Botão Sair (Vidro Translúcido com Brilho Ruby Suave) */}
+            {/* Botão Sair (Vidro Semi-Translúcido Ruby com Alta Nitidez) */}
             <button
               onClick={aoDeslogar}
-              className="flex items-center gap-2 px-6 py-2.5 bg-red-500/15 hover:bg-red-500/25 border border-red-400/30 hover:border-red-400/50 backdrop-blur-md text-red-100 hover:text-white font-bold rounded-full shadow-[0_4px_15px_rgba(239,68,68,0.15)] hover:shadow-[0_4px_20px_rgba(239,68,68,0.3)] transition-all duration-300 active:scale-95 cursor-pointer group"
+              className="flex items-center gap-2 px-6 py-2.5 bg-rose-500/40 hover:bg-rose-500/55 border border-rose-400/50 hover:border-rose-300/70 backdrop-blur-md text-white font-bold rounded-full shadow-[0_4px_15px_rgba(244,63,94,0.25)] hover:shadow-[0_6px_20px_rgba(244,63,94,0.4)] transition-all duration-300 active:scale-95 cursor-pointer group"
             >
-              <LogOut className="w-4 h-4 text-red-300 group-hover:text-red-100 transition-colors" />
+              <LogOut className="w-4 h-4 text-rose-200 group-hover:text-white transition-colors" />
               Sair
             </button>
 
-            {/* Botão Cadastrar (Vidro Translúcido com Brilho Esmeralda) */}
+            {/* Botão Cadastrar (Vidro Semi-Translúcido Esmeralda com Alta Nitidez) */}
             <button
               onClick={handleNovoCadastro}
-              className="flex items-center gap-2 px-6 py-2.5 bg-emerald-500/20 hover:bg-emerald-500/30 border border-emerald-400/40 hover:border-emerald-300/60 backdrop-blur-md text-emerald-100 hover:text-white font-bold rounded-full shadow-[0_4px_15px_rgba(16,185,129,0.2),inset_0_1px_1px_rgba(255,255,255,0.25)] hover:shadow-[0_6px_25px_rgba(16,185,129,0.35),inset_0_1px_2px_rgba(255,255,255,0.4)] transition-all duration-300 active:scale-95 cursor-pointer group"
+              className="flex items-center gap-2 px-6 py-2.5 bg-emerald-500/40 hover:bg-emerald-500/55 border border-emerald-300/60 hover:border-emerald-200/80 backdrop-blur-md text-white font-bold rounded-full shadow-[0_4px_15px_rgba(16,185,129,0.3),inset_0_1px_1px_rgba(255,255,255,0.3)] hover:shadow-[0_6px_25px_rgba(16,185,129,0.45),inset_0_1px_2px_rgba(255,255,255,0.5)] transition-all duration-300 active:scale-95 cursor-pointer group"
             >
-              <PlusCircle className="w-4 h-4 text-emerald-300 group-hover:text-emerald-100 transition-colors" />
+              <PlusCircle className="w-4 h-4 text-emerald-100 group-hover:text-white transition-colors" />
               Cadastrar
             </button>
           </div>
