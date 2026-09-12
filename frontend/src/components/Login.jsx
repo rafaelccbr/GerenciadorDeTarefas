@@ -47,17 +47,17 @@ export function Login({ aoIrParaCadastro, aoLogarComSucesso, aoEsqueceuSenha }) 
   };
 
   return (
-    <div className="min-h-screen w-full flex flex-col items-center justify-center px-4 py-8 bg-figma-gradient text-white">
+    <div className="min-h-screen min-h-dvh w-full flex flex-col items-center justify-center px-4 py-6 sm:py-10 bg-figma-gradient text-white">
       {/* Card Estilizado de Login com Glassmorphism Translúcido e Borda com Brilho */}
-      <div className="w-full max-w-md bg-gradient-to-b from-white/[0.13] via-[#2f0440]/60 to-[#1c0228]/80 backdrop-blur-2xl border border-white/25 rounded-3xl p-8 sm:p-10 shadow-[0_25px_60px_-15px_rgba(0,0,0,0.65),0_0_45px_rgba(168,85,247,0.18),inset_0_1px_1px_rgba(255,255,255,0.3)] flex flex-col items-center text-center transition-all animate-fade-in">
+      <div className="w-full max-w-md bg-gradient-to-b from-white/[0.13] via-[#2f0440]/60 to-[#1c0228]/80 backdrop-blur-2xl border border-white/25 rounded-2xl sm:rounded-3xl p-6 sm:p-10 shadow-[0_25px_60px_-15px_rgba(0,0,0,0.65),0_0_45px_rgba(168,85,247,0.18),inset_0_1px_1px_rgba(255,255,255,0.3)] flex flex-col items-center text-center transition-all animate-fade-in my-auto">
         
         {/* Título Principal */}
-        <h1 className="text-4xl sm:text-5xl font-bold mb-2 tracking-wide text-white drop-shadow-sm">
+        <h1 className="text-3xl sm:text-5xl font-bold mb-2 tracking-wide text-white drop-shadow-sm">
           Login
         </h1>
 
         {/* Subtítulo de Boas-vindas */}
-        <p className="text-base sm:text-lg text-purple-200/90 mb-8 font-normal">
+        <p className="text-sm sm:text-lg text-purple-200/90 mb-6 sm:mb-8 font-normal">
           Seja Bem Vindo de Volta!
         </p>
 

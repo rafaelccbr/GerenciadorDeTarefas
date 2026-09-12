@@ -149,25 +149,25 @@ export function ListaTarefas({ usuario, aoDeslogar, aoAbrirConta }) {
       {/* Container Principal */}
       <div className="w-full max-w-6xl flex flex-col space-y-4">
         
-        {/* Barra Superior de Ações conforme Figma */}
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 w-full">
+        {/* Barra Superior de Ações com Auto-Encaixe Responsivo */}
+        <div className="flex items-center justify-between gap-2.5 sm:gap-3 w-full flex-wrap">
           
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 sm:gap-3">
             {/* Botão Sair (Vidro Semi-Translúcido Ruby com Alta Nitidez) */}
             <button
               onClick={aoDeslogar}
-              className="flex items-center gap-2 px-6 py-2.5 bg-rose-500/40 hover:bg-rose-500/55 border border-rose-400/50 hover:border-rose-300/70 backdrop-blur-md text-white font-bold rounded-full shadow-[0_4px_15px_rgba(244,63,94,0.25)] hover:shadow-[0_6px_20px_rgba(244,63,94,0.4)] transition-all duration-300 active:scale-95 cursor-pointer group"
+              className="flex items-center gap-1.5 sm:gap-2 px-3.5 sm:px-6 py-2 sm:py-2.5 bg-rose-500/40 hover:bg-rose-500/55 border border-rose-400/50 hover:border-rose-300/70 backdrop-blur-md text-white font-bold rounded-full shadow-[0_4px_15px_rgba(244,63,94,0.25)] hover:shadow-[0_6px_20px_rgba(244,63,94,0.4)] transition-all duration-300 active:scale-95 cursor-pointer group text-xs sm:text-sm"
             >
-              <LogOut className="w-4 h-4 text-rose-200 group-hover:text-white transition-colors" />
+              <LogOut className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-rose-200 group-hover:text-white transition-colors" />
               Sair
             </button>
 
             {/* Botão Cadastrar (Vidro Semi-Translúcido Esmeralda com Alta Nitidez) */}
             <button
               onClick={handleNovoCadastro}
-              className="flex items-center gap-2 px-6 py-2.5 bg-emerald-500/40 hover:bg-emerald-500/55 border border-emerald-300/60 hover:border-emerald-200/80 backdrop-blur-md text-white font-bold rounded-full shadow-[0_4px_15px_rgba(16,185,129,0.3),inset_0_1px_1px_rgba(255,255,255,0.3)] hover:shadow-[0_6px_25px_rgba(16,185,129,0.45),inset_0_1px_2px_rgba(255,255,255,0.5)] transition-all duration-300 active:scale-95 cursor-pointer group"
+              className="flex items-center gap-1.5 sm:gap-2 px-3.5 sm:px-6 py-2 sm:py-2.5 bg-emerald-500/40 hover:bg-emerald-500/55 border border-emerald-300/60 hover:border-emerald-200/80 backdrop-blur-md text-white font-bold rounded-full shadow-[0_4px_15px_rgba(16,185,129,0.3),inset_0_1px_1px_rgba(255,255,255,0.3)] hover:shadow-[0_6px_25px_rgba(16,185,129,0.45),inset_0_1px_2px_rgba(255,255,255,0.5)] transition-all duration-300 active:scale-95 cursor-pointer group text-xs sm:text-sm"
             >
-              <PlusCircle className="w-4 h-4 text-emerald-100 group-hover:text-white transition-colors" />
+              <PlusCircle className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-emerald-100 group-hover:text-white transition-colors" />
               Cadastrar
             </button>
           </div>
@@ -177,20 +177,20 @@ export function ListaTarefas({ usuario, aoDeslogar, aoAbrirConta }) {
             <button
               type="button"
               onClick={aoAbrirConta}
-              className="flex items-center gap-2 px-4 py-2 bg-white/10 hover:bg-white/20 border border-white/20 hover:border-white/40 text-purple-200 hover:text-white rounded-full backdrop-blur-md shadow-md transition-all active:scale-95 cursor-pointer group self-end sm:self-auto"
+              className="flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-1.5 sm:py-2 bg-white/10 hover:bg-white/20 border border-white/20 hover:border-white/40 text-purple-200 hover:text-white rounded-full backdrop-blur-md shadow-md transition-all active:scale-95 cursor-pointer group text-xs sm:text-sm"
               title="Clique para gerenciar sua conta"
             >
-              <span className="text-sm font-medium">
+              <span className="font-medium truncate max-w-[140px] sm:max-w-none">
                 Olá, <strong className="text-white font-bold">{usuario.nome}</strong>
               </span>
-              <Settings className="w-4 h-4 text-purple-200 group-hover:text-white group-hover:rotate-45 transition-transform duration-300" />
+              <Settings className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-purple-200 group-hover:text-white group-hover:rotate-45 transition-transform duration-300 shrink-0" />
             </button>
           )}
 
         </div>
 
         {/* Card Branco Central com Efeito Glassmorphism e Sombra Suave (Figma 'Lista de Tarefas.png') */}
-        <div className="w-full bg-white/95 backdrop-blur-xl border border-white/60 rounded-3xl shadow-[0_16px_50px_rgba(0,0,0,0.25)] p-6 sm:p-8 min-h-[520px] flex flex-col">
+        <div className="w-full bg-white/95 backdrop-blur-xl border border-white/60 rounded-2xl sm:rounded-3xl shadow-[0_16px_50px_rgba(0,0,0,0.25)] p-4 sm:p-6 md:p-8 min-h-[480px] sm:min-h-[520px] flex flex-col">
           
           {/* Mensagem de Erro, se houver */}
           {erro && (
@@ -203,109 +203,174 @@ export function ListaTarefas({ usuario, aoDeslogar, aoAbrirConta }) {
           {carregando ? (
             <div className="flex-1 flex flex-col items-center justify-center py-20 text-gray-500">
               <div className="w-10 h-10 border-4 border-purple-600 border-t-transparent rounded-full animate-spin mb-4"></div>
-              <p className="font-medium">Carregando suas tarefas...</p>
+              <p className="font-medium text-sm sm:text-base">Carregando suas tarefas...</p>
             </div>
           ) : tarefas.length === 0 ? (
             /* Estado Vazio */
-            <div className="flex-1 flex flex-col items-center justify-center py-20 text-gray-400 text-center">
-              <p className="text-xl font-semibold mb-2 text-gray-600">Nenhuma tarefa encontrada</p>
-              <p className="text-sm max-w-sm mb-6">
+            <div className="flex-1 flex flex-col items-center justify-center py-16 sm:py-20 text-gray-400 text-center px-4">
+              <p className="text-lg sm:text-xl font-semibold mb-2 text-gray-600">Nenhuma tarefa encontrada</p>
+              <p className="text-xs sm:text-sm max-w-sm mb-6">
                 Você ainda não tem tarefas cadastradas. Clique no botão verde "Cadastrar" acima para começar!
               </p>
               <button
                 onClick={handleNovoCadastro}
-                className="px-6 py-2.5 bg-emerald-600 hover:bg-emerald-500 active:scale-95 text-white font-bold rounded-full shadow-lg shadow-emerald-600/30 transition-all cursor-pointer"
+                className="px-6 py-2.5 bg-emerald-600 hover:bg-emerald-500 active:scale-95 text-white font-bold rounded-full shadow-lg shadow-emerald-600/30 transition-all cursor-pointer text-sm"
               >
                 Criar primeira tarefa
               </button>
             </div>
           ) : (
-            /* Tabela de Tarefas */
-            <div className="overflow-x-auto w-full">
-              <table className="w-full text-left border-collapse">
-                
-                {/* Cabeçalho da Tabela */}
-                <thead>
-                  <tr className="border-b border-gray-200 text-gray-900 text-base sm:text-lg font-bold">
-                    <th className="py-4 px-4 font-bold">Tarefa</th>
-                    <th className="py-4 px-4 font-bold text-center sm:text-left">Começa</th>
-                    <th className="py-4 px-4 font-bold text-center sm:text-left">Termina</th>
-                    <th className="py-4 px-4 font-bold text-center">Status</th>
-                    <th className="py-4 px-4 font-bold text-right pr-6">Ações</th>
-                  </tr>
-                </thead>
-
-                {/* Corpo da Tabela */}
-                <tbody className="divide-y divide-gray-200">
-                  {tarefas.map((tarefa) => (
-                    <tr 
-                      key={tarefa.id} 
-                      className="hover:bg-purple-50/40 transition-colors text-gray-800 text-sm sm:text-base"
-                    >
-                      {/* Coluna: Nome/Título */}
-                      <td className="py-4 px-4 font-medium max-w-xs sm:max-w-md break-words">
+            <>
+              {/* Visualização em Cards para Smartphones (< md) */}
+              <div className="block md:hidden space-y-3 w-full">
+                {tarefas.map((tarefa) => (
+                  <div 
+                    key={`card-${tarefa.id}`}
+                    className="bg-purple-50/50 hover:bg-purple-50/80 border border-purple-100/80 rounded-2xl p-4 shadow-sm transition-all text-left flex flex-col justify-between gap-3"
+                  >
+                    {/* Topo do Card: Nome e Status */}
+                    <div className="flex items-start justify-between gap-2">
+                      <h3 className="font-bold text-gray-900 text-base leading-snug break-words flex-1">
                         {tarefa.nome}
-                      </td>
+                      </h3>
+                      <button
+                        type="button"
+                        onClick={() => alternarProximoStatus(tarefa)}
+                        title="Clique para alternar o status"
+                        className={`shrink-0 inline-flex items-center justify-center px-3 py-1 rounded-full font-semibold text-xs cursor-pointer transition-all shadow-sm active:scale-95 ${
+                          tarefa.status === 'concluido'
+                            ? 'bg-green-100 text-green-800 border border-green-300'
+                            : tarefa.status === 'em_andamento'
+                            ? 'bg-purple-100 text-purple-800 border border-purple-300'
+                            : 'bg-gray-200 text-gray-700 hover:bg-gray-300 border border-gray-300'
+                        }`}
+                      >
+                        {rotuloStatus[tarefa.status] || tarefa.status}
+                      </button>
+                    </div>
 
-                      {/* Coluna: Data de Início */}
-                      <td className="py-4 px-4 text-gray-600 whitespace-nowrap text-center sm:text-left">
-                        {formatarData(tarefa.data_come)}
-                      </td>
+                    {/* Meio: Datas de Início e Término */}
+                    <div className="flex items-center justify-between text-xs text-gray-500 pt-2 border-t border-purple-100/60">
+                      <div>
+                        <span className="text-gray-400">Início: </span>
+                        <span className="font-semibold text-gray-700">{formatarData(tarefa.data_come)}</span>
+                      </div>
+                      <div>
+                        <span className="text-gray-400">Término: </span>
+                        <span className="font-semibold text-gray-700">{formatarData(tarefa.data_termi)}</span>
+                      </div>
+                    </div>
 
-                      {/* Coluna: Data de Término */}
-                      <td className="py-4 px-4 text-gray-600 whitespace-nowrap text-center sm:text-left">
-                        {formatarData(tarefa.data_termi)}
-                      </td>
+                    {/* Rodapé: Ações Editar e Excluir com touch targets confortáveis */}
+                    <div className="flex items-center justify-end gap-2 pt-2 border-t border-purple-100/60">
+                      <button
+                        type="button"
+                        onClick={() => handleEditar(tarefa)}
+                        className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-purple-700 hover:bg-purple-100/80 bg-purple-100/40 rounded-xl transition-colors cursor-pointer active:scale-95"
+                      >
+                        <SquarePen className="w-3.5 h-3.5" />
+                        Editar
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => handleExcluir(tarefa.id, tarefa.nome)}
+                        className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-rose-700 hover:bg-rose-100/80 bg-rose-100/40 rounded-xl transition-colors cursor-pointer active:scale-95"
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                        Excluir
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
 
-                      {/* Coluna: Status (Pill clicável para alternar) */}
-                      <td className="py-4 px-4 text-center">
-                        <button
-                          type="button"
-                          onClick={() => alternarProximoStatus(tarefa)}
-                          title="Clique para alternar o status"
-                          className={`inline-flex items-center justify-center px-4 py-1.5 rounded-full font-medium text-xs sm:text-sm cursor-pointer transition-all shadow-sm active:scale-95 ${
-                            tarefa.status === 'concluido'
-                              ? 'bg-green-100 text-green-800 border border-green-300'
-                              : tarefa.status === 'em_andamento'
-                              ? 'bg-purple-100 text-purple-800 border border-purple-300'
-                              : 'bg-gray-200 text-gray-700 hover:bg-gray-300 border border-gray-300'
-                          }`}
-                        >
-                          {rotuloStatus[tarefa.status] || tarefa.status}
-                        </button>
-                      </td>
-
-                      {/* Coluna: Ações (Editar e Excluir) */}
-                      <td className="py-4 px-4 text-right pr-4 whitespace-nowrap">
-                        <div className="flex items-center justify-end gap-3">
-                          {/* Botão Editar */}
-                          <button
-                            type="button"
-                            onClick={() => handleEditar(tarefa)}
-                            title="Editar tarefa"
-                            className="p-1.5 text-gray-700 hover:text-purple-600 hover:bg-purple-50 rounded-lg transition-colors cursor-pointer"
-                          >
-                            <SquarePen className="w-5 h-5" />
-                          </button>
-
-                          {/* Botão Excluir */}
-                          <button
-                            type="button"
-                            onClick={() => handleExcluir(tarefa.id, tarefa.nome)}
-                            title="Excluir tarefa"
-                            className="p-1.5 text-red-500 hover:text-red-700 hover:bg-red-50 rounded-lg transition-colors cursor-pointer"
-                          >
-                            <Trash2 className="w-5 h-5" />
-                          </button>
-                        </div>
-                      </td>
-
+              {/* Tabela Tradicional para Tablets e Desktops (>= md) */}
+              <div className="hidden md:block overflow-x-auto w-full">
+                <table className="w-full text-left border-collapse">
+                  
+                  {/* Cabeçalho da Tabela */}
+                  <thead>
+                    <tr className="border-b border-gray-200 text-gray-900 text-base sm:text-lg font-bold">
+                      <th className="py-4 px-4 font-bold">Tarefa</th>
+                      <th className="py-4 px-4 font-bold text-center sm:text-left">Começa</th>
+                      <th className="py-4 px-4 font-bold text-center sm:text-left">Termina</th>
+                      <th className="py-4 px-4 font-bold text-center">Status</th>
+                      <th className="py-4 px-4 font-bold text-right pr-6">Ações</th>
                     </tr>
-                  ))}
-                </tbody>
+                  </thead>
 
-              </table>
-            </div>
+                  {/* Corpo da Tabela */}
+                  <tbody className="divide-y divide-gray-200">
+                    {tarefas.map((tarefa) => (
+                      <tr 
+                        key={tarefa.id} 
+                        className="hover:bg-purple-50/40 transition-colors text-gray-800 text-sm sm:text-base"
+                      >
+                        {/* Coluna: Nome/Título */}
+                        <td className="py-4 px-4 font-medium max-w-xs sm:max-w-md break-words">
+                          {tarefa.nome}
+                        </td>
+
+                        {/* Coluna: Data de Início */}
+                        <td className="py-4 px-4 text-gray-600 whitespace-nowrap text-center sm:text-left">
+                          {formatarData(tarefa.data_come)}
+                        </td>
+
+                        {/* Coluna: Data de Término */}
+                        <td className="py-4 px-4 text-gray-600 whitespace-nowrap text-center sm:text-left">
+                          {formatarData(tarefa.data_termi)}
+                        </td>
+
+                        {/* Coluna: Status (Pill clicável para alternar) */}
+                        <td className="py-4 px-4 text-center">
+                          <button
+                            type="button"
+                            onClick={() => alternarProximoStatus(tarefa)}
+                            title="Clique para alternar o status"
+                            className={`inline-flex items-center justify-center px-4 py-1.5 rounded-full font-medium text-xs sm:text-sm cursor-pointer transition-all shadow-sm active:scale-95 ${
+                              tarefa.status === 'concluido'
+                                ? 'bg-green-100 text-green-800 border border-green-300'
+                                : tarefa.status === 'em_andamento'
+                                ? 'bg-purple-100 text-purple-800 border border-purple-300'
+                                : 'bg-gray-200 text-gray-700 hover:bg-gray-300 border border-gray-300'
+                            }`}
+                          >
+                            {rotuloStatus[tarefa.status] || tarefa.status}
+                          </button>
+                        </td>
+
+                        {/* Coluna: Ações (Editar e Excluir) */}
+                        <td className="py-4 px-4 text-right pr-4 whitespace-nowrap">
+                          <div className="flex items-center justify-end gap-3">
+                            {/* Botão Editar */}
+                            <button
+                              type="button"
+                              onClick={() => handleEditar(tarefa)}
+                              title="Editar tarefa"
+                              className="p-1.5 text-gray-700 hover:text-purple-600 hover:bg-purple-50 rounded-lg transition-colors cursor-pointer"
+                            >
+                              <SquarePen className="w-5 h-5" />
+                            </button>
+
+                            {/* Botão Excluir */}
+                            <button
+                              type="button"
+                              onClick={() => handleExcluir(tarefa.id, tarefa.nome)}
+                              title="Excluir tarefa"
+                              className="p-1.5 text-red-500 hover:text-red-700 hover:bg-red-50 rounded-lg transition-colors cursor-pointer"
+                            >
+                              <Trash2 className="w-5 h-5" />
+                            </button>
+                          </div>
+                        </td>
+
+                      </tr>
+                    ))}
+                  </tbody>
+
+                </table>
+              </div>
+            </>
           )}
 
         </div>

@@ -148,35 +148,35 @@ export function ModalGerenciarConta({ usuario, aoAtualizarUsuario, aoExcluirCont
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/65 backdrop-blur-md p-4">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/65 backdrop-blur-md p-3 sm:p-4">
       {/* Card do Modal com Efeito Vidro Translúcido, Chanfro e Glow */}
-      <div className="relative w-full max-w-lg bg-gradient-to-b from-white/[0.14] via-[#2f0440]/65 to-[#1c0228]/85 backdrop-blur-2xl border border-white/25 rounded-3xl p-6 sm:p-8 text-white shadow-[0_25px_60px_-15px_rgba(0,0,0,0.7),0_0_45px_rgba(168,85,247,0.2),inset_0_1px_1px_rgba(255,255,255,0.3)] animate-fade-in max-h-[92vh] overflow-y-auto no-scrollbar">
+      <div className="relative w-full max-w-lg bg-gradient-to-b from-white/[0.14] via-[#2f0440]/65 to-[#1c0228]/85 backdrop-blur-2xl border border-white/25 rounded-3xl p-5 sm:p-8 text-white shadow-[0_25px_60px_-15px_rgba(0,0,0,0.7),0_0_45px_rgba(168,85,247,0.2),inset_0_1px_1px_rgba(255,255,255,0.3)] animate-fade-in max-h-[90dvh] overflow-y-auto no-scrollbar">
         
         {/* Botão Fechar no Topo Direito */}
         <button
           onClick={aoFechar}
           type="button"
-          className="absolute top-5 right-5 text-white/70 hover:text-white bg-white/10 hover:bg-white/20 rounded-full w-8 h-8 flex items-center justify-center transition-all cursor-pointer"
+          className="absolute top-4 right-4 sm:top-5 sm:right-5 text-white/70 hover:text-white bg-white/10 hover:bg-white/20 rounded-full w-8 h-8 flex items-center justify-center transition-all cursor-pointer"
         >
           ✕
         </button>
 
         {/* Cabeçalho */}
-        <div className="text-center mb-6">
-          <h2 className="text-2xl sm:text-3xl font-bold tracking-wide text-white">
+        <div className="text-center mb-5 sm:mb-6 pr-6 pl-2">
+          <h2 className="text-xl sm:text-3xl font-bold tracking-wide text-white">
             Minha Conta
           </h2>
-          <p className="text-sm text-purple-200/80 mt-1">
+          <p className="text-xs sm:text-sm text-purple-200/80 mt-1">
             Gerencie suas informações cadastrais e preferências de segurança
           </p>
         </div>
 
-        {/* Seletor de Abas (Pílulas) */}
-        <div className="flex justify-center gap-2 p-1.5 bg-black/30 backdrop-blur-md rounded-full mb-6 border border-white/15">
+        {/* Seletor de Abas (Pílulas Responsivas) */}
+        <div className="flex justify-center gap-1 sm:gap-2 p-1 sm:p-1.5 bg-black/30 backdrop-blur-md rounded-full mb-5 sm:mb-6 border border-white/15">
           <button
             type="button"
             onClick={() => trocarAba('perfil')}
-            className={`flex-1 py-2 px-3 text-xs sm:text-sm font-semibold rounded-full transition-all cursor-pointer ${
+            className={`flex-1 py-1.5 sm:py-2 px-1.5 sm:px-3 text-[11px] sm:text-sm font-semibold rounded-full transition-all cursor-pointer ${
               abaAtiva === 'perfil'
                 ? 'bg-purple-600 text-white shadow-[0_0_15px_rgba(168,85,247,0.4)]'
                 : 'text-purple-200 hover:text-white hover:bg-white/10'
@@ -188,7 +188,7 @@ export function ModalGerenciarConta({ usuario, aoAtualizarUsuario, aoExcluirCont
           <button
             type="button"
             onClick={() => trocarAba('senha')}
-            className={`flex-1 py-2 px-3 text-xs sm:text-sm font-semibold rounded-full transition-all cursor-pointer ${
+            className={`flex-1 py-1.5 sm:py-2 px-1.5 sm:px-3 text-[11px] sm:text-sm font-semibold rounded-full transition-all cursor-pointer ${
               abaAtiva === 'senha'
                 ? 'bg-purple-600 text-white shadow-[0_0_15px_rgba(168,85,247,0.4)]'
                 : 'text-purple-200 hover:text-white hover:bg-white/10'
@@ -200,7 +200,7 @@ export function ModalGerenciarConta({ usuario, aoAtualizarUsuario, aoExcluirCont
           <button
             type="button"
             onClick={() => trocarAba('excluir')}
-            className={`flex-1 py-2 px-3 text-xs sm:text-sm font-semibold rounded-full transition-all cursor-pointer ${
+            className={`flex-1 py-1.5 sm:py-2 px-1.5 sm:px-3 text-[11px] sm:text-sm font-semibold rounded-full transition-all cursor-pointer ${
               abaAtiva === 'excluir'
                 ? 'bg-red-500 text-white shadow-md'
                 : 'text-red-300 hover:text-red-200 hover:bg-red-500/20'
@@ -260,18 +260,18 @@ export function ModalGerenciarConta({ usuario, aoAtualizarUsuario, aoExcluirCont
               </p>
             </div>
 
-            <div className="pt-3 flex justify-end gap-3">
+            <div className="pt-3 flex flex-col-reverse sm:flex-row justify-end gap-2.5 sm:gap-3">
               <button
                 type="button"
                 onClick={aoFechar}
-                className="px-5 py-2.5 bg-white/10 hover:bg-white/20 text-purple-200 hover:text-white rounded-full transition-all cursor-pointer text-sm font-medium"
+                className="w-full sm:w-auto px-5 py-2.5 bg-white/10 hover:bg-white/20 text-purple-200 hover:text-white rounded-full transition-all cursor-pointer text-sm font-medium"
               >
                 Cancelar
               </button>
               <button
                 type="submit"
                 disabled={salvandoPerfil}
-                className="px-7 py-2.5 bg-white/15 hover:bg-white/25 active:scale-95 text-white font-semibold rounded-full shadow-[0_6px_20px_rgba(0,0,0,0.3),inset_0_1px_1px_rgba(255,255,255,0.4),0_0_15px_rgba(255,255,255,0.12)] hover:shadow-[0_8px_25px_rgba(0,0,0,0.4),inset_0_1px_2px_rgba(255,255,255,0.6),0_0_25px_rgba(168,85,247,0.3)] backdrop-blur-md border border-white/35 hover:border-white/55 transition-all duration-300 cursor-pointer text-sm disabled:opacity-50"
+                className="w-full sm:w-auto px-7 py-2.5 bg-white/15 hover:bg-white/25 active:scale-95 text-white font-semibold rounded-full shadow-[0_6px_20px_rgba(0,0,0,0.3),inset_0_1px_1px_rgba(255,255,255,0.4),0_0_15px_rgba(255,255,255,0.12)] hover:shadow-[0_8px_25px_rgba(0,0,0,0.4),inset_0_1px_2px_rgba(255,255,255,0.6),0_0_25px_rgba(168,85,247,0.3)] backdrop-blur-md border border-white/35 hover:border-white/55 transition-all duration-300 cursor-pointer text-sm disabled:opacity-50"
               >
                 {salvandoPerfil ? 'Salvando...' : 'Salvar Alterações'}
               </button>
@@ -333,18 +333,18 @@ export function ModalGerenciarConta({ usuario, aoAtualizarUsuario, aoExcluirCont
               />
             </div>
 
-            <div className="pt-3 flex justify-end gap-3">
+            <div className="pt-3 flex flex-col-reverse sm:flex-row justify-end gap-2.5 sm:gap-3">
               <button
                 type="button"
                 onClick={aoFechar}
-                className="px-5 py-2.5 bg-white/10 hover:bg-white/20 text-purple-200 hover:text-white rounded-full transition-all cursor-pointer text-sm font-medium"
+                className="w-full sm:w-auto px-5 py-2.5 bg-white/10 hover:bg-white/20 text-purple-200 hover:text-white rounded-full transition-all cursor-pointer text-sm font-medium"
               >
                 Cancelar
               </button>
               <button
                 type="submit"
                 disabled={salvandoSenha}
-                className="px-7 py-2.5 bg-white/15 hover:bg-white/25 active:scale-95 text-white font-semibold rounded-full shadow-[0_6px_20px_rgba(0,0,0,0.3),inset_0_1px_1px_rgba(255,255,255,0.4),0_0_15px_rgba(255,255,255,0.12)] hover:shadow-[0_8px_25px_rgba(0,0,0,0.4),inset_0_1px_2px_rgba(255,255,255,0.6),0_0_25px_rgba(168,85,247,0.3)] backdrop-blur-md border border-white/35 hover:border-white/55 transition-all duration-300 cursor-pointer text-sm disabled:opacity-50"
+                className="w-full sm:w-auto px-7 py-2.5 bg-white/15 hover:bg-white/25 active:scale-95 text-white font-semibold rounded-full shadow-[0_6px_20px_rgba(0,0,0,0.3),inset_0_1px_1px_rgba(255,255,255,0.4),0_0_15px_rgba(255,255,255,0.12)] hover:shadow-[0_8px_25px_rgba(0,0,0,0.4),inset_0_1px_2px_rgba(255,255,255,0.6),0_0_25px_rgba(168,85,247,0.3)] backdrop-blur-md border border-white/35 hover:border-white/55 transition-all duration-300 cursor-pointer text-sm disabled:opacity-50"
               >
                 {salvandoSenha ? 'Atualizando...' : 'Atualizar Senha'}
               </button>
@@ -392,18 +392,18 @@ export function ModalGerenciarConta({ usuario, aoAtualizarUsuario, aoExcluirCont
               />
             </div>
 
-            <div className="pt-3 flex justify-end gap-3">
+            <div className="pt-3 flex flex-col-reverse sm:flex-row justify-end gap-2.5 sm:gap-3">
               <button
                 type="button"
                 onClick={aoFechar}
-                className="px-5 py-2.5 bg-white/10 hover:bg-white/20 text-purple-200 hover:text-white rounded-full transition-all cursor-pointer text-sm font-medium"
+                className="w-full sm:w-auto px-5 py-2.5 bg-white/10 hover:bg-white/20 text-purple-200 hover:text-white rounded-full transition-all cursor-pointer text-sm font-medium"
               >
                 Voltar
               </button>
               <button
                 type="submit"
                 disabled={excluindo || !confirmouExclusao || textoConfirmacao.trim().toUpperCase() !== 'EXCLUIR'}
-                className="px-6 py-2.5 bg-red-600 hover:bg-red-700 active:scale-95 text-white font-bold rounded-full shadow-lg shadow-red-900/40 border border-red-400/40 transition-all cursor-pointer text-sm disabled:opacity-40 disabled:cursor-not-allowed"
+                className="w-full sm:w-auto px-6 py-2.5 bg-red-600 hover:bg-red-700 active:scale-95 text-white font-bold rounded-full shadow-lg shadow-red-900/40 border border-red-400/40 transition-all cursor-pointer text-sm disabled:opacity-40 disabled:cursor-not-allowed"
               >
                 {excluindo ? 'Excluindo...' : 'Excluir Minha Conta'}
               </button>

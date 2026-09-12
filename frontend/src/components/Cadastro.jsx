@@ -79,28 +79,30 @@ export function Cadastro({ aoVoltarParaLogin, aoAbrirTermos, aoCadastroSucesso }
   };
 
   return (
-    <div className="min-h-screen w-full flex flex-col items-center justify-center px-4 py-8 bg-figma-gradient text-white relative">
+    <div className="min-h-screen min-h-dvh w-full flex flex-col items-center justify-center px-4 py-6 sm:py-10 bg-figma-gradient text-white">
       
-      {/* Botão Voltar (Canto Superior Esquerdo com efeito de vidro) */}
-      <button
-        type="button"
-        onClick={aoVoltarParaLogin}
-        className="absolute top-6 left-6 flex items-center gap-1.5 text-white/90 hover:text-white font-semibold text-base sm:text-lg transition-all cursor-pointer active:scale-95 bg-white/10 hover:bg-white/20 backdrop-blur-sm px-4 py-2 rounded-full border border-white/10 shadow-sm"
-      >
-        <ChevronLeft className="w-5 h-5" />
-        Voltar
-      </button>
+      {/* Botão Voltar Adaptativo */}
+      <div className="w-full max-w-xl flex justify-start mb-2 sm:mb-4">
+        <button
+          type="button"
+          onClick={aoVoltarParaLogin}
+          className="flex items-center gap-1.5 text-white/90 hover:text-white font-semibold text-sm sm:text-base transition-all cursor-pointer active:scale-95 bg-white/10 hover:bg-white/20 backdrop-blur-sm px-3.5 sm:px-4 py-1.5 sm:py-2 rounded-full border border-white/15 shadow-sm"
+        >
+          <ChevronLeft className="w-4 h-4 sm:w-5 sm:h-5" />
+          Voltar
+        </button>
+      </div>
 
       {/* Card Estilizado de Cadastro com Glassmorphism Translúcido e Borda com Brilho */}
-      <div className="w-full max-w-xl bg-gradient-to-b from-white/[0.13] via-[#2f0440]/60 to-[#1c0228]/80 backdrop-blur-2xl border border-white/25 rounded-3xl p-8 sm:p-10 shadow-[0_25px_60px_-15px_rgba(0,0,0,0.65),0_0_45px_rgba(168,85,247,0.18),inset_0_1px_1px_rgba(255,255,255,0.3)] flex flex-col items-center text-center transition-all animate-fade-in my-8">
+      <div className="w-full max-w-xl bg-gradient-to-b from-white/[0.13] via-[#2f0440]/60 to-[#1c0228]/80 backdrop-blur-2xl border border-white/25 rounded-2xl sm:rounded-3xl p-5 sm:p-10 shadow-[0_25px_60px_-15px_rgba(0,0,0,0.65),0_0_45px_rgba(168,85,247,0.18),inset_0_1px_1px_rgba(255,255,255,0.3)] flex flex-col items-center text-center transition-all animate-fade-in my-auto">
         
         {/* Título Principal */}
-        <h1 className="text-4xl sm:text-5xl font-bold mb-2 tracking-wide text-white drop-shadow-sm">
+        <h1 className="text-3xl sm:text-5xl font-bold mb-2 tracking-wide text-white drop-shadow-sm">
           Crie sua conta
         </h1>
 
         {/* Subtítulo */}
-        <p className="text-base sm:text-lg text-purple-200/90 mb-8 font-normal">
+        <p className="text-sm sm:text-lg text-purple-200/90 mb-6 sm:mb-8 font-normal">
           Preencha os dados abaixo para criar sua conta
         </p>
 
