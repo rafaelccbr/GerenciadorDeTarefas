@@ -22,12 +22,8 @@ export function ModalSucesso({ email, aoFechar }) {
           : 'bg-gradient-to-b from-white/[0.14] via-[#2f0440]/65 to-[#1c0228]/85 border border-white/25 shadow-[0_25px_60px_-15px_rgba(0,0,0,0.7),0_0_45px_rgba(168,85,247,0.2),inset_0_1px_1px_rgba(255,255,255,0.3)]'
       }`}>
         
-        {/* Título Principal com Brilho Neon */}
-        <h2 className={`text-2xl sm:text-3xl font-bold mb-4 ${
-          ehDark
-            ? 'bg-gradient-to-r from-white via-purple-100 to-purple-300 bg-clip-text text-transparent drop-shadow-[0_0_25px_rgba(168,85,247,0.35)]'
-            : 'text-white drop-shadow-sm'
-        }`}>
+        {/* Título Principal */}
+        <h2 className="text-2xl sm:text-3xl font-bold mb-4 text-white drop-shadow-sm">
           Sua conta foi criada com sucesso!
         </h2>
 

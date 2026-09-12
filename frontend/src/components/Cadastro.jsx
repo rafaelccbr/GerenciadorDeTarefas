@@ -98,12 +98,8 @@ export function Cadastro({ aoVoltarParaLogin, aoAbrirTermos, aoCadastroSucesso }
           : 'bg-gradient-to-b from-white/[0.13] via-[#2f0440]/60 to-[#1c0228]/80 border border-white/25 shadow-[0_25px_60px_-15px_rgba(0,0,0,0.65),0_0_45px_rgba(168,85,247,0.18),inset_0_1px_1px_rgba(255,255,255,0.3)]'
       }`}>
         
-        {/* Título Principal com Brilho Neon */}
-        <h1 className={`text-3xl sm:text-5xl font-bold mb-2 tracking-wide ${
-          ehDark
-            ? 'bg-gradient-to-r from-white via-purple-100 to-purple-300 bg-clip-text text-transparent drop-shadow-[0_0_25px_rgba(168,85,247,0.4)]'
-            : 'text-white drop-shadow-sm'
-        }`}>
+        {/* Título Principal */}
+        <h1 className="text-3xl sm:text-5xl font-bold mb-2 tracking-wide text-white drop-shadow-sm">
           Crie sua conta
         </h1>
 
@@ -132,10 +128,10 @@ export function Cadastro({ aoVoltarParaLogin, aoAbrirTermos, aoCadastroSucesso }
               value={nome}
               onChange={(e) => setNome(e.target.value)}
               placeholder="Digite seu nome completo"
-              className={`w-full px-5 py-3 rounded-full focus:outline-none transition-all font-medium border shadow-md ${
+              className={`w-full px-5 py-3 rounded-full focus:outline-none focus:ring-4 transition-all font-medium border shadow-md ${
                 ehDark
-                  ? 'bg-white/10 hover:bg-white/[0.14] focus:bg-white/[0.16] text-white placeholder-purple-200/50 border-white/20 focus:border-purple-400 focus:ring-4 focus:ring-purple-500/30 focus:shadow-[0_0_20px_rgba(168,85,247,0.35)]'
-                  : 'bg-[#d9d9d9]/95 hover:bg-white focus:bg-white text-gray-900 placeholder-gray-500 border-white/30 focus:border-purple-400 focus:ring-4 focus:ring-purple-400/50'
+                  ? 'bg-white/10 hover:bg-white/[0.14] focus:bg-white/[0.16] text-white placeholder-purple-200/50 border-white/20 focus:border-purple-400 focus:ring-purple-400/50'
+                  : 'bg-[#d9d9d9]/95 hover:bg-white focus:bg-white text-gray-900 placeholder-gray-500 border-white/30 focus:border-purple-400 focus:ring-purple-400/50'
               }`}
               required
             />
@@ -151,10 +147,10 @@ export function Cadastro({ aoVoltarParaLogin, aoAbrirTermos, aoCadastroSucesso }
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               placeholder="seuemail@exemplo.com"
-              className={`w-full px-5 py-3 rounded-full focus:outline-none transition-all font-medium border shadow-md ${
+              className={`w-full px-5 py-3 rounded-full focus:outline-none focus:ring-4 transition-all font-medium border shadow-md ${
                 ehDark
-                  ? 'bg-white/10 hover:bg-white/[0.14] focus:bg-white/[0.16] text-white placeholder-purple-200/50 border-white/20 focus:border-purple-400 focus:ring-4 focus:ring-purple-500/30 focus:shadow-[0_0_20px_rgba(168,85,247,0.35)]'
-                  : 'bg-[#d9d9d9]/95 hover:bg-white focus:bg-white text-gray-900 placeholder-gray-500 border-white/30 focus:border-purple-400 focus:ring-4 focus:ring-purple-400/50'
+                  ? 'bg-white/10 hover:bg-white/[0.14] focus:bg-white/[0.16] text-white placeholder-purple-200/50 border-white/20 focus:border-purple-400 focus:ring-purple-400/50'
+                  : 'bg-[#d9d9d9]/95 hover:bg-white focus:bg-white text-gray-900 placeholder-gray-500 border-white/30 focus:border-purple-400 focus:ring-purple-400/50'
               }`}
               required
             />
@@ -175,10 +171,10 @@ export function Cadastro({ aoVoltarParaLogin, aoAbrirTermos, aoCadastroSucesso }
                 onFocus={() => setSenhaFocada(true)}
                 onBlur={() => setSenhaFocada(false)}
                 placeholder="••••••••"
-                className={`w-full px-5 py-3 rounded-full focus:outline-none transition-all font-medium border shadow-md ${
+                className={`w-full px-5 py-3 rounded-full focus:outline-none focus:ring-4 transition-all font-medium border shadow-md ${
                   ehDark
-                    ? 'bg-white/10 hover:bg-white/[0.14] focus:bg-white/[0.16] text-white placeholder-purple-200/50 border-white/20 focus:border-purple-400 focus:ring-4 focus:ring-purple-500/30 focus:shadow-[0_0_20px_rgba(168,85,247,0.35)]'
-                    : 'bg-[#d9d9d9]/95 hover:bg-white focus:bg-white text-gray-900 placeholder-gray-500 border-white/30 focus:border-purple-400 focus:ring-4 focus:ring-purple-400/50'
+                    ? 'bg-white/10 hover:bg-white/[0.14] focus:bg-white/[0.16] text-white placeholder-purple-200/50 border-white/20 focus:border-purple-400 focus:ring-purple-400/50'
+                    : 'bg-[#d9d9d9]/95 hover:bg-white focus:bg-white text-gray-900 placeholder-gray-500 border-white/30 focus:border-purple-400 focus:ring-purple-400/50'
                 }`}
                 required
               />
@@ -194,10 +190,10 @@ export function Cadastro({ aoVoltarParaLogin, aoAbrirTermos, aoCadastroSucesso }
                 value={confirmarSenha}
                 onChange={(e) => setConfirmarSenha(e.target.value)}
                 placeholder="••••••••"
-                className={`w-full px-5 py-3 rounded-full focus:outline-none transition-all font-medium border shadow-md ${
+                className={`w-full px-5 py-3 rounded-full focus:outline-none focus:ring-4 transition-all font-medium border shadow-md ${
                   ehDark
-                    ? 'bg-white/10 hover:bg-white/[0.14] focus:bg-white/[0.16] text-white placeholder-purple-200/50 border-white/20 focus:border-purple-400 focus:ring-4 focus:ring-purple-500/30 focus:shadow-[0_0_20px_rgba(168,85,247,0.35)]'
-                    : 'bg-[#d9d9d9]/95 hover:bg-white focus:bg-white text-gray-900 placeholder-gray-500 border-white/30 focus:border-purple-400 focus:ring-4 focus:ring-purple-400/50'
+                    ? 'bg-white/10 hover:bg-white/[0.14] focus:bg-white/[0.16] text-white placeholder-purple-200/50 border-white/20 focus:border-purple-400 focus:ring-purple-400/50'
+                    : 'bg-[#d9d9d9]/95 hover:bg-white focus:bg-white text-gray-900 placeholder-gray-500 border-white/30 focus:border-purple-400 focus:ring-purple-400/50'
                 }`}
                 required
               />
@@ -208,49 +204,21 @@ export function Cadastro({ aoVoltarParaLogin, aoAbrirTermos, aoCadastroSucesso }
           {/* Indicadores Visuais de Requisitos da Senha - Aparece apenas quando a caixa da senha for clicada/focada */}
           {senhaFocada && (
             <div className={`text-xs space-y-1.5 border rounded-2xl p-3 text-left transition-all animate-fade-in shadow-inner ${
-              ehDark ? 'bg-black/40 border-purple-500/20 text-purple-200/80' : 'bg-white/5 border-white/10 text-purple-200/80'
+              ehDark ? 'bg-black/40 border-white/15 text-purple-200/80' : 'bg-white/5 border-white/10 text-purple-200/80'
             }`}>
               <p className={`font-semibold text-xs mb-1 ${ehDark ? 'text-purple-200' : 'text-purple-100'}`}>Requisitos de segurança:</p>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                <span className={`flex items-center gap-1.5 transition-all duration-200 ${
-                  senha.length >= 8 
-                    ? 'text-emerald-400 font-semibold drop-shadow-[0_0_8px_rgba(52,211,153,0.7)]' 
-                    : ehDark ? 'text-purple-300/60' : 'text-purple-300/70'
-                }`}>
-                  <span className={senha.length >= 8 ? 'scale-110 drop-shadow-[0_0_6px_rgba(52,211,153,0.9)]' : ''}>
-                    {senha.length >= 8 ? '✓' : '○'}
-                  </span>
-                  Mínimo 8 caracteres
+                <span className={`flex items-center gap-1.5 ${senha.length >= 8 ? 'text-green-400 font-semibold' : 'text-purple-300/70'}`}>
+                  {senha.length >= 8 ? '✓' : '○'} Mínimo 8 caracteres
                 </span>
-                <span className={`flex items-center gap-1.5 transition-all duration-200 ${
-                  /[A-Z]/.test(senha) 
-                    ? 'text-emerald-400 font-semibold drop-shadow-[0_0_8px_rgba(52,211,153,0.7)]' 
-                    : ehDark ? 'text-purple-300/60' : 'text-purple-300/70'
-                }`}>
-                  <span className={/[A-Z]/.test(senha) ? 'scale-110 drop-shadow-[0_0_6px_rgba(52,211,153,0.9)]' : ''}>
-                    {/[A-Z]/.test(senha) ? '✓' : '○'}
-                  </span>
-                  1 Letra maiúscula
+                <span className={`flex items-center gap-1.5 ${/[A-Z]/.test(senha) ? 'text-green-400 font-semibold' : 'text-purple-300/70'}`}>
+                  {/[A-Z]/.test(senha) ? '✓' : '○'} 1 Letra maiúscula
                 </span>
-                <span className={`flex items-center gap-1.5 transition-all duration-200 ${
-                  /[0-9]/.test(senha) 
-                    ? 'text-emerald-400 font-semibold drop-shadow-[0_0_8px_rgba(52,211,153,0.7)]' 
-                    : ehDark ? 'text-purple-300/60' : 'text-purple-300/70'
-                }`}>
-                  <span className={/[0-9]/.test(senha) ? 'scale-110 drop-shadow-[0_0_6px_rgba(52,211,153,0.9)]' : ''}>
-                    {/[0-9]/.test(senha) ? '✓' : '○'}
-                  </span>
-                  1 Número
+                <span className={`flex items-center gap-1.5 ${/[0-9]/.test(senha) ? 'text-green-400 font-semibold' : 'text-purple-300/70'}`}>
+                  {/[0-9]/.test(senha) ? '✓' : '○'} 1 Número
                 </span>
-                <span className={`flex items-center gap-1.5 transition-all duration-200 ${
-                  /[!@#$%^&*()_+\-=[\]{}|;:,.<>?~`\\/'"]/.test(senha) 
-                    ? 'text-emerald-400 font-semibold drop-shadow-[0_0_8px_rgba(52,211,153,0.7)]' 
-                    : ehDark ? 'text-purple-300/60' : 'text-purple-300/70'
-                }`}>
-                  <span className={/[!@#$%^&*()_+\-=[\]{}|;:,.<>?~`\\/'"]/.test(senha) ? 'scale-110 drop-shadow-[0_0_6px_rgba(52,211,153,0.9)]' : ''}>
-                    {/[!@#$%^&*()_+\-=[\]{}|;:,.<>?~`\\/'"]/.test(senha) ? '✓' : '○'}
-                  </span>
-                  1 Caractere especial
+                <span className={`flex items-center gap-1.5 ${/[!@#$%^&*()_+\-=[\]{}|;:,.<>?~`\\/'"]/.test(senha) ? 'text-green-400 font-semibold' : 'text-purple-300/70'}`}>
+                  {/[!@#$%^&*()_+\-=[\]{}|;:,.<>?~`\\/'"]/.test(senha) ? '✓' : '○'} 1 Caractere especial
                 </span>
               </div>
             </div>
@@ -285,16 +253,12 @@ export function Cadastro({ aoVoltarParaLogin, aoAbrirTermos, aoCadastroSucesso }
             </label>
           </div>
 
-          {/* Botão Criar Conta em Cristal Translúcido com Acento Neon */}
+          {/* Botão Criar Conta em Cristal Translúcido */}
           <div className="flex justify-center pt-4">
             <button
               type="submit"
               disabled={carregando}
-              className={`px-14 py-3.5 active:scale-95 text-white text-lg font-semibold rounded-full backdrop-blur-md transition-all duration-300 cursor-pointer disabled:opacity-50 ${
-                ehDark
-                  ? 'bg-white/15 hover:bg-purple-600/30 border border-white/30 hover:border-purple-400/70 shadow-[0_8px_25px_rgba(0,0,0,0.4),inset_0_1px_1px_rgba(255,255,255,0.3)] hover:shadow-[0_0_30px_rgba(168,85,247,0.5),0_0_15px_rgba(216,180,254,0.3),inset_0_1px_2px_rgba(255,255,255,0.6)]'
-                  : 'bg-white/15 hover:bg-white/25 border border-white/35 hover:border-white/55 shadow-[0_8px_25px_rgba(0,0,0,0.35),inset_0_1px_1px_rgba(255,255,255,0.4),0_0_20px_rgba(255,255,255,0.15)] hover:shadow-[0_12px_30px_rgba(0,0,0,0.45),inset_0_1px_2px_rgba(255,255,255,0.6),0_0_30px_rgba(168,85,247,0.35)]'
-              }`}
+              className="px-14 py-3.5 bg-white/15 hover:bg-white/25 active:scale-95 text-white text-lg font-semibold rounded-full shadow-[0_8px_25px_rgba(0,0,0,0.35),inset_0_1px_1px_rgba(255,255,255,0.4),0_0_20px_rgba(255,255,255,0.15)] hover:shadow-[0_12px_30px_rgba(0,0,0,0.45),inset_0_1px_2px_rgba(255,255,255,0.6),0_0_30px_rgba(168,85,247,0.35)] backdrop-blur-md border border-white/35 hover:border-white/55 transition-all duration-300 cursor-pointer disabled:opacity-50"
             >
               {carregando ? 'Criando conta...' : 'Criar Conta'}
             </button>
