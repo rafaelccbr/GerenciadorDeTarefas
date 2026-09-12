@@ -59,6 +59,8 @@ export async function authRoutes(fastify) {
             });
         }
 
+const FRONTEND_URL = process.env.FRONTEND_URL || 'https://gerenciador-de-tarefas-flame.vercel.app';
+
         // Validação de requisitos de senha forte
         const erroSenha = validarRequisitosSenha(senha);
         if (erroSenha) {
@@ -73,7 +75,8 @@ export async function authRoutes(fastify) {
             email,
             password: senha,
             options: { 
-                data: { nome } // Salva o nome em raw_user_meta_data
+                data: { nome }, // Salva o nome em raw_user_meta_data
+                emailRedirectTo: FRONTEND_URL
             }
         });
 
@@ -171,7 +174,9 @@ export async function authRoutes(fastify) {
         }
 
         // Dispara o e-mail oficial do Supabase contendo o link de redefinição de senha
-        const { error } = await supabase.auth.resetPasswordForEmail(email);
+        const { error } = await supabase.auth.resetPasswordForEmail(email, {
+            redirectTo: FRONTEND_URL
+        });
 
         if (error) {
             return reply.code(400).send({

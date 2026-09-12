@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { obterSessao, limparSessao, acordarServidorApi } from './services/api.js';
+import { obterSessao, salvarSessao, limparSessao, acordarServidorApi } from './services/api.js';
 import { Login } from './components/Login.jsx';
 import { Cadastro } from './components/Cadastro.jsx';
 import { ListaTarefas } from './components/ListaTarefas.jsx';
@@ -48,6 +48,53 @@ function App() {
   const [onConfirmarTermos, setOnConfirmarTermos] = useState(null);
   const [modalRecuperarSenhaAberto, setModalRecuperarSenhaAberto] = useState(false);
   const [modalContaAberto, setModalContaAberto] = useState(false);
+  const [abaContaInicial, setAbaContaInicial] = useState('perfil');
+
+  // Trata retornos de e-mail do Supabase (Confirmação de Conta ou Redefinição de Senha via #access_token)
+  useEffect(() => {
+    if (typeof window !== 'undefined' && window.location.hash) {
+      const hash = window.location.hash.substring(1);
+      const params = new URLSearchParams(hash);
+      const accessToken = params.get('access_token');
+      const type = params.get('type');
+
+      if (accessToken) {
+        try {
+          // Decodifica o payload JWT para obter id, nome e e-mail
+          const base64Url = accessToken.split('.')[1];
+          const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+          const jsonPayload = decodeURIComponent(
+            atob(base64)
+              .split('')
+              .map((c) => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2))
+              .join('')
+          );
+          const payload = JSON.parse(jsonPayload);
+          const usuarioToken = {
+            id: payload.sub,
+            email: payload.email,
+            nome: payload.user_metadata?.nome || payload.email?.split('@')[0] || 'Usuário'
+          };
+
+          salvarSessao(accessToken, usuarioToken);
+          setUsuario(usuarioToken);
+
+          if (type === 'recovery') {
+            setAbaContaInicial('senha');
+            setModalContaAberto(true);
+            setTelaAtual('tarefas');
+          } else {
+            setTelaAtual('tarefas');
+          }
+        } catch (err) {
+          console.error('Erro ao processar token de autenticação da URL:', err);
+        }
+
+        // Limpa o hash da URL para não expor o token na barra de endereços
+        window.history.replaceState(null, '', window.location.pathname);
+      }
+    }
+  }, []);
 
   // Handler executado quando o usuário realiza login com sucesso
   const handleLoginSucesso = (dadosUsuario) => {
@@ -155,9 +202,13 @@ function App() {
       {modalContaAberto && (
         <ModalGerenciarConta
           usuario={usuario}
+          abaInicial={abaContaInicial}
           aoAtualizarUsuario={handleAtualizarUsuario}
           aoExcluirConta={handleExcluirContaSucesso}
-          aoFechar={() => setModalContaAberto(false)}
+          aoFechar={() => {
+            setModalContaAberto(false);
+            setAbaContaInicial('perfil');
+          }}
         />
       )}
 

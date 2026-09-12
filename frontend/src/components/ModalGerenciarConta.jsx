@@ -15,8 +15,8 @@ import { atualizarPerfilApi, excluirContaApi } from '../services/api.js';
  * - 'senha': Alteração de senha
  * - 'excluir': Zona de perigo com dupla confirmação
  */
-export function ModalGerenciarConta({ usuario, aoAtualizarUsuario, aoExcluirConta, aoFechar }) {
-  const [abaAtiva, setAbaAtiva] = useState('perfil'); // 'perfil' | 'senha' | 'excluir'
+export function ModalGerenciarConta({ usuario, aoAtualizarUsuario, aoExcluirConta, aoFechar, abaInicial = 'perfil' }) {
+  const [abaAtiva, setAbaAtiva] = useState(abaInicial); // 'perfil' | 'senha' | 'excluir'
 
   // Estados da Aba: Perfil
   const [nome, setNome] = useState(usuario?.nome || '');
