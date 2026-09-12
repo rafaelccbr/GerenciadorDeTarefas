@@ -162,10 +162,14 @@ export function ListaTarefas({ usuario, aoDeslogar, aoAbrirConta }) {
         <div className="flex items-center justify-between gap-2.5 sm:gap-3 w-full flex-wrap">
           
           <div className="flex items-center gap-2 sm:gap-3">
-            {/* Botão Sair (Vidro Semi-Translúcido Ruby com Alta Nitidez) */}
+            {/* Botão Sair (Vidro Semi-Translúcido Ruby com Acento Neon) */}
             <button
               onClick={aoDeslogar}
-              className="flex items-center gap-1.5 sm:gap-2 px-3.5 sm:px-6 py-2 sm:py-2.5 bg-rose-500/40 hover:bg-rose-500/55 border border-rose-400/50 hover:border-rose-300/70 backdrop-blur-md text-white font-bold rounded-full shadow-[0_4px_15px_rgba(244,63,94,0.25)] hover:shadow-[0_6px_20px_rgba(244,63,94,0.4)] transition-all duration-300 active:scale-95 cursor-pointer group text-xs sm:text-sm"
+              className={`flex items-center gap-1.5 sm:gap-2 px-3.5 sm:px-6 py-2 sm:py-2.5 backdrop-blur-md text-white font-bold rounded-full transition-all duration-300 active:scale-95 cursor-pointer group text-xs sm:text-sm ${
+                ehDark
+                  ? 'bg-rose-500/35 hover:bg-rose-500/50 border border-rose-400/50 hover:border-rose-300/80 shadow-[0_4px_15px_rgba(244,63,94,0.25)] hover:shadow-[0_0_20px_rgba(244,63,94,0.55),0_0_8px_rgba(251,113,133,0.4)]'
+                  : 'bg-rose-500/40 hover:bg-rose-500/55 border border-rose-400/50 hover:border-rose-300/70 shadow-[0_4px_15px_rgba(244,63,94,0.25)] hover:shadow-[0_6px_20px_rgba(244,63,94,0.4)]'
+              }`}
             >
               <LogOut className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-rose-200 group-hover:text-white transition-colors" />
               Sair
@@ -258,9 +262,9 @@ export function ListaTarefas({ usuario, aoDeslogar, aoAbrirConta }) {
                 {tarefas.map((tarefa) => (
                   <div 
                     key={`card-${tarefa.id}`}
-                    className={`rounded-2xl p-4 shadow-sm transition-all text-left flex flex-col justify-between gap-3 border ${
+                    className={`rounded-2xl p-4 shadow-sm transition-all duration-300 text-left flex flex-col justify-between gap-3 border ${
                       ehDark
-                        ? 'bg-white/[0.05] hover:bg-white/[0.08] border-purple-500/20 text-purple-100 shadow-md'
+                        ? 'bg-white/[0.05] hover:bg-white/[0.08] border-purple-500/20 hover:border-purple-400/60 hover:shadow-[0_0_20px_rgba(168,85,247,0.22)] text-purple-100 shadow-md'
                         : 'bg-purple-50/50 hover:bg-purple-50/80 border-purple-100/80 text-gray-900'
                     }`}
                   >
@@ -306,9 +310,9 @@ export function ListaTarefas({ usuario, aoDeslogar, aoAbrirConta }) {
                       <button
                         type="button"
                         onClick={() => handleEditar(tarefa)}
-                        className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-xl transition-colors cursor-pointer active:scale-95 ${
+                        className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-xl transition-all cursor-pointer active:scale-95 ${
                           ehDark
-                            ? 'text-purple-200 hover:text-white bg-purple-950/40 hover:bg-purple-900/60 border border-purple-500/30'
+                            ? 'text-purple-200 hover:text-white bg-purple-950/40 hover:bg-purple-900/60 border border-purple-500/30 hover:border-purple-400/60 hover:shadow-[0_0_12px_rgba(168,85,247,0.45)]'
                             : 'text-purple-700 hover:bg-purple-100/80 bg-purple-100/40'
                         }`}
                       >
@@ -318,9 +322,9 @@ export function ListaTarefas({ usuario, aoDeslogar, aoAbrirConta }) {
                       <button
                         type="button"
                         onClick={() => handleExcluir(tarefa.id, tarefa.nome)}
-                        className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-xl transition-colors cursor-pointer active:scale-95 ${
+                        className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-xl transition-all cursor-pointer active:scale-95 ${
                           ehDark
-                            ? 'text-rose-300 hover:text-rose-200 bg-rose-950/40 hover:bg-rose-950/70 border border-rose-800/40'
+                            ? 'text-rose-300 hover:text-rose-200 bg-rose-950/40 hover:bg-rose-950/70 border border-rose-800/40 hover:border-rose-600/60 hover:shadow-[0_0_12px_rgba(244,63,94,0.45)]'
                             : 'text-rose-700 hover:bg-rose-100/80 bg-rose-100/40'
                         }`}
                       >
@@ -354,9 +358,9 @@ export function ListaTarefas({ usuario, aoDeslogar, aoAbrirConta }) {
                     {tarefas.map((tarefa) => (
                       <tr 
                         key={tarefa.id} 
-                        className={`transition-colors text-sm sm:text-base ${
+                        className={`transition-all duration-200 text-sm sm:text-base ${
                           ehDark
-                            ? 'hover:bg-purple-500/10 text-purple-200'
+                            ? 'hover:bg-purple-500/[0.12] text-purple-200'
                             : 'hover:bg-purple-50/40 text-gray-800'
                         }`}
                       >
@@ -393,31 +397,31 @@ export function ListaTarefas({ usuario, aoDeslogar, aoAbrirConta }) {
                           </button>
                         </td>
 
-                        {/* Coluna: Ações (Editar e Excluir) */}
+                        {/* Coluna: Ações (Editar e Excluir) com Efeitos Neon */}
                         <td className="py-4 px-4 text-right pr-4 whitespace-nowrap">
                           <div className="flex items-center justify-end gap-3">
-                            {/* Botão Editar */}
+                            {/* Botão Editar com Neon Violeta */}
                             <button
                               type="button"
                               onClick={() => handleEditar(tarefa)}
                               title="Editar tarefa"
-                              className={`p-1.5 rounded-lg transition-colors cursor-pointer ${
+                              className={`p-1.5 rounded-lg transition-all cursor-pointer ${
                                 ehDark
-                                  ? 'text-purple-300 hover:text-white hover:bg-purple-500/20'
+                                  ? 'text-purple-300 hover:text-white hover:bg-purple-500/25 hover:drop-shadow-[0_0_10px_rgba(168,85,247,0.85)]'
                                   : 'text-gray-700 hover:text-purple-600 hover:bg-purple-50'
                               }`}
                             >
                               <SquarePen className="w-5 h-5" />
                             </button>
 
-                            {/* Botão Excluir */}
+                            {/* Botão Excluir com Neon Rubi */}
                             <button
                               type="button"
                               onClick={() => handleExcluir(tarefa.id, tarefa.nome)}
                               title="Excluir tarefa"
-                              className={`p-1.5 rounded-lg transition-colors cursor-pointer ${
+                              className={`p-1.5 rounded-lg transition-all cursor-pointer ${
                                 ehDark
-                                  ? 'text-rose-400 hover:text-rose-300 hover:bg-rose-950/50'
+                                  ? 'text-rose-400 hover:text-rose-200 hover:bg-rose-950/60 hover:drop-shadow-[0_0_10px_rgba(244,63,94,0.85)]'
                                   : 'text-red-500 hover:text-red-700 hover:bg-red-50'
                               }`}
                             >

@@ -68,8 +68,12 @@ export function ModalRecuperarSenha({ aoFechar }) {
           <KeyRound className="w-7 h-7 text-purple-200" />
         </div>
 
-        {/* Título Principal */}
-        <h2 className="text-2xl sm:text-3xl font-bold mb-2 tracking-wide text-white drop-shadow-sm">
+        {/* Título Principal com Brilho Neon */}
+        <h2 className={`text-2xl sm:text-3xl font-bold mb-2 tracking-wide ${
+          ehDark
+            ? 'bg-gradient-to-r from-white via-purple-100 to-purple-300 bg-clip-text text-transparent drop-shadow-[0_0_25px_rgba(168,85,247,0.35)]'
+            : 'text-white drop-shadow-sm'
+        }`}>
           Recuperar Senha
         </h2>
 

@@ -171,7 +171,11 @@ export function ModalGerenciarConta({ usuario, aoAtualizarUsuario, aoExcluirCont
 
         {/* Cabeçalho */}
         <div className="text-center mb-5 sm:mb-6 pr-6 pl-2">
-          <h2 className="text-xl sm:text-3xl font-bold tracking-wide text-white">
+          <h2 className={`text-xl sm:text-3xl font-bold tracking-wide ${
+            ehDark
+              ? 'bg-gradient-to-r from-white via-purple-100 to-purple-300 bg-clip-text text-transparent drop-shadow-[0_0_25px_rgba(168,85,247,0.35)]'
+              : 'text-white'
+          }`}>
             Minha Conta
           </h2>
           <p className="text-xs sm:text-sm text-purple-200/80 mt-1">
@@ -353,21 +357,49 @@ export function ModalGerenciarConta({ usuario, aoAtualizarUsuario, aoExcluirCont
               />
               {novaSenhaFocada && (
                 <div className={`text-xs space-y-1.5 border rounded-2xl p-3 text-left transition-all animate-fade-in shadow-inner mt-2 ${
-                  ehDark ? 'bg-black/40 border-white/15 text-purple-200/80' : 'bg-white/5 border-white/10 text-purple-200/80'
+                  ehDark ? 'bg-black/40 border-purple-500/20 text-purple-200/80' : 'bg-white/5 border-white/10 text-purple-200/80'
                 }`}>
-                  <p className="font-semibold text-purple-100 text-xs mb-1">Requisitos de segurança:</p>
+                  <p className={`font-semibold text-xs mb-1 ${ehDark ? 'text-purple-200' : 'text-purple-100'}`}>Requisitos de segurança:</p>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                    <span className={`flex items-center gap-1.5 ${novaSenha.length >= 8 ? 'text-green-400 font-semibold' : 'text-purple-300/70'}`}>
-                      {novaSenha.length >= 8 ? '✓' : '○'} Mínimo 8 caracteres
+                    <span className={`flex items-center gap-1.5 transition-all duration-200 ${
+                      novaSenha.length >= 8 
+                        ? 'text-emerald-400 font-semibold drop-shadow-[0_0_8px_rgba(52,211,153,0.7)]' 
+                        : ehDark ? 'text-purple-300/60' : 'text-purple-300/70'
+                    }`}>
+                      <span className={novaSenha.length >= 8 ? 'scale-110 drop-shadow-[0_0_6px_rgba(52,211,153,0.9)]' : ''}>
+                        {novaSenha.length >= 8 ? '✓' : '○'}
+                      </span>
+                      Mínimo 8 caracteres
                     </span>
-                    <span className={`flex items-center gap-1.5 ${/[A-Z]/.test(novaSenha) ? 'text-green-400 font-semibold' : 'text-purple-300/70'}`}>
-                      {/[A-Z]/.test(novaSenha) ? '✓' : '○'} 1 Letra maiúscula
+                    <span className={`flex items-center gap-1.5 transition-all duration-200 ${
+                      /[A-Z]/.test(novaSenha) 
+                        ? 'text-emerald-400 font-semibold drop-shadow-[0_0_8px_rgba(52,211,153,0.7)]' 
+                        : ehDark ? 'text-purple-300/60' : 'text-purple-300/70'
+                    }`}>
+                      <span className={/[A-Z]/.test(novaSenha) ? 'scale-110 drop-shadow-[0_0_6px_rgba(52,211,153,0.9)]' : ''}>
+                        {/[A-Z]/.test(novaSenha) ? '✓' : '○'}
+                      </span>
+                      1 Letra maiúscula
                     </span>
-                    <span className={`flex items-center gap-1.5 ${/[0-9]/.test(novaSenha) ? 'text-green-400 font-semibold' : 'text-purple-300/70'}`}>
-                      {/[0-9]/.test(novaSenha) ? '✓' : '○'} 1 Número
+                    <span className={`flex items-center gap-1.5 transition-all duration-200 ${
+                      /[0-9]/.test(novaSenha) 
+                        ? 'text-emerald-400 font-semibold drop-shadow-[0_0_8px_rgba(52,211,153,0.7)]' 
+                        : ehDark ? 'text-purple-300/60' : 'text-purple-300/70'
+                    }`}>
+                      <span className={/[0-9]/.test(novaSenha) ? 'scale-110 drop-shadow-[0_0_6px_rgba(52,211,153,0.9)]' : ''}>
+                        {/[0-9]/.test(novaSenha) ? '✓' : '○'}
+                      </span>
+                      1 Número
                     </span>
-                    <span className={`flex items-center gap-1.5 ${/[!@#$%^&*()_+\-=[\]{}|;:,.<>?~`\\/'"]/.test(novaSenha) ? 'text-green-400 font-semibold' : 'text-purple-300/70'}`}>
-                      {/[!@#$%^&*()_+\-=[\]{}|;:,.<>?~`\\/'"]/.test(novaSenha) ? '✓' : '○'} 1 Caractere especial
+                    <span className={`flex items-center gap-1.5 transition-all duration-200 ${
+                      /[!@#$%^&*()_+\-=[\]{}|;:,.<>?~`\\/'"]/.test(novaSenha) 
+                        ? 'text-emerald-400 font-semibold drop-shadow-[0_0_8px_rgba(52,211,153,0.7)]' 
+                        : ehDark ? 'text-purple-300/60' : 'text-purple-300/70'
+                    }`}>
+                      <span className={/[!@#$%^&*()_+\-=[\]{}|;:,.<>?~`\\/'"]/.test(novaSenha) ? 'scale-110 drop-shadow-[0_0_6px_rgba(52,211,153,0.9)]' : ''}>
+                        {/[!@#$%^&*()_+\-=[\]{}|;:,.<>?~`\\/'"]/.test(novaSenha) ? '✓' : '○'}
+                      </span>
+                      1 Caractere especial
                     </span>
                   </div>
                 </div>

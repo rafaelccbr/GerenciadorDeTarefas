@@ -52,8 +52,12 @@ export function Login({ aoIrParaCadastro, aoLogarComSucesso, aoEsqueceuSenha }) 
           : 'bg-gradient-to-b from-white/[0.13] via-[#2f0440]/60 to-[#1c0228]/80 border border-white/25 shadow-[0_25px_60px_-15px_rgba(0,0,0,0.65),0_0_45px_rgba(168,85,247,0.18),inset_0_1px_1px_rgba(255,255,255,0.3)]'
       }`}>
         
-        {/* Título Principal */}
-        <h1 className="text-3xl sm:text-5xl font-bold mb-2 tracking-wide text-white drop-shadow-sm">
+        {/* Título Principal com Brilho Neon */}
+        <h1 className={`text-3xl sm:text-5xl font-bold mb-2 tracking-wide ${
+          ehDark
+            ? 'bg-gradient-to-r from-white via-purple-100 to-purple-300 bg-clip-text text-transparent drop-shadow-[0_0_25px_rgba(168,85,247,0.4)]'
+            : 'text-white drop-shadow-sm'
+        }`}>
           Login
         </h1>
 
