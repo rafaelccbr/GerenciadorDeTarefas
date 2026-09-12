@@ -11,13 +11,28 @@
  * 3. Tratar erros de resposta e expor mensagens amigáveis para a interface.
  */
 
-// Detecta dinamicamente o IP ou domínio de onde a aplicação foi aberta,
-// permitindo que outros computadores na mesma rede acessem a API sem erros.
+// Detecta dinamicamente a URL da API:
+// 1. Usa VITE_API_URL se definida.
+// 2. Se estiver rodando na Vercel em produção, direciona automaticamente para o backend no Render.
+// 3. Em ambiente local, conecta na porta 3000 da mesma máquina ou rede.
 const API_URL = import.meta.env.VITE_API_URL || (
-    typeof window !== 'undefined'
-        ? `http://${window.location.hostname}:3000`
-        : 'http://localhost:3000'
+    typeof window !== 'undefined' && (window.location.hostname.includes('vercel.app') || window.location.hostname.includes('onrender.com'))
+        ? 'https://gerenciadordetarefas-19k8.onrender.com'
+        : typeof window !== 'undefined'
+            ? `http://${window.location.hostname}:3000`
+            : 'http://localhost:3000'
 );
+
+/**
+ * Dispara um ping silencioso para a raiz da API para acordar o servidor caso esteja hibernando no Render (cold start).
+ */
+export async function acordarServidorApi() {
+    try {
+        await fetch(`${API_URL}/`, { method: 'GET' });
+    } catch {
+        // Ignora silenciosamente
+    }
+}
 
 /**
  * Função utilitária genérica para disparo de requisições fetch.

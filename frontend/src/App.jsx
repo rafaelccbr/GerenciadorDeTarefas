@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { obterSessao, limparSessao } from './services/api.js';
+import { useState, useEffect } from 'react';
+import { obterSessao, limparSessao, acordarServidorApi } from './services/api.js';
 import { Login } from './components/Login.jsx';
 import { Cadastro } from './components/Cadastro.jsx';
 import { ListaTarefas } from './components/ListaTarefas.jsx';
@@ -24,6 +24,11 @@ import { ModalGerenciarConta } from './components/ModalGerenciarConta.jsx';
  * - `modalTermosAberto`: Exibe os Termos de Uso (Termos de uso.png)
  */
 function App() {
+  // Dispara um ping silencioso ao carregar o app para acordar o backend no Render (elimina espera do cold start)
+  useEffect(() => {
+    acordarServidorApi();
+  }, []);
+
   // Inicialização preguiçosa (lazy state) para restaurar a sessão sem re-render desnecessário
   const [usuario, setUsuario] = useState(() => {
     const sessao = obterSessao();
