@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useTheme } from '../context/ThemeContext.jsx';
 
 /**
  * ============================================================================
@@ -8,14 +9,10 @@ import { useState } from 'react';
  * 
  * Este componente atende tanto à CRIAÇÃO de uma nova tarefa quanto à EDIÇÃO
  * de uma tarefa existente (quando `tarefaParaEditar` é informada).
- * 
- * Campos manipulados:
- * - nome (Título da tarefa)
- * - status ('pendente' | 'em_andamento' | 'concluido')
- * - data_come (Data de Início - formato YYYY-MM-DD)
- * - data_termi (Data de Término - formato YYYY-MM-DD)
  */
 export function ModalTarefa({ tarefaParaEditar, aoSalvar, aoFechar }) {
+  const { tema } = useTheme();
+  const ehDark = tema === 'dark';
   const hoje = new Date().toISOString().split('T')[0];
 
   // Inicialização direta a partir das propriedades recebidas
@@ -26,26 +23,22 @@ export function ModalTarefa({ tarefaParaEditar, aoSalvar, aoFechar }) {
   const [erro, setErro] = useState('');
   const [salvando, setSalvando] = useState(false);
 
-
   const handleSubmit = async (e) => {
     e.preventDefault();
     setErro('');
 
-    // Validação básica no cliente
     if (!nome.trim()) {
       setErro('Por favor, informe o título da tarefa.');
       return;
     }
-    if (!dataCome) {
-      setErro('Por favor, informe a data de início.');
+
+    if (!dataCome || !dataTermi) {
+      setErro('Por favor, informe as datas de início e término.');
       return;
     }
-    if (!dataTermi) {
-      setErro('Por favor, informe a data de término.');
-      return;
-    }
-    if (dataTermi < dataCome) {
-      setErro('A data de término não pode ser anterior à data de início.');
+
+    if (new Date(dataCome) > new Date(dataTermi)) {
+      setErro('A data de início não pode ser posterior à data de término.');
       return;
     }
 
@@ -67,12 +60,20 @@ export function ModalTarefa({ tarefaParaEditar, aoSalvar, aoFechar }) {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-md p-3 sm:p-4">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-md p-3 sm:p-4">
       {/* Container do Modal com Leve Transparência, Bordas Suaves e Rolagem Segura */}
-      <div className="relative w-full max-w-lg bg-white/95 backdrop-blur-xl border border-white/60 rounded-3xl overflow-hidden shadow-[0_20px_60px_rgba(0,0,0,0.35)] animate-fade-in text-gray-800 max-h-[90dvh] flex flex-col">
+      <div className={`relative w-full max-w-lg backdrop-blur-2xl rounded-3xl overflow-hidden shadow-[0_20px_60px_rgba(0,0,0,0.5)] animate-fade-in max-h-[90dvh] flex flex-col transition-colors duration-500 ${
+        ehDark
+          ? 'bg-zinc-900/95 border border-white/15 text-zinc-100'
+          : 'bg-white/95 border border-white/60 text-gray-800'
+      }`}>
         
-        {/* Cabeçalho com Degradê Violeta Profundo */}
-        <div className="bg-gradient-to-r from-purple-800 via-[#3b075e] to-purple-900 py-3.5 sm:py-4 px-6 text-center shadow-md shrink-0">
+        {/* Cabeçalho com Degradê Violeta Profundo ou Carvão */}
+        <div className={`py-3.5 sm:py-4 px-6 text-center shadow-md shrink-0 ${
+          ehDark 
+            ? 'bg-gradient-to-r from-zinc-900 via-zinc-800 to-zinc-900 border-b border-zinc-700/80' 
+            : 'bg-gradient-to-r from-purple-800 via-[#3b075e] to-purple-900'
+        }`}>
           <h2 className="text-lg sm:text-2xl font-bold text-white tracking-wide drop-shadow-sm">
             {tarefaParaEditar ? 'Editar Tarefa' : 'Cadastro de Tarefa'}
           </h2>
@@ -83,14 +84,20 @@ export function ModalTarefa({ tarefaParaEditar, aoSalvar, aoFechar }) {
           
           {/* Mensagem de Erro, se houver */}
           {erro && (
-            <div className="p-3 bg-red-100 border border-red-300 text-red-700 text-xs sm:text-sm rounded-xl">
+            <div className={`p-3 text-xs sm:text-sm rounded-xl ${
+              ehDark
+                ? 'bg-red-950/50 border border-red-500/40 text-red-200'
+                : 'bg-red-100 border border-red-300 text-red-700'
+            }`}>
               {erro}
             </div>
           )}
 
           {/* Campo: Título da Tarefa */}
           <div>
-            <label className="block text-sm sm:text-base font-bold text-gray-900 mb-1.5 sm:mb-2">
+            <label className={`block text-sm sm:text-base font-bold mb-1.5 sm:mb-2 ${
+              ehDark ? 'text-zinc-200' : 'text-gray-900'
+            }`}>
               Título
             </label>
             <input
@@ -98,7 +105,11 @@ export function ModalTarefa({ tarefaParaEditar, aoSalvar, aoFechar }) {
               value={nome}
               onChange={(e) => setNome(e.target.value)}
               placeholder="Ex: Reunião com a equipe"
-              className="w-full px-4 sm:px-5 py-2.5 sm:py-3 border border-purple-300/60 rounded-2xl focus:outline-none focus:ring-4 focus:ring-purple-400/40 focus:border-purple-500 transition-all text-sm sm:text-base text-gray-800 placeholder-gray-400 shadow-sm"
+              className={`w-full px-4 sm:px-5 py-2.5 sm:py-3 rounded-2xl focus:outline-none focus:ring-4 transition-all text-sm sm:text-base shadow-sm ${
+                ehDark
+                  ? 'bg-zinc-800/90 border border-zinc-700 text-white placeholder-zinc-500 focus:ring-zinc-500/30 focus:border-zinc-500'
+                  : 'bg-white border border-purple-300/60 text-gray-800 placeholder-gray-400 focus:ring-purple-400/40 focus:border-purple-500'
+              }`}
               required
             />
           </div>
@@ -108,13 +119,19 @@ export function ModalTarefa({ tarefaParaEditar, aoSalvar, aoFechar }) {
             
             {/* Campo: Status */}
             <div>
-              <label className="block text-sm sm:text-base font-bold text-gray-900 mb-1.5 sm:mb-2">
+              <label className={`block text-sm sm:text-base font-bold mb-1.5 sm:mb-2 ${
+                ehDark ? 'text-zinc-200' : 'text-gray-900'
+              }`}>
                 Status
               </label>
               <select
                 value={status}
                 onChange={(e) => setStatus(e.target.value)}
-                className="w-full px-3 sm:px-4 py-2 sm:py-2.5 bg-gray-100 hover:bg-gray-200 border border-purple-300/50 rounded-full font-medium text-xs sm:text-sm text-gray-800 focus:outline-none focus:ring-4 focus:ring-purple-400/30 focus:border-purple-400 transition-all cursor-pointer"
+                className={`w-full px-3 sm:px-4 py-2 sm:py-2.5 rounded-full font-medium text-xs sm:text-sm focus:outline-none focus:ring-4 transition-all cursor-pointer ${
+                  ehDark
+                    ? 'bg-zinc-800 border border-zinc-700 text-white focus:ring-zinc-500/30 focus:border-zinc-500'
+                    : 'bg-gray-100 hover:bg-gray-200 border border-purple-300/50 text-gray-800 focus:ring-purple-400/30 focus:border-purple-400'
+                }`}
               >
                 <option value="pendente">Pendente</option>
                 <option value="em_andamento">Em andamento</option>
@@ -124,28 +141,40 @@ export function ModalTarefa({ tarefaParaEditar, aoSalvar, aoFechar }) {
 
             {/* Campo: Início */}
             <div>
-              <label className="block text-sm sm:text-base font-bold text-gray-900 mb-1.5 sm:mb-2">
+              <label className={`block text-sm sm:text-base font-bold mb-1.5 sm:mb-2 ${
+                ehDark ? 'text-zinc-200' : 'text-gray-900'
+              }`}>
                 Início
               </label>
               <input
                 type="date"
                 value={dataCome}
                 onChange={(e) => setDataCome(e.target.value)}
-                className="w-full px-3 py-2 border border-purple-300/60 rounded-full text-xs sm:text-sm text-gray-800 focus:outline-none focus:ring-4 focus:ring-purple-400/30 focus:border-purple-400 transition-all shadow-sm"
+                className={`w-full px-3 py-2 rounded-full text-xs sm:text-sm focus:outline-none focus:ring-4 transition-all shadow-sm ${
+                  ehDark
+                    ? 'bg-zinc-800 border border-zinc-700 text-white [color-scheme:dark] focus:ring-zinc-500/30 focus:border-zinc-500'
+                    : 'bg-white border border-purple-300/60 text-gray-800 focus:ring-purple-400/30 focus:border-purple-400'
+                }`}
                 required
               />
             </div>
 
             {/* Campo: Término */}
             <div>
-              <label className="block text-sm sm:text-base font-bold text-gray-900 mb-1.5 sm:mb-2">
+              <label className={`block text-sm sm:text-base font-bold mb-1.5 sm:mb-2 ${
+                ehDark ? 'text-zinc-200' : 'text-gray-900'
+              }`}>
                 Término
               </label>
               <input
                 type="date"
                 value={dataTermi}
                 onChange={(e) => setDataTermi(e.target.value)}
-                className="w-full px-3 py-2 border border-purple-300/60 rounded-full text-xs sm:text-sm text-gray-800 focus:outline-none focus:ring-4 focus:ring-purple-400/30 focus:border-purple-400 transition-all shadow-sm"
+                className={`w-full px-3 py-2 rounded-full text-xs sm:text-sm focus:outline-none focus:ring-4 transition-all shadow-sm ${
+                  ehDark
+                    ? 'bg-zinc-800 border border-zinc-700 text-white [color-scheme:dark] focus:ring-zinc-500/30 focus:border-zinc-500'
+                    : 'bg-white border border-purple-300/60 text-gray-800 focus:ring-purple-400/30 focus:border-purple-400'
+                }`}
                 required
               />
             </div>
@@ -159,7 +188,11 @@ export function ModalTarefa({ tarefaParaEditar, aoSalvar, aoFechar }) {
             <button
               type="button"
               onClick={aoFechar}
-              className="w-full sm:w-auto px-8 py-2.5 bg-rose-50 hover:bg-rose-100 active:scale-95 text-rose-700 hover:text-rose-800 font-bold rounded-full border border-rose-200/80 shadow-sm transition-all cursor-pointer text-sm"
+              className={`w-full sm:w-auto px-8 py-2.5 active:scale-95 font-bold rounded-full border shadow-sm transition-all cursor-pointer text-sm ${
+                ehDark
+                  ? 'bg-rose-950/40 hover:bg-rose-900/60 text-rose-300 border-rose-800/50'
+                  : 'bg-rose-50 hover:bg-rose-100 text-rose-700 hover:text-rose-800 border-rose-200/80'
+              }`}
             >
               Cancelar
             </button>

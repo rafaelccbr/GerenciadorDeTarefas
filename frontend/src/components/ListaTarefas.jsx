@@ -1,5 +1,7 @@
 import { useState, useEffect } from 'react';
 import { LogOut, PlusCircle, SquarePen, Trash2, Settings } from 'lucide-react';
+import { useTheme } from '../context/ThemeContext.jsx';
+import { SeletorTema } from './SeletorTema.jsx';
 import { 
   listarTarefasApi, 
   atualizarStatusApi, 
@@ -13,16 +15,11 @@ import { ModalTarefa } from './ModalTarefa.jsx';
  * ============================================================================
  * TELA PRINCIPAL (LISTA DE TAREFAS / DASHBOARD)
  * ============================================================================
- * Baseado no design do Figma: 'Lista de Tarefas.png'
- * 
- * Recursos e Componentes visuais:
- * - Botão 'Sair' no topo esquerdo (estilo pílula avermelhado).
- * - Botão 'Cadastrar' (estilo pílula esverdeado).
- * - Card central branco amplo com cantos arredondados (rounded-3xl).
- * - Tabela com colunas: Tarefa, Começa, Termina, Status e Ações.
- * - Suporte completo para criar, listar, alterar status, editar e deletar tarefas.
+ * Suporta Tema Violeta (Figma clássico) e Tema Dark (Obsidian Glass).
  */
 export function ListaTarefas({ usuario, aoDeslogar, aoAbrirConta }) {
+  const { tema } = useTheme();
+  const ehDark = tema === 'dark';
   const [tarefas, setTarefas] = useState([]);
   const [carregando, setCarregando] = useState(true);
   const [erro, setErro] = useState('');
@@ -156,7 +153,7 @@ export function ListaTarefas({ usuario, aoDeslogar, aoAbrirConta }) {
   };
 
   return (
-    <div className="min-h-screen w-full bg-figma-gradient p-4 sm:p-8 flex flex-col items-center">
+    <div className="min-h-screen w-full p-4 sm:p-8 flex flex-col items-center transition-colors duration-500">
       
       {/* Container Principal */}
       <div className="w-full max-w-6xl flex flex-col space-y-4">
@@ -184,44 +181,63 @@ export function ListaTarefas({ usuario, aoDeslogar, aoAbrirConta }) {
             </button>
           </div>
 
-          {/* Gerenciamento de Conta: "Olá, (nome)" com engrenagem no canto direito */}
-          {usuario?.nome && (
-            <button
-              type="button"
-              onClick={aoAbrirConta}
-              className="flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-1.5 sm:py-2 bg-white/10 hover:bg-white/20 border border-white/20 hover:border-white/40 text-purple-200 hover:text-white rounded-full backdrop-blur-md shadow-md transition-all active:scale-95 cursor-pointer group text-xs sm:text-sm"
-              title="Clique para gerenciar sua conta"
-            >
-              <span className="font-medium truncate max-w-[140px] sm:max-w-none">
-                Olá, <strong className="text-white font-bold">{usuario.nome}</strong>
-              </span>
-              <Settings className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-purple-200 group-hover:text-white group-hover:rotate-45 transition-transform duration-300 shrink-0" />
-            </button>
-          )}
+          <div className="flex items-center gap-2 sm:gap-3">
+            {/* Seletor de Tema (Violeta / Dark) */}
+            <SeletorTema />
+
+            {/* Gerenciamento de Conta: "Olá, (nome)" com engrenagem no canto direito */}
+            {usuario?.nome && (
+              <button
+                type="button"
+                onClick={aoAbrirConta}
+                className={`flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-1.5 sm:py-2 rounded-full backdrop-blur-md shadow-md transition-all active:scale-95 cursor-pointer group text-xs sm:text-sm ${
+                  ehDark
+                    ? 'bg-zinc-800/80 hover:bg-zinc-700/80 border border-zinc-700/60 text-zinc-200 hover:text-white'
+                    : 'bg-white/10 hover:bg-white/20 border border-white/20 hover:border-white/40 text-purple-200 hover:text-white'
+                }`}
+                title="Clique para gerenciar sua conta"
+              >
+                <span className="font-medium truncate max-w-[140px] sm:max-w-none">
+                  Olá, <strong className="text-white font-bold">{usuario.nome}</strong>
+                </span>
+                <Settings className={`w-3.5 h-3.5 sm:w-4 sm:h-4 group-hover:rotate-45 transition-transform duration-300 shrink-0 ${
+                  ehDark ? 'text-zinc-400 group-hover:text-white' : 'text-purple-200 group-hover:text-white'
+                }`} />
+              </button>
+            )}
+          </div>
 
         </div>
 
-        {/* Card Branco Central com Efeito Glassmorphism e Sombra Suave (Figma 'Lista de Tarefas.png') */}
-        <div className="w-full bg-white/95 backdrop-blur-xl border border-white/60 rounded-2xl sm:rounded-3xl shadow-[0_16px_50px_rgba(0,0,0,0.25)] p-4 sm:p-6 md:p-8 min-h-[480px] sm:min-h-[520px] flex flex-col">
+        {/* Card Central com Efeito Glassmorphism e Sombra Suave (Adapta ao tema Violeta ou Dark) */}
+        <div className={`w-full backdrop-blur-2xl rounded-2xl sm:rounded-3xl p-4 sm:p-6 md:p-8 min-h-[480px] sm:min-h-[520px] flex flex-col transition-colors duration-500 ${
+          ehDark
+            ? 'bg-zinc-900/90 border border-white/10 shadow-[0_20px_60px_rgba(0,0,0,0.8),inset_0_1px_1px_rgba(255,255,255,0.08)] text-zinc-100'
+            : 'bg-white/95 border border-white/60 shadow-[0_16px_50px_rgba(0,0,0,0.25)] text-gray-800'
+        }`}>
           
           {/* Mensagem de Erro, se houver */}
           {erro && (
-            <div className="mb-4 p-3 bg-red-100 border border-red-300 text-red-700 rounded-xl text-sm">
+            <div className={`mb-4 p-3 rounded-xl text-sm ${
+              ehDark 
+                ? 'bg-red-950/50 border border-red-500/40 text-red-200' 
+                : 'bg-red-100 border border-red-300 text-red-700'
+            }`}>
               {erro}
             </div>
           )}
 
           {/* Estado de Carregando */}
           {carregando ? (
-            <div className="flex-1 flex flex-col items-center justify-center py-20 text-gray-500">
-              <div className="w-10 h-10 border-4 border-purple-600 border-t-transparent rounded-full animate-spin mb-4"></div>
+            <div className={`flex-1 flex flex-col items-center justify-center py-20 ${ehDark ? 'text-zinc-400' : 'text-gray-500'}`}>
+              <div className={`w-10 h-10 border-4 border-t-transparent rounded-full animate-spin mb-4 ${ehDark ? 'border-zinc-400' : 'border-purple-600'}`}></div>
               <p className="font-medium text-sm sm:text-base">Carregando suas tarefas...</p>
             </div>
           ) : tarefas.length === 0 ? (
             /* Estado Vazio */
-            <div className="flex-1 flex flex-col items-center justify-center py-16 sm:py-20 text-gray-400 text-center px-4">
-              <p className="text-lg sm:text-xl font-semibold mb-2 text-gray-600">Nenhuma tarefa encontrada</p>
-              <p className="text-xs sm:text-sm max-w-sm mb-6">
+            <div className={`flex-1 flex flex-col items-center justify-center py-16 sm:py-20 text-center px-4 ${ehDark ? 'text-zinc-400' : 'text-gray-400'}`}>
+              <p className={`text-lg sm:text-xl font-semibold mb-2 ${ehDark ? 'text-zinc-200' : 'text-gray-600'}`}>Nenhuma tarefa encontrada</p>
+              <p className={`text-xs sm:text-sm max-w-sm mb-6 ${ehDark ? 'text-zinc-400' : 'text-gray-500'}`}>
                 Você ainda não tem tarefas cadastradas. Clique no botão verde "Cadastrar" acima para começar!
               </p>
               <button
@@ -238,11 +254,15 @@ export function ListaTarefas({ usuario, aoDeslogar, aoAbrirConta }) {
                 {tarefas.map((tarefa) => (
                   <div 
                     key={`card-${tarefa.id}`}
-                    className="bg-purple-50/50 hover:bg-purple-50/80 border border-purple-100/80 rounded-2xl p-4 shadow-sm transition-all text-left flex flex-col justify-between gap-3"
+                    className={`rounded-2xl p-4 shadow-sm transition-all text-left flex flex-col justify-between gap-3 border ${
+                      ehDark
+                        ? 'bg-zinc-800/70 hover:bg-zinc-800/95 border-zinc-700/60 text-zinc-100 shadow-md'
+                        : 'bg-purple-50/50 hover:bg-purple-50/80 border-purple-100/80 text-gray-900'
+                    }`}
                   >
                     {/* Topo do Card: Nome e Status */}
                     <div className="flex items-start justify-between gap-2">
-                      <h3 className="font-bold text-gray-900 text-base leading-snug break-words flex-1">
+                      <h3 className={`font-bold text-base leading-snug break-words flex-1 ${ehDark ? 'text-white' : 'text-gray-900'}`}>
                         {tarefa.nome}
                       </h3>
                       <button
@@ -251,10 +271,10 @@ export function ListaTarefas({ usuario, aoDeslogar, aoAbrirConta }) {
                         title="Clique para alternar o status"
                         className={`shrink-0 inline-flex items-center justify-center px-3 py-1 rounded-full font-semibold text-xs cursor-pointer transition-all shadow-sm active:scale-95 ${
                           tarefa.status === 'concluido'
-                            ? 'bg-green-100 text-green-800 border border-green-300'
+                            ? ehDark ? 'bg-emerald-500/25 text-emerald-300 border border-emerald-500/40' : 'bg-green-100 text-green-800 border border-green-300'
                             : tarefa.status === 'em_andamento'
-                            ? 'bg-purple-100 text-purple-800 border border-purple-300'
-                            : 'bg-gray-200 text-gray-700 hover:bg-gray-300 border border-gray-300'
+                            ? ehDark ? 'bg-purple-500/25 text-purple-300 border border-purple-500/40' : 'bg-purple-100 text-purple-800 border border-purple-300'
+                            : ehDark ? 'bg-zinc-700/80 text-zinc-300 border border-zinc-600 hover:bg-zinc-700' : 'bg-gray-200 text-gray-700 hover:bg-gray-300 border border-gray-300'
                         }`}
                       >
                         {rotuloStatus[tarefa.status] || tarefa.status}
@@ -262,23 +282,31 @@ export function ListaTarefas({ usuario, aoDeslogar, aoAbrirConta }) {
                     </div>
 
                     {/* Meio: Datas de Início e Término */}
-                    <div className="flex items-center justify-between text-xs text-gray-500 pt-2 border-t border-purple-100/60">
+                    <div className={`flex items-center justify-between text-xs pt-2 border-t ${
+                      ehDark ? 'border-zinc-700/60 text-zinc-400' : 'border-purple-100/60 text-gray-500'
+                    }`}>
                       <div>
-                        <span className="text-gray-400">Início: </span>
-                        <span className="font-semibold text-gray-700">{formatarData(tarefa.data_come)}</span>
+                        <span className={ehDark ? 'text-zinc-500' : 'text-gray-400'}>Início: </span>
+                        <span className={`font-semibold ${ehDark ? 'text-zinc-200' : 'text-gray-700'}`}>{formatarData(tarefa.data_come)}</span>
                       </div>
                       <div>
-                        <span className="text-gray-400">Término: </span>
-                        <span className="font-semibold text-gray-700">{formatarData(tarefa.data_termi)}</span>
+                        <span className={ehDark ? 'text-zinc-500' : 'text-gray-400'}>Término: </span>
+                        <span className={`font-semibold ${ehDark ? 'text-zinc-200' : 'text-gray-700'}`}>{formatarData(tarefa.data_termi)}</span>
                       </div>
                     </div>
 
                     {/* Rodapé: Ações Editar e Excluir com touch targets confortáveis */}
-                    <div className="flex items-center justify-end gap-2 pt-2 border-t border-purple-100/60">
+                    <div className={`flex items-center justify-end gap-2 pt-2 border-t ${
+                      ehDark ? 'border-zinc-700/60' : 'border-purple-100/60'
+                    }`}>
                       <button
                         type="button"
                         onClick={() => handleEditar(tarefa)}
-                        className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-purple-700 hover:bg-purple-100/80 bg-purple-100/40 rounded-xl transition-colors cursor-pointer active:scale-95"
+                        className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-xl transition-colors cursor-pointer active:scale-95 ${
+                          ehDark
+                            ? 'text-zinc-200 hover:text-white bg-zinc-700/60 hover:bg-zinc-700 border border-zinc-600/50'
+                            : 'text-purple-700 hover:bg-purple-100/80 bg-purple-100/40'
+                        }`}
                       >
                         <SquarePen className="w-3.5 h-3.5" />
                         Editar
@@ -286,7 +314,11 @@ export function ListaTarefas({ usuario, aoDeslogar, aoAbrirConta }) {
                       <button
                         type="button"
                         onClick={() => handleExcluir(tarefa.id, tarefa.nome)}
-                        className="flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold text-rose-700 hover:bg-rose-100/80 bg-rose-100/40 rounded-xl transition-colors cursor-pointer active:scale-95"
+                        className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-xl transition-colors cursor-pointer active:scale-95 ${
+                          ehDark
+                            ? 'text-rose-300 hover:text-rose-200 bg-rose-950/40 hover:bg-rose-950/70 border border-rose-800/40'
+                            : 'text-rose-700 hover:bg-rose-100/80 bg-rose-100/40'
+                        }`}
                       >
                         <Trash2 className="w-3.5 h-3.5" />
                         Excluir
@@ -302,7 +334,9 @@ export function ListaTarefas({ usuario, aoDeslogar, aoAbrirConta }) {
                   
                   {/* Cabeçalho da Tabela */}
                   <thead>
-                    <tr className="border-b border-gray-200 text-gray-900 text-base sm:text-lg font-bold">
+                    <tr className={`border-b text-base sm:text-lg font-bold ${
+                      ehDark ? 'border-zinc-800 text-zinc-100' : 'border-gray-200 text-gray-900'
+                    }`}>
                       <th className="py-4 px-4 font-bold">Tarefa</th>
                       <th className="py-4 px-4 font-bold text-center sm:text-left">Começa</th>
                       <th className="py-4 px-4 font-bold text-center sm:text-left">Termina</th>
@@ -312,24 +346,28 @@ export function ListaTarefas({ usuario, aoDeslogar, aoAbrirConta }) {
                   </thead>
 
                   {/* Corpo da Tabela */}
-                  <tbody className="divide-y divide-gray-200">
+                  <tbody className={`divide-y ${ehDark ? 'divide-zinc-800/80' : 'divide-gray-200'}`}>
                     {tarefas.map((tarefa) => (
                       <tr 
                         key={tarefa.id} 
-                        className="hover:bg-purple-50/40 transition-colors text-gray-800 text-sm sm:text-base"
+                        className={`transition-colors text-sm sm:text-base ${
+                          ehDark
+                            ? 'hover:bg-zinc-800/50 text-zinc-200'
+                            : 'hover:bg-purple-50/40 text-gray-800'
+                        }`}
                       >
                         {/* Coluna: Nome/Título */}
-                        <td className="py-4 px-4 font-medium max-w-xs sm:max-w-md break-words">
+                        <td className={`py-4 px-4 font-medium max-w-xs sm:max-w-md break-words ${ehDark ? 'text-zinc-100 font-semibold' : 'text-gray-900'}`}>
                           {tarefa.nome}
                         </td>
 
                         {/* Coluna: Data de Início */}
-                        <td className="py-4 px-4 text-gray-600 whitespace-nowrap text-center sm:text-left">
+                        <td className={`py-4 px-4 whitespace-nowrap text-center sm:text-left ${ehDark ? 'text-zinc-400' : 'text-gray-600'}`}>
                           {formatarData(tarefa.data_come)}
                         </td>
 
                         {/* Coluna: Data de Término */}
-                        <td className="py-4 px-4 text-gray-600 whitespace-nowrap text-center sm:text-left">
+                        <td className={`py-4 px-4 whitespace-nowrap text-center sm:text-left ${ehDark ? 'text-zinc-400' : 'text-gray-600'}`}>
                           {formatarData(tarefa.data_termi)}
                         </td>
 
@@ -341,10 +379,10 @@ export function ListaTarefas({ usuario, aoDeslogar, aoAbrirConta }) {
                             title="Clique para alternar o status"
                             className={`inline-flex items-center justify-center px-4 py-1.5 rounded-full font-medium text-xs sm:text-sm cursor-pointer transition-all shadow-sm active:scale-95 ${
                               tarefa.status === 'concluido'
-                                ? 'bg-green-100 text-green-800 border border-green-300'
+                                ? ehDark ? 'bg-emerald-500/25 text-emerald-300 border border-emerald-500/40' : 'bg-green-100 text-green-800 border border-green-300'
                                 : tarefa.status === 'em_andamento'
-                                ? 'bg-purple-100 text-purple-800 border border-purple-300'
-                                : 'bg-gray-200 text-gray-700 hover:bg-gray-300 border border-gray-300'
+                                ? ehDark ? 'bg-purple-500/25 text-purple-300 border border-purple-500/40' : 'bg-purple-100 text-purple-800 border border-purple-300'
+                                : ehDark ? 'bg-zinc-800 text-zinc-300 hover:bg-zinc-700 border border-zinc-700' : 'bg-gray-200 text-gray-700 hover:bg-gray-300 border border-gray-300'
                             }`}
                           >
                             {rotuloStatus[tarefa.status] || tarefa.status}
@@ -359,7 +397,11 @@ export function ListaTarefas({ usuario, aoDeslogar, aoAbrirConta }) {
                               type="button"
                               onClick={() => handleEditar(tarefa)}
                               title="Editar tarefa"
-                              className="p-1.5 text-gray-700 hover:text-purple-600 hover:bg-purple-50 rounded-lg transition-colors cursor-pointer"
+                              className={`p-1.5 rounded-lg transition-colors cursor-pointer ${
+                                ehDark
+                                  ? 'text-zinc-400 hover:text-white hover:bg-zinc-800'
+                                  : 'text-gray-700 hover:text-purple-600 hover:bg-purple-50'
+                              }`}
                             >
                               <SquarePen className="w-5 h-5" />
                             </button>
@@ -369,7 +411,11 @@ export function ListaTarefas({ usuario, aoDeslogar, aoAbrirConta }) {
                               type="button"
                               onClick={() => handleExcluir(tarefa.id, tarefa.nome)}
                               title="Excluir tarefa"
-                              className="p-1.5 text-red-500 hover:text-red-700 hover:bg-red-50 rounded-lg transition-colors cursor-pointer"
+                              className={`p-1.5 rounded-lg transition-colors cursor-pointer ${
+                                ehDark
+                                  ? 'text-rose-400 hover:text-rose-300 hover:bg-rose-950/50'
+                                  : 'text-red-500 hover:text-red-700 hover:bg-red-50'
+                              }`}
                             >
                               <Trash2 className="w-5 h-5" />
                             </button>

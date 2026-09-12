@@ -1,5 +1,7 @@
 import { useState, useEffect } from 'react';
 import { obterSessao, salvarSessao, limparSessao, acordarServidorApi } from './services/api.js';
+import { ThemeProvider, useTheme } from './context/ThemeContext.jsx';
+import { SeletorTema } from './components/SeletorTema.jsx';
 import { Login } from './components/Login.jsx';
 import { Cadastro } from './components/Cadastro.jsx';
 import { ListaTarefas } from './components/ListaTarefas.jsx';
@@ -10,7 +12,7 @@ import { ModalGerenciarConta } from './components/ModalGerenciarConta.jsx';
 
 /**
  * ============================================================================
- * COMPONENTE RAIZ (APP)
+ * COMPONENTE CONTEÚDO (APP CONTEÚDO)
  * ============================================================================
  * Gerencia o estado global de navegação e autenticação:
  * 
@@ -23,7 +25,8 @@ import { ModalGerenciarConta } from './components/ModalGerenciarConta.jsx';
  * - `modalSucessoAberto`: Exibe o Modal de Sucesso com o e-mail (Autenticação.png)
  * - `modalTermosAberto`: Exibe os Termos de Uso (Termos de uso.png)
  */
-function App() {
+function AppConteudo() {
+  const { tema } = useTheme();
   // Dispara um ping silencioso ao carregar o app para acordar o backend no Render (elimina espera do cold start)
   useEffect(() => {
     acordarServidorApi();
@@ -139,8 +142,15 @@ function App() {
   };
 
   return (
-    <main className="w-full min-h-screen bg-figma-gradient selection:bg-purple-400 selection:text-purple-950 font-sans">
+    <main className={`w-full min-h-screen ${tema === 'dark' ? 'bg-theme-dark' : 'bg-theme-violeta'} selection:bg-purple-400 selection:text-purple-950 font-sans transition-colors duration-500 relative`}>
       
+      {/* Seletor de Tema discreto no canto superior direito nas telas de login e cadastro */}
+      {(telaAtual === 'login' || telaAtual === 'cadastro') && (
+        <div className="fixed top-3 right-3 sm:top-5 sm:right-5 z-50 animate-fade-in">
+          <SeletorTema />
+        </div>
+      )}
+
       {/* 1. TELA DE LOGIN */}
       {telaAtual === 'login' && (
         <Login
@@ -213,6 +223,17 @@ function App() {
       )}
 
     </main>
+  );
+}
+
+/**
+ * Ponto de entrada do App com o provedor de tema global
+ */
+function App() {
+  return (
+    <ThemeProvider>
+      <AppConteudo />
+    </ThemeProvider>
   );
 }
 

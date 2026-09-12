@@ -1,4 +1,6 @@
 import { useState } from 'react';
+import { Sparkles, Moon } from 'lucide-react';
+import { useTheme } from '../context/ThemeContext.jsx';
 import { atualizarPerfilApi, excluirContaApi } from '../services/api.js';
 
 /**
@@ -6,16 +8,18 @@ import { atualizarPerfilApi, excluirContaApi } from '../services/api.js';
  * MODAL DE GERENCIAMENTO DE CONTA
  * ============================================================================
  * Permite ao usuário logado:
- * 1. Alterar seus dados pessoais (Nome e E-mail).
+ * 1. Alterar seus dados pessoais (Nome e E-mail) e Tema (Violeta / Dark).
  * 2. Redefinir sua senha com validação de confirmação.
  * 3. Excluir permanentemente sua conta e todas as tarefas vinculadas.
  * 
  * Organizado em 3 abas didáticas:
- * - 'perfil': Dados cadastrais
+ * - 'perfil': Dados cadastrais e preferências de tema
  * - 'senha': Alteração de senha
  * - 'excluir': Zona de perigo com dupla confirmação
  */
 export function ModalGerenciarConta({ usuario, aoAtualizarUsuario, aoExcluirConta, aoFechar, abaInicial = 'perfil' }) {
+  const { tema, setTema } = useTheme();
+  const ehDark = tema === 'dark';
   const [abaAtiva, setAbaAtiva] = useState(abaInicial); // 'perfil' | 'senha' | 'excluir'
 
   // Estados da Aba: Perfil
@@ -150,7 +154,11 @@ export function ModalGerenciarConta({ usuario, aoAtualizarUsuario, aoExcluirCont
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/65 backdrop-blur-md p-3 sm:p-4">
       {/* Card do Modal com Efeito Vidro Translúcido, Chanfro e Glow */}
-      <div className="relative w-full max-w-lg bg-gradient-to-b from-white/[0.14] via-[#2f0440]/65 to-[#1c0228]/85 backdrop-blur-2xl border border-white/25 rounded-3xl p-5 sm:p-8 text-white shadow-[0_25px_60px_-15px_rgba(0,0,0,0.7),0_0_45px_rgba(168,85,247,0.2),inset_0_1px_1px_rgba(255,255,255,0.3)] animate-fade-in max-h-[90dvh] overflow-y-auto no-scrollbar">
+      <div className={`relative w-full max-w-lg backdrop-blur-2xl rounded-3xl p-5 sm:p-8 text-white animate-fade-in max-h-[90dvh] overflow-y-auto no-scrollbar transition-colors duration-500 ${
+        ehDark
+          ? 'bg-gradient-to-b from-white/[0.08] via-zinc-900/90 to-black/95 border border-white/15 shadow-[0_25px_60px_-15px_rgba(0,0,0,0.95)]'
+          : 'bg-gradient-to-b from-white/[0.14] via-[#2f0440]/65 to-[#1c0228]/85 border border-white/25 shadow-[0_25px_60px_-15px_rgba(0,0,0,0.7),0_0_45px_rgba(168,85,247,0.2),inset_0_1px_1px_rgba(255,255,255,0.3)]'
+      }`}>
         
         {/* Botão Fechar no Topo Direito */}
         <button
@@ -258,6 +266,39 @@ export function ModalGerenciarConta({ usuario, aoAtualizarUsuario, aoExcluirCont
               <p className="text-xs text-purple-200/70 mt-1.5 text-left pl-1">
                 * Caso altere o e-mail, pode ser necessário confirmá-lo novamente pelo link enviado.
               </p>
+            </div>
+
+            {/* Preferência de Tema */}
+            <div className="pt-1 text-left">
+              <label className="block text-sm font-medium text-purple-200 mb-2 pl-1">
+                Aparência da Interface
+              </label>
+              <div className="grid grid-cols-2 gap-2.5">
+                <button
+                  type="button"
+                  onClick={() => setTema('violeta')}
+                  className={`flex items-center justify-center gap-2 p-3 rounded-2xl border transition-all cursor-pointer text-xs sm:text-sm font-semibold ${
+                    tema === 'violeta'
+                      ? 'bg-purple-600/60 border-purple-400 text-white shadow-[0_0_20px_rgba(168,85,247,0.4)]'
+                      : 'bg-white/5 border-white/15 text-purple-200/70 hover:bg-white/10 hover:text-white'
+                  }`}
+                >
+                  <Sparkles className="w-4 h-4 text-purple-300" />
+                  Tema Violeta
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setTema('dark')}
+                  className={`flex items-center justify-center gap-2 p-3 rounded-2xl border transition-all cursor-pointer text-xs sm:text-sm font-semibold ${
+                    tema === 'dark'
+                      ? 'bg-zinc-800 border-zinc-500 text-white shadow-[0_0_20px_rgba(255,255,255,0.15)]'
+                      : 'bg-white/5 border-white/15 text-purple-200/70 hover:bg-white/10 hover:text-white'
+                  }`}
+                >
+                  <Moon className="w-4 h-4 text-zinc-300" />
+                  Tema Dark
+                </button>
+              </div>
             </div>
 
             <div className="pt-3 flex flex-col-reverse sm:flex-row justify-end gap-2.5 sm:gap-3">
