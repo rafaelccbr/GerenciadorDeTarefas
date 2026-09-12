@@ -27,6 +27,7 @@ export function ModalGerenciarConta({ usuario, aoAtualizarUsuario, aoExcluirCont
   const [novaSenha, setNovaSenha] = useState('');
   const [confirmarSenha, setConfirmarSenha] = useState('');
   const [salvandoSenha, setSalvandoSenha] = useState(false);
+  const [novaSenhaFocada, setNovaSenhaFocada] = useState(false);
 
   // Estados da Aba: Excluir Conta
   const [confirmouExclusao, setConfirmouExclusao] = useState(false);
@@ -88,6 +89,11 @@ export function ModalGerenciarConta({ usuario, aoAtualizarUsuario, aoExcluirCont
 
     if (!/[A-Z]/.test(novaSenha)) {
       setErro('A nova senha deve conter pelo menos uma letra maiúscula.');
+      return;
+    }
+
+    if (!/[0-9]/.test(novaSenha)) {
+      setErro('A nova senha deve conter pelo menos um número.');
       return;
     }
 
@@ -286,13 +292,31 @@ export function ModalGerenciarConta({ usuario, aoAtualizarUsuario, aoExcluirCont
                 type="password"
                 value={novaSenha}
                 onChange={(e) => setNovaSenha(e.target.value)}
+                onFocus={() => setNovaSenhaFocada(true)}
+                onBlur={() => setNovaSenhaFocada(false)}
                 placeholder="Mínimo 8 caracteres"
                 className="w-full px-5 py-3 bg-[#d9d9d9]/95 hover:bg-white focus:bg-white text-gray-900 rounded-2xl text-left focus:outline-none focus:ring-4 focus:ring-purple-400/50 shadow-md placeholder-gray-500 transition-all font-medium border border-white/30 focus:border-purple-400"
                 required
               />
-              <p className="text-xs text-purple-200/70 mt-1.5 text-left pl-1">
-                * Mínimo 8 caracteres, com pelo menos 1 letra maiúscula e 1 caractere especial.
-              </p>
+              {novaSenhaFocada && (
+                <div className="text-xs text-purple-200/80 space-y-1.5 bg-white/5 border border-white/10 rounded-2xl p-3 text-left transition-all animate-fade-in shadow-inner mt-2">
+                  <p className="font-semibold text-purple-100 text-xs mb-1">Requisitos de segurança:</p>
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                    <span className={`flex items-center gap-1.5 ${novaSenha.length >= 8 ? 'text-green-400 font-semibold' : 'text-purple-300/70'}`}>
+                      {novaSenha.length >= 8 ? '✓' : '○'} Mínimo 8 caracteres
+                    </span>
+                    <span className={`flex items-center gap-1.5 ${/[A-Z]/.test(novaSenha) ? 'text-green-400 font-semibold' : 'text-purple-300/70'}`}>
+                      {/[A-Z]/.test(novaSenha) ? '✓' : '○'} 1 Letra maiúscula
+                    </span>
+                    <span className={`flex items-center gap-1.5 ${/[0-9]/.test(novaSenha) ? 'text-green-400 font-semibold' : 'text-purple-300/70'}`}>
+                      {/[0-9]/.test(novaSenha) ? '✓' : '○'} 1 Número
+                    </span>
+                    <span className={`flex items-center gap-1.5 ${/[!@#$%^&*()_+\-=[\]{}|;:,.<>?~`\\/'"]/.test(novaSenha) ? 'text-green-400 font-semibold' : 'text-purple-300/70'}`}>
+                      {/[!@#$%^&*()_+\-=[\]{}|;:,.<>?~`\\/'"]/.test(novaSenha) ? '✓' : '○'} 1 Caractere especial
+                    </span>
+                  </div>
+                </div>
+              )}
             </div>
 
             <div>

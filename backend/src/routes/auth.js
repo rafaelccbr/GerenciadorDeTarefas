@@ -5,6 +5,7 @@ import { autenticar } from '../middlewares/autenticar.js';
  * Validação de requisitos de segurança para senha forte:
  * - Mínimo de 8 caracteres
  * - Pelo menos 1 letra maiúscula
+ * - Pelo menos 1 número
  * - Pelo menos 1 caractere especial
  */
 function validarRequisitosSenha(senha) {
@@ -13,6 +14,9 @@ function validarRequisitosSenha(senha) {
     }
     if (!/[A-Z]/.test(senha)) {
         return 'A senha deve conter pelo menos uma letra maiúscula.';
+    }
+    if (!/[0-9]/.test(senha)) {
+        return 'A senha deve conter pelo menos um número.';
     }
     if (!/[!@#$%^&*()_+\-=[\]{}|;:,.<>?~`\\/'"]/.test(senha)) {
         return 'A senha deve conter pelo menos um caractere especial (ex: !@#$%&*).';

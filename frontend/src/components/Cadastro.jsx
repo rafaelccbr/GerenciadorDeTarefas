@@ -22,6 +22,7 @@ export function Cadastro({ aoVoltarParaLogin, aoAbrirTermos, aoCadastroSucesso }
   const [aceitouTermos, setAceitouTermos] = useState(false);
   const [carregando, setCarregando] = useState(false);
   const [erro, setErro] = useState('');
+  const [senhaFocada, setSenhaFocada] = useState(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -40,6 +41,11 @@ export function Cadastro({ aoVoltarParaLogin, aoAbrirTermos, aoCadastroSucesso }
 
     if (!/[A-Z]/.test(senha)) {
       setErro('A senha deve conter pelo menos uma letra maiúscula.');
+      return;
+    }
+
+    if (!/[0-9]/.test(senha)) {
+      setErro('A senha deve conter pelo menos um número.');
       return;
     }
 
@@ -150,6 +156,8 @@ export function Cadastro({ aoVoltarParaLogin, aoAbrirTermos, aoCadastroSucesso }
                 type="password"
                 value={senha}
                 onChange={(e) => setSenha(e.target.value)}
+                onFocus={() => setSenhaFocada(true)}
+                onBlur={() => setSenhaFocada(false)}
                 placeholder="••••••••"
                 className="w-full px-5 py-3 bg-[#d9d9d9]/95 hover:bg-white focus:bg-white text-gray-900 rounded-full focus:outline-none focus:ring-4 focus:ring-purple-400/50 shadow-md placeholder-gray-500 font-medium transition-all border border-white/30 focus:border-purple-400"
                 required
@@ -173,21 +181,26 @@ export function Cadastro({ aoVoltarParaLogin, aoAbrirTermos, aoCadastroSucesso }
 
           </div>
 
-          {/* Indicadores Visuais de Requisitos da Senha */}
-          <div className="text-xs text-purple-200/80 space-y-1.5 bg-white/5 border border-white/10 rounded-2xl p-3 text-left">
-            <p className="font-semibold text-purple-100 text-xs mb-1">Requisitos de segurança:</p>
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
-              <span className={`flex items-center gap-1.5 ${senha.length >= 8 ? 'text-green-400 font-semibold' : 'text-purple-300/70'}`}>
-                {senha.length >= 8 ? '✓' : '○'} Mínimo 8 caracteres
-              </span>
-              <span className={`flex items-center gap-1.5 ${/[A-Z]/.test(senha) ? 'text-green-400 font-semibold' : 'text-purple-300/70'}`}>
-                {/[A-Z]/.test(senha) ? '✓' : '○'} 1 Letra maiúscula
-              </span>
-              <span className={`flex items-center gap-1.5 ${/[!@#$%^&*()_+\-=[\]{}|;:,.<>?~`\\/'"]/.test(senha) ? 'text-green-400 font-semibold' : 'text-purple-300/70'}`}>
-                {/[!@#$%^&*()_+\-=[\]{}|;:,.<>?~`\\/'"]/.test(senha) ? '✓' : '○'} 1 Caractere especial
-              </span>
+          {/* Indicadores Visuais de Requisitos da Senha - Aparece apenas quando a caixa da senha for clicada/focada */}
+          {senhaFocada && (
+            <div className="text-xs text-purple-200/80 space-y-1.5 bg-white/5 border border-white/10 rounded-2xl p-3 text-left transition-all animate-fade-in shadow-inner">
+              <p className="font-semibold text-purple-100 text-xs mb-1">Requisitos de segurança:</p>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                <span className={`flex items-center gap-1.5 ${senha.length >= 8 ? 'text-green-400 font-semibold' : 'text-purple-300/70'}`}>
+                  {senha.length >= 8 ? '✓' : '○'} Mínimo 8 caracteres
+                </span>
+                <span className={`flex items-center gap-1.5 ${/[A-Z]/.test(senha) ? 'text-green-400 font-semibold' : 'text-purple-300/70'}`}>
+                  {/[A-Z]/.test(senha) ? '✓' : '○'} 1 Letra maiúscula
+                </span>
+                <span className={`flex items-center gap-1.5 ${/[0-9]/.test(senha) ? 'text-green-400 font-semibold' : 'text-purple-300/70'}`}>
+                  {/[0-9]/.test(senha) ? '✓' : '○'} 1 Número
+                </span>
+                <span className={`flex items-center gap-1.5 ${/[!@#$%^&*()_+\-=[\]{}|;:,.<>?~`\\/'"]/.test(senha) ? 'text-green-400 font-semibold' : 'text-purple-300/70'}`}>
+                  {/[!@#$%^&*()_+\-=[\]{}|;:,.<>?~`\\/'"]/.test(senha) ? '✓' : '○'} 1 Caractere especial
+                </span>
+              </div>
             </div>
-          </div>
+          )}
 
           {/* Checkbox Termos de Uso */}
           <div className="flex items-center gap-3 pt-2">
