@@ -68,5 +68,17 @@
   scrollbar-width: none; /* Firefox */
 }
 
-
-
+/**
+ * ============================================================================
+ * PREVENÇÃO DE COR FORÇADA POR AUTOFILL DO NAVEGADOR NO TEMA DARK
+ * ============================================================================
+ */
+.theme-dark input:-webkit-autofill,
+.theme-dark input:-webkit-autofill:hover, 
+.theme-dark input:-webkit-autofill:focus, 
+.theme-dark input:-webkit-autofill:active {
+  -webkit-box-shadow: 0 0 0 1000px #180f24 inset !important;
+  -webkit-text-fill-color: #ffffff !important;
+  caret-color: #ffffff !important;
+  transition: background-color 5000s ease-in-out 0s;
+}

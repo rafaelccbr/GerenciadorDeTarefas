@@ -84,7 +84,7 @@ export function Login({ aoIrParaCadastro, aoLogarComSucesso, aoEsqueceuSenha }) 
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               placeholder="seuemail@exemplo.com"
-              className={`w-full max-w-sm px-6 py-3.5 rounded-full text-center focus:outline-none focus:ring-4 transition-all font-medium border shadow-md ${
+              className={`w-full max-w-sm px-5 py-3 rounded-full text-center focus:outline-none focus:ring-4 transition-all font-medium border shadow-md ${
                 ehDark
                   ? 'bg-white/10 hover:bg-white/[0.14] focus:bg-white/[0.16] text-white placeholder-purple-200/50 border-white/20 focus:border-purple-400 focus:ring-purple-400/50'
                   : 'bg-[#d9d9d9]/95 hover:bg-white focus:bg-white text-gray-900 placeholder-gray-500 border-white/30 focus:border-purple-400 focus:ring-purple-400/50'
@@ -104,7 +104,7 @@ export function Login({ aoIrParaCadastro, aoLogarComSucesso, aoEsqueceuSenha }) 
                 value={senha}
                 onChange={(e) => setSenha(e.target.value)}
                 placeholder="••••••••"
-                className={`w-full px-12 py-3.5 rounded-full text-center focus:outline-none focus:ring-4 transition-all font-medium border shadow-md ${
+                className={`w-full px-12 py-3 rounded-full text-center focus:outline-none focus:ring-4 transition-all font-medium border shadow-md ${
                   ehDark
                     ? 'bg-white/10 hover:bg-white/[0.14] focus:bg-white/[0.16] text-white placeholder-purple-200/50 border-white/20 focus:border-purple-400 focus:ring-purple-400/50'
                     : 'bg-[#d9d9d9]/95 hover:bg-white focus:bg-white text-gray-900 placeholder-gray-500 border-white/30 focus:border-purple-400 focus:ring-purple-400/50'
@@ -115,10 +115,10 @@ export function Login({ aoIrParaCadastro, aoLogarComSucesso, aoEsqueceuSenha }) 
                 type="button"
                 onMouseDown={(e) => e.preventDefault()}
                 onClick={() => setMostrarSenha(!mostrarSenha)}
-                className={`absolute right-3.5 p-1.5 rounded-full transition-all cursor-pointer focus:outline-none active:scale-95 ${
+                className={`absolute right-3.5 p-1 rounded-full transition-colors cursor-pointer focus:outline-none ${
                   ehDark
-                    ? 'text-white bg-purple-500/30 hover:bg-purple-500/50 border border-purple-400/50 hover:border-purple-300 shadow-[0_0_12px_rgba(168,85,247,0.3)]'
-                    : 'text-gray-700 hover:text-gray-900 bg-gray-200/80 hover:bg-gray-300 border border-gray-300/80 shadow-sm'
+                    ? 'text-purple-200/70 hover:text-white hover:bg-white/10'
+                    : 'text-gray-500 hover:text-gray-900 hover:bg-gray-300/50'
                 }`}
                 title={mostrarSenha ? 'Ocultar senha' : 'Ver senha'}
                 aria-label={mostrarSenha ? 'Ocultar senha' : 'Ver senha'}
