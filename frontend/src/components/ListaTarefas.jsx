@@ -33,7 +33,8 @@ import { ModalTarefa } from './ModalTarefa.jsx';
 import { 
   parseTarefaNome, 
   PRIORIDADES, 
-  obterCorTag 
+  obterCorTag,
+  verificarPrazoInteligente 
 } from '../utils/tarefaParser.js';
 
 /**
@@ -46,11 +47,12 @@ import {
  * - Filtros rápidos por status com contadores dinâmicos
  * - Barra de progresso e produtividade estilo Karma
  * - Checkbox circular de conclusão rápida com efeito riscado (strikethrough)
- * - Alertas inteligentes de prazos (Atrasada, Vence hoje)
+ * - Alertas inteligentes de prazos (Atrasada, Vence hoje com hora precisa)
  * - Atalhos de teclado globais ('N' para criar, '/' para buscar, 'ESC' para fechar)
  * - Modo de visualização alternável: Tabela ↔ Quadro Kanban com 3 colunas translúcidas
  * - Prioridades Todoist P1 a P4 com bandeiras coloridas
  * - Tags e Categorias com cores automáticas e filtro por clique
+ * - Horário de conclusão limite com alerta pontual por minuto
  */
 export function ListaTarefas({ usuario, aoDeslogar, aoAbrirConta }) {
   const { tema } = useTheme();
@@ -79,6 +81,13 @@ export function ListaTarefas({ usuario, aoDeslogar, aoAbrirConta }) {
   const [tarefaEmEdicao, setTarefaEmEdicao] = useState(null);
   const [statusInicialParaNova, setStatusInicialParaNova] = useState('pendente');
 
+  // Abre o modal para cadastro de nova tarefa
+  const handleNovoCadastro = (statusPadrao = 'pendente') => {
+    setTarefaEmEdicao(null);
+    setStatusInicialParaNova(statusPadrao);
+    setModalAberto(true);
+  };
+
   // Carrega as tarefas do usuário autenticado ao montar a tela
   useEffect(() => {
     let ativo = true;
@@ -101,13 +110,6 @@ export function ListaTarefas({ usuario, aoDeslogar, aoAbrirConta }) {
       ativo = false;
     };
   }, []);
-
-  // Abre o modal para cadastro de nova tarefa
-  const handleNovoCadastro = (statusPadrao = 'pendente') => {
-    setTarefaEmEdicao(null);
-    setStatusInicialParaNova(statusPadrao);
-    setModalAberto(true);
-  };
 
   // Atalhos Globais de Teclado (N = Criar, / = Buscar, ESC = Fechar/Limpar)
   useEffect(() => {
@@ -149,25 +151,6 @@ export function ListaTarefas({ usuario, aoDeslogar, aoAbrirConta }) {
       return `${partes[2]}/${partes[1]}/${partes[0]}`;
     }
     return dataStr;
-  };
-
-  // Alerta inteligente de prazos (Atrasada / Vence hoje / No prazo)
-  const verificarPrazo = (dataTerminoStr, status) => {
-    if (!dataTerminoStr || status === 'concluido') return null;
-
-    const [ano, mes, dia] = dataTerminoStr.split('T')[0].split('-').map(Number);
-    const dataTermino = new Date(ano, mes - 1, dia, 23, 59, 59);
-
-    const hoje = new Date();
-    const hojeZerado = new Date(hoje.getFullYear(), hoje.getMonth(), hoje.getDate(), 0, 0, 0);
-    const hojeFinal = new Date(hoje.getFullYear(), hoje.getMonth(), hoje.getDate(), 23, 59, 59);
-
-    if (dataTermino < hojeZerado) {
-      return 'atrasada';
-    } else if (dataTermino >= hojeZerado && dataTermino <= hojeFinal) {
-      return 'hoje';
-    }
-    return 'ok';
   };
 
   // Mapeamento de texto dos status
@@ -236,10 +219,9 @@ export function ListaTarefas({ usuario, aoDeslogar, aoAbrirConta }) {
       setTarefas((atuais) =>
         atuais.map((t) => (t.id === tarefa.id ? { ...t, status: statusAnterior } : t))
       );
-      alert(`Falha ao atualizar status: ${err.message}`);
+      alert(`Falha ao alterar status: ${err.message}`);
     }
   };
-
 
   // Abre o modal em modo de edição
   const handleEditar = (tarefa) => {
@@ -300,7 +282,7 @@ export function ListaTarefas({ usuario, aoDeslogar, aoAbrirConta }) {
   const contagemEmAndamento = tarefas.filter((t) => t.status === 'em_andamento').length;
   const contagemConcluidas = tarefasConcluidas;
 
-  // Função auxiliar de busca por texto (busca em título, tags, prioridade e datas)
+  // Função auxiliar de busca por texto (busca em título, tags, prioridade, horário e datas)
   const atendeTermoBusca = (t) => {
     if (!termoBusca.trim()) return true;
     const termo = termoBusca.toLowerCase().trim();
@@ -576,7 +558,7 @@ export function ListaTarefas({ usuario, aoDeslogar, aoAbrirConta }) {
                     type="text"
                     value={termoBusca}
                     onChange={(e) => setTermoBusca(e.target.value)}
-                    placeholder="Buscar tarefas, #tags, prioridades... (Pressione /)"
+                    placeholder="Buscar tarefas, #tags, @horários... (Pressione /)"
                     className={`w-full pl-10 pr-9 py-2 rounded-full text-xs sm:text-sm font-medium border transition-all focus:outline-none focus:ring-2 ${
                       ehDark
                         ? 'bg-white/10 hover:bg-white/[0.14] focus:bg-white/[0.18] text-white placeholder-purple-200/40 border-white/15 focus:border-purple-400 focus:ring-purple-400/30'
@@ -776,7 +758,8 @@ export function ListaTarefas({ usuario, aoDeslogar, aoAbrirConta }) {
                             </div>
                           ) : (
                             tarefasDaColuna.map((tarefa, idx) => {
-                              const alerta = verificarPrazo(tarefa.data_termi, tarefa.status);
+                              const { hora } = parseTarefaNome(tarefa.nome);
+                              const alerta = verificarPrazoInteligente(tarefa.data_termi, tarefa.status, hora);
                               const concluida = tarefa.status === 'concluido';
 
                               return (
@@ -834,13 +817,13 @@ export function ListaTarefas({ usuario, aoDeslogar, aoAbrirConta }) {
                                     </div>
                                   </div>
 
-                                  {/* Meio: Datas com badge de alerta inteligente */}
+                                  {/* Meio: Datas com badge de alerta inteligente e horário */}
                                   <div className={`text-xs flex flex-wrap items-center gap-2 pt-1 border-t ${
                                     ehDark ? 'border-white/5 text-purple-300/75' : 'border-gray-100 text-gray-500'
                                   }`}>
                                     <div className="flex items-center gap-1.5">
                                       <Clock className="w-3 h-3 shrink-0" />
-                                      <span>Até {formatarData(tarefa.data_termi)}</span>
+                                      <span>Até {formatarData(tarefa.data_termi)}{hora ? ` às ${hora}` : ''}</span>
                                     </div>
                                     {alerta === 'atrasada' && (
                                       <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold ${
@@ -855,7 +838,7 @@ export function ListaTarefas({ usuario, aoDeslogar, aoAbrirConta }) {
                                         ehDark ? 'bg-amber-500/25 text-amber-300 border border-amber-500/40' : 'bg-amber-100 text-amber-800 border border-amber-300'
                                       }`}>
                                         <Clock className="w-2.5 h-2.5" />
-                                        Hoje
+                                        {hora ? `Hoje às ${hora}` : 'Hoje'}
                                       </span>
                                     )}
                                   </div>
@@ -944,7 +927,8 @@ export function ListaTarefas({ usuario, aoDeslogar, aoAbrirConta }) {
                   {/* Visualização em Cards para Smartphones (< md) */}
                   <div className="block md:hidden space-y-3 w-full">
                     {tarefasFiltradasTabela.map((tarefa, index) => {
-                      const alerta = verificarPrazo(tarefa.data_termi, tarefa.status);
+                      const { hora } = parseTarefaNome(tarefa.nome);
+                      const alerta = verificarPrazoInteligente(tarefa.data_termi, tarefa.status, hora);
                       const concluida = tarefa.status === 'concluido';
 
                       return (
@@ -995,7 +979,7 @@ export function ListaTarefas({ usuario, aoDeslogar, aoAbrirConta }) {
                             </button>
                           </div>
 
-                          {/* Datas com Alerta Inteligente */}
+                          {/* Datas com Alerta Inteligente e Horário */}
                           <div className={`text-xs space-y-1.5 pt-2 border-t ${
                             ehDark ? 'border-white/10 text-purple-300/70' : 'border-purple-200/60 text-gray-500'
                           }`}>
@@ -1019,11 +1003,13 @@ export function ListaTarefas({ usuario, aoDeslogar, aoAbrirConta }) {
                                     ehDark ? 'bg-amber-500/25 text-amber-300 border border-amber-500/40' : 'bg-amber-100 text-amber-800 border border-amber-300'
                                   }`}>
                                     <Clock className="w-2.5 h-2.5" />
-                                    Hoje
+                                    {hora ? `Hoje às ${hora}` : 'Hoje'}
                                   </span>
                                 )}
                               </span>
-                              <span className="font-medium text-right">{formatarData(tarefa.data_termi)}</span>
+                              <span className="font-medium text-right">
+                                {formatarData(tarefa.data_termi)}{hora ? ` às ${hora}` : ''}
+                              </span>
                             </div>
                           </div>
 
@@ -1083,7 +1069,8 @@ export function ListaTarefas({ usuario, aoDeslogar, aoAbrirConta }) {
                       {/* Corpo da Tabela com Efeito Zebrado Suave */}
                       <tbody className="divide-y divide-transparent text-sm">
                         {tarefasFiltradasTabela.map((tarefa, index) => {
-                          const alerta = verificarPrazo(tarefa.data_termi, tarefa.status);
+                          const { hora } = parseTarefaNome(tarefa.nome);
+                          const alerta = verificarPrazoInteligente(tarefa.data_termi, tarefa.status, hora);
                           const concluida = tarefa.status === 'concluido';
 
                           return (
@@ -1123,10 +1110,20 @@ export function ListaTarefas({ usuario, aoDeslogar, aoAbrirConta }) {
                                 {formatarData(tarefa.data_come)}
                               </td>
 
-                              {/* Coluna: Data de Término com Alerta Inteligente */}
+                              {/* Coluna: Data de Término com Horário e Alerta Inteligente */}
                               <td className={`py-4 px-4 whitespace-nowrap text-center sm:text-left ${ehDark ? 'text-purple-300/80' : 'text-gray-600'}`}>
                                 <div className="inline-flex items-center gap-2">
-                                  <span>{formatarData(tarefa.data_termi)}</span>
+                                  <span className="flex items-center gap-1.5 font-medium">
+                                    {formatarData(tarefa.data_termi)}
+                                    {hora && (
+                                      <span className={`inline-flex items-center gap-1 text-xs px-2 py-0.5 rounded-full font-medium ${
+                                        ehDark ? 'bg-white/10 text-purple-200' : 'bg-purple-100 text-purple-800'
+                                      }`}>
+                                        <Clock className="w-3 h-3 text-purple-400" />
+                                        {hora}
+                                      </span>
+                                    )}
+                                  </span>
                                   {alerta === 'atrasada' && (
                                     <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-bold ${
                                       ehDark ? 'bg-rose-500/25 text-rose-300 border border-rose-500/40' : 'bg-rose-100 text-rose-700 border border-rose-300'
@@ -1140,7 +1137,7 @@ export function ListaTarefas({ usuario, aoDeslogar, aoAbrirConta }) {
                                       ehDark ? 'bg-amber-500/25 text-amber-300 border border-amber-500/40' : 'bg-amber-100 text-amber-800 border border-amber-300'
                                     }`}>
                                       <Clock className="w-3 h-3" />
-                                      Hoje
+                                      {hora ? `Hoje às ${hora}` : 'Hoje'}
                                     </span>
                                   )}
                                 </div>

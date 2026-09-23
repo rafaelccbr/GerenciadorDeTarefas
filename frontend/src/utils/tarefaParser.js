@@ -1,10 +1,10 @@
 /**
  * ============================================================================
- * UTILITÁRIO DE PARSER DE TAREFAS (TODOIST INLINE TAGS & PRIORIDADES)
+ * UTILITÁRIO DE PARSER DE TAREFAS (TODOIST INLINE TAGS, HORÁRIOS & PRIORIDADES)
  * ============================================================================
- * Permite interpretar e compor prioridades (P1, P2, P3, P4) e tags (#Faculdade, etc.)
- * diretamente a partir do título da tarefa com 100% de compatibilidade retroativa
- * e sem necessidade de alterações estruturais no banco de dados Supabase/PostgreSQL.
+ * Permite interpretar e compor prioridades (P1, P2, P3, P4), horários de conclusão
+ * (@18:30) e tags (#Faculdade, etc.) diretamente a partir do título da tarefa,
+ * com 100% de compatibilidade retroativa com o Supabase/PostgreSQL.
  */
 
 export const PRIORIDADES = {
@@ -52,21 +52,32 @@ export const TAGS_SUGERIDAS = [
 ];
 
 /**
- * Extrai o título limpo, prioridade e lista de tags a partir do nome completo salvo.
+ * Extrai o título limpo, prioridade, horário e lista de tags a partir do nome completo salvo.
  */
 export function parseTarefaNome(nomeCompleto = '') {
   if (!nomeCompleto) {
-    return { tituloLimpo: '', prioridade: 'p4', tags: [] };
+    return { tituloLimpo: '', prioridade: 'p4', hora: '', tags: [] };
   }
 
   let texto = nomeCompleto;
   let prioridade = 'p4';
+  let hora = '';
 
   // Procura padrão de prioridade (!p1, p1, P1, !1, etc.)
   const matchP = texto.match(/(?:^|\s)(?:!|p|P)([1-4])(?:\s|$)/);
   if (matchP) {
     prioridade = 'p' + matchP[1];
     texto = texto.replace(/(?:^|\s)(?:!|p|P)[1-4](?:\s|$)/g, ' ');
+  }
+
+  // Procura horário com @ (@14:30 ou @9:00) ou solto se tiver formato HH:mm
+  const matchHora = texto.match(/(?:^|\s)@((?:[01]?\d|2[0-3]):[0-5]\d)(?:\s|$)/);
+  if (matchHora) {
+    let h = matchHora[1];
+    if (h.length === 4) h = '0' + h; // ex: 9:30 -> 09:30
+    hora = h;
+    texto = texto.replace(/(?:^|\s)@(text|d|\:|[01]?\d|2[0-3]):[0-5]\d(?:\s|$)/g, ' ');
+    texto = texto.replace(/(?:^|\s)@(?:[01]?\d|2[0-3]):[0-5]\d(?:\s|$)/g, ' ');
   }
 
   // Procura tags com formato #Tag ou #nome-da-tag
@@ -88,15 +99,21 @@ export function parseTarefaNome(nomeCompleto = '') {
   return {
     tituloLimpo: tituloLimpo || nomeCompleto,
     prioridade,
+    hora,
     tags,
   };
 }
 
 /**
- * Monta o nome completo para salvar no banco agregando tags e prioridade.
+ * Monta o nome completo para salvar no banco agregando hora, tags e prioridade.
  */
-export function montarTarefaNome({ titulo, prioridade = 'p4', tags = [] }) {
+export function montarTarefaNome({ titulo, prioridade = 'p4', hora = '', tags = [] }) {
   let resultado = (titulo || '').trim();
+
+  if (hora && hora.trim()) {
+    const horaLimpa = hora.trim().replace(/^@/, '');
+    resultado += ` @${horaLimpa}`;
+  }
 
   if (tags && tags.length > 0) {
     const tagsUnicas = [...new Set(tags.map((t) => t.trim().replace(/^#/, '')))].filter(Boolean);
@@ -110,6 +127,46 @@ export function montarTarefaNome({ titulo, prioridade = 'p4', tags = [] }) {
   }
 
   return resultado.trim();
+}
+
+/**
+ * Alerta inteligente de prazo levando em conta a data e o horário limite configurado.
+ */
+export function verificarPrazoInteligente(dataTerminoStr, status, horaStr = '') {
+  if (!dataTerminoStr || status === 'concluido') return null;
+
+  const [ano, mes, dia] = dataTerminoStr.split('T')[0].split('-').map(Number);
+  
+  let hora = 23;
+  let minuto = 59;
+  let segundo = 59;
+
+  if (horaStr && horaStr.includes(':')) {
+    const [h, m] = horaStr.split(':').map(Number);
+    if (!isNaN(h) && !isNaN(m)) {
+      hora = h;
+      minuto = m;
+      segundo = 0;
+    }
+  }
+
+  const dataTermino = new Date(ano, mes - 1, dia, hora, minuto, segundo);
+  const agora = new Date();
+
+  // Se a data/hora já passou do momento atual
+  if (dataTermino < agora) {
+    return 'atrasada';
+  }
+
+  // Verifica se o prazo vence hoje
+  const hojeFinal = new Date(agora.getFullYear(), agora.getMonth(), agora.getDate(), 23, 59, 59);
+  const hojeInicio = new Date(agora.getFullYear(), agora.getMonth(), agora.getDate(), 0, 0, 0);
+
+  if (dataTermino >= hojeInicio && dataTermino <= hojeFinal) {
+    return 'hoje';
+  }
+
+  return 'ok';
 }
 
 /**

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Flag, Tag, Plus, X } from 'lucide-react';
+import { Flag, Tag, Plus, X, Clock } from 'lucide-react';
 import { useTheme } from '../context/ThemeContext.jsx';
 import { 
   parseTarefaNome, 
@@ -11,20 +11,23 @@ import {
 
 /**
  * ============================================================================
- * MODAL DE CADASTRO / EDIÇÃO DE TAREFAS (COM PRIORIDADES E TAGS TODOIST)
+ * MODAL DE CADASTRO / EDIÇÃO DE TAREFAS (COM PRIORIDADES, TAGS E HORÁRIO)
  * ============================================================================
- * Baseado no design do Figma: 'Cadastro de Tarefas.png'
- * Atualizado com suporte a Prioridades P1 a P4 e Categorias/Tags coloridas.
+ * Suporte completo a:
+ * - Prioridades P1 a P4 Todoist
+ * - Tags e Categorias customizadas e sugeridas
+ * - Horário de conclusão com alerta preciso de minutos
  */
 export function ModalTarefa({ tarefaParaEditar, statusInicial, aoSalvar, aoFechar }) {
   const { tema } = useTheme();
   const ehDark = tema === 'dark';
   const hoje = new Date().toISOString().split('T')[0];
 
-  // Extrai título limpo, prioridade e tags se for edição
+  // Extrai título limpo, prioridade, horário e tags se for edição
   const parsed = parseTarefaNome(tarefaParaEditar?.nome || '');
   const [nome, setNome] = useState(parsed.tituloLimpo);
   const [prioridade, setPrioridade] = useState(parsed.prioridade || 'p4');
+  const [hora, setHora] = useState(parsed.hora || '');
   const [tags, setTags] = useState(parsed.tags || []);
   const [inputCustomTag, setInputCustomTag] = useState('');
   
@@ -77,10 +80,11 @@ export function ModalTarefa({ tarefaParaEditar, statusInicial, aoSalvar, aoFecha
       return;
     }
 
-    // Monta o nome composto com tags e prioridade
+    // Monta o nome composto com horário, tags e prioridade
     const nomeComposto = montarTarefaNome({
       titulo: nome,
       prioridade,
+      hora,
       tags,
     });
 
@@ -104,7 +108,7 @@ export function ModalTarefa({ tarefaParaEditar, statusInicial, aoSalvar, aoFecha
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-md p-3 sm:p-4">
       {/* Container do Modal com Leve Transparência, Bordas Suaves e Rolagem Segura */}
-      <div className={`relative w-full max-w-lg backdrop-blur-2xl rounded-3xl overflow-hidden animate-fade-in max-h-[92dvh] flex flex-col transition-all duration-500 ${
+      <div className={`relative w-full max-w-xl backdrop-blur-2xl rounded-3xl overflow-hidden animate-fade-in max-h-[92dvh] flex flex-col transition-all duration-500 ${
         ehDark
           ? 'bg-gradient-to-b from-[#180e25]/95 via-[#10091a]/95 to-[#09050e]/98 border border-purple-500/25 text-purple-100 shadow-[0_25px_60px_-15px_rgba(0,0,0,0.9),0_0_35px_rgba(168,85,247,0.12)]'
           : 'bg-white/95 border border-white/60 text-gray-800 shadow-[0_20px_60px_rgba(0,0,0,0.5)]'
@@ -278,8 +282,8 @@ export function ModalTarefa({ tarefaParaEditar, statusInicial, aoSalvar, aoFecha
 
           </div>
 
-          {/* Linha com Status, Início e Término */}
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4 items-end">
+          {/* Linha com Status, Início, Término e Horário Limite */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 items-end">
             
             {/* Campo: Status */}
             <div>
@@ -323,7 +327,7 @@ export function ModalTarefa({ tarefaParaEditar, statusInicial, aoSalvar, aoFecha
               />
             </div>
 
-            {/* Campo: Término */}
+            {/* Campo: Término (Data) */}
             <div>
               <label className={`block text-xs sm:text-sm font-bold mb-1.5 ${
                 ehDark ? 'text-purple-200' : 'text-gray-900'
@@ -340,6 +344,39 @@ export function ModalTarefa({ tarefaParaEditar, statusInicial, aoSalvar, aoFecha
                     : 'bg-white border border-purple-300/60 text-gray-800 focus:ring-purple-400/30 focus:border-purple-400'
                 }`}
                 required
+              />
+            </div>
+
+            {/* Campo: Horário de Conclusão (Hora) */}
+            <div>
+              <div className="flex items-center justify-between mb-1.5">
+                <label className={`flex items-center gap-1 text-xs sm:text-sm font-bold ${
+                  ehDark ? 'text-purple-200' : 'text-gray-900'
+                }`}>
+                  <Clock className="w-3.5 h-3.5 text-purple-400" />
+                  Horário
+                </label>
+                {hora && (
+                  <button
+                    type="button"
+                    onClick={() => setHora('')}
+                    className={`text-[10px] underline cursor-pointer ${
+                      ehDark ? 'text-purple-300/70 hover:text-white' : 'text-purple-600 hover:text-purple-800'
+                    }`}
+                  >
+                    Limpar
+                  </button>
+                )}
+              </div>
+              <input
+                type="time"
+                value={hora}
+                onChange={(e) => setHora(e.target.value)}
+                className={`w-full px-3 py-2 rounded-xl text-xs sm:text-sm focus:outline-none focus:ring-4 transition-all shadow-sm ${
+                  ehDark
+                    ? 'bg-white/10 hover:bg-white/[0.14] border border-white/20 text-white [color-scheme:dark] focus:ring-purple-400/40 focus:border-purple-400'
+                    : 'bg-white border border-purple-300/60 text-gray-800 focus:ring-purple-400/30 focus:border-purple-400'
+                }`}
               />
             </div>
 
