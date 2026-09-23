@@ -10,7 +10,15 @@ import {
   Check, 
   AlertCircle, 
   Clock, 
-  Sparkles 
+  Sparkles,
+  LayoutList,
+  Kanban,
+  PlayCircle,
+  CheckCircle2,
+  ArrowRight,
+  ArrowLeft,
+  Plus,
+  Flag
 } from 'lucide-react';
 import { useTheme } from '../context/ThemeContext.jsx';
 import { SeletorTema } from './SeletorTema.jsx';
@@ -22,6 +30,11 @@ import {
   atualizarTarefaApi 
 } from '../services/api.js';
 import { ModalTarefa } from './ModalTarefa.jsx';
+import { 
+  parseTarefaNome, 
+  PRIORIDADES, 
+  obterCorTag 
+} from '../utils/tarefaParser.js';
 
 /**
  * ============================================================================
@@ -35,6 +48,9 @@ import { ModalTarefa } from './ModalTarefa.jsx';
  * - Checkbox circular de conclusão rápida com efeito riscado (strikethrough)
  * - Alertas inteligentes de prazos (Atrasada, Vence hoje)
  * - Atalhos de teclado globais ('N' para criar, '/' para buscar, 'ESC' para fechar)
+ * - Modo de visualização alternável: Tabela ↔ Quadro Kanban com 3 colunas translúcidas
+ * - Prioridades Todoist P1 a P4 com bandeiras coloridas
+ * - Tags e Categorias com cores automáticas e filtro por clique
  */
 export function ListaTarefas({ usuario, aoDeslogar, aoAbrirConta }) {
   const { tema } = useTheme();
@@ -43,6 +59,16 @@ export function ListaTarefas({ usuario, aoDeslogar, aoAbrirConta }) {
   const [carregando, setCarregando] = useState(true);
   const [erro, setErro] = useState('');
   
+  // Modo de visualização: 'tabela' | 'kanban' (persistido no localStorage)
+  const [modoVisualizacao, setModoVisualizacao] = useState(() => {
+    return localStorage.getItem('gerenciador_modo_visualizacao') || 'tabela';
+  });
+
+  const trocarModoVisualizacao = (novoModo) => {
+    setModoVisualizacao(novoModo);
+    localStorage.setItem('gerenciador_modo_visualizacao', novoModo);
+  };
+
   // Controle de Busca e Filtros
   const [termoBusca, setTermoBusca] = useState('');
   const [filtroStatus, setFiltroStatus] = useState('todos'); // 'todos' | 'pendente' | 'em_andamento' | 'concluido'
@@ -51,6 +77,7 @@ export function ListaTarefas({ usuario, aoDeslogar, aoAbrirConta }) {
   // Controle do Modal de Criação/Edição
   const [modalAberto, setModalAberto] = useState(false);
   const [tarefaEmEdicao, setTarefaEmEdicao] = useState(null);
+  const [statusInicialParaNova, setStatusInicialParaNova] = useState('pendente');
 
   // Carrega as tarefas do usuário autenticado ao montar a tela
   useEffect(() => {
@@ -59,13 +86,13 @@ export function ListaTarefas({ usuario, aoDeslogar, aoAbrirConta }) {
     listarTarefasApi()
       .then((lista) => {
         if (ativo) {
-          setTarefas(Array.isArray(lista) ? lista : []);
+          setTarefas(lista);
           setCarregando(false);
         }
       })
       .catch((err) => {
         if (ativo) {
-          setErro(err.message || 'Erro ao carregar lista de tarefas.');
+          setErro(err.message || 'Falha ao buscar tarefas do servidor.');
           setCarregando(false);
         }
       });
@@ -75,11 +102,19 @@ export function ListaTarefas({ usuario, aoDeslogar, aoAbrirConta }) {
     };
   }, []);
 
-  // Atalhos de teclado estilo Todoist: N = Nova Tarefa, / = Focar Busca, ESC = Fechar Modal / Limpar Busca
+  // Abre o modal para cadastro de nova tarefa
+  const handleNovoCadastro = (statusPadrao = 'pendente') => {
+    setTarefaEmEdicao(null);
+    setStatusInicialParaNova(statusPadrao);
+    setModalAberto(true);
+  };
+
+  // Atalhos Globais de Teclado (N = Criar, / = Buscar, ESC = Fechar/Limpar)
   useEffect(() => {
     const handleKeyDown = (e) => {
+      // Ignora atalhos se o usuário estiver digitando em campos de texto
       const tag = document.activeElement?.tagName?.toLowerCase();
-      const emInput = tag === 'input' || tag === 'textarea' || tag === 'select';
+      const ehInput = tag === 'input' || tag === 'textarea' || tag === 'select';
 
       if (e.key === 'Escape') {
         if (modalAberto) {
@@ -91,14 +126,14 @@ export function ListaTarefas({ usuario, aoDeslogar, aoAbrirConta }) {
         return;
       }
 
-      if (emInput) return;
-
-      if (e.key === 'n' || e.key === 'N') {
-        e.preventDefault();
-        handleNovoCadastro();
-      } else if (e.key === '/') {
-        e.preventDefault();
-        inputBuscaRef.current?.focus();
+      if (!ehInput) {
+        if (e.key === 'n' || e.key === 'N') {
+          e.preventDefault();
+          handleNovoCadastro('pendente');
+        } else if (e.key === '/') {
+          e.preventDefault();
+          inputBuscaRef.current?.focus();
+        }
       }
     };
 
@@ -106,35 +141,36 @@ export function ListaTarefas({ usuario, aoDeslogar, aoAbrirConta }) {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [modalAberto, termoBusca]);
 
-  // Converte data do formato 'AAAA-MM-DD' para o formato brasileiro 'DD/MM/AAAA'
+  // Formata datas ISO (YYYY-MM-DD) para exibição brasileira (DD/MM/AAAA)
   const formatarData = (dataStr) => {
-    if (!dataStr) return '--/--/----';
-    const [ano, mes, dia] = dataStr.split('T')[0].split('-');
-    if (!ano || !mes || !dia) return dataStr;
-    return `${dia}/${mes}/${ano}`;
+    if (!dataStr) return 'Não definida';
+    const partes = dataStr.split('T')[0].split('-');
+    if (partes.length === 3) {
+      return `${partes[2]}/${partes[1]}/${partes[0]}`;
+    }
+    return dataStr;
   };
 
-  // Verifica se a tarefa está atrasada, vence hoje ou está no prazo
-  const verificarPrazo = (dataTermi, status) => {
-    if (!dataTermi || status === 'concluido') return null;
+  // Alerta inteligente de prazos (Atrasada / Vence hoje / No prazo)
+  const verificarPrazo = (dataTerminoStr, status) => {
+    if (!dataTerminoStr || status === 'concluido') return null;
 
-    const partes = dataTermi.split('T')[0].split('-');
-    if (partes.length < 3) return null;
-    const [ano, mes, dia] = partes.map(Number);
+    const [ano, mes, dia] = dataTerminoStr.split('T')[0].split('-').map(Number);
+    const dataTermino = new Date(ano, mes - 1, dia, 23, 59, 59);
 
-    const dataPrazo = new Date(ano, mes - 1, dia);
     const hoje = new Date();
-    hoje.setHours(0, 0, 0, 0);
+    const hojeZerado = new Date(hoje.getFullYear(), hoje.getMonth(), hoje.getDate(), 0, 0, 0);
+    const hojeFinal = new Date(hoje.getFullYear(), hoje.getMonth(), hoje.getDate(), 23, 59, 59);
 
-    const diffTempo = dataPrazo.getTime() - hoje.getTime();
-    const diffDias = Math.ceil(diffTempo / (1000 * 60 * 60 * 24));
-
-    if (diffDias < 0) return 'atrasada';
-    if (diffDias === 0) return 'hoje';
-    return null;
+    if (dataTermino < hojeZerado) {
+      return 'atrasada';
+    } else if (dataTermino >= hojeZerado && dataTermino <= hojeFinal) {
+      return 'hoje';
+    }
+    return 'ok';
   };
 
-  // Mapeia o valor do banco para exibição elegante com primeira letra maiúscula
+  // Mapeamento de texto dos status
   const rotuloStatus = {
     pendente: 'Pendente',
     em_andamento: 'Em andamento',
@@ -185,11 +221,25 @@ export function ListaTarefas({ usuario, aoDeslogar, aoAbrirConta }) {
     }
   };
 
-  // Abre o modal para cadastro de nova tarefa
-  const handleNovoCadastro = () => {
-    setTarefaEmEdicao(null);
-    setModalAberto(true);
+  // Mover tarefa diretamente para um status específico (Kanban)
+  const moverStatus = async (tarefa, novoStatus) => {
+    const statusAnterior = tarefa.status;
+    if (statusAnterior === novoStatus) return;
+
+    setTarefas((atuais) =>
+      atuais.map((t) => (t.id === tarefa.id ? { ...t, status: novoStatus } : t))
+    );
+
+    try {
+      await atualizarStatusApi(tarefa.id, novoStatus);
+    } catch (err) {
+      setTarefas((atuais) =>
+        atuais.map((t) => (t.id === tarefa.id ? { ...t, status: statusAnterior } : t))
+      );
+      alert(`Falha ao atualizar status: ${err.message}`);
+    }
   };
+
 
   // Abre o modal em modo de edição
   const handleEditar = (tarefa) => {
@@ -199,7 +249,8 @@ export function ListaTarefas({ usuario, aoDeslogar, aoAbrirConta }) {
 
   // Exclui a tarefa com confirmação (com Atualização Otimista)
   const handleExcluir = async (id, nome) => {
-    if (!window.confirm(`Tem certeza que deseja excluir a tarefa "${nome}"?`)) {
+    const { tituloLimpo } = parseTarefaNome(nome);
+    if (!window.confirm(`Tem certeza que deseja excluir a tarefa "${tituloLimpo}"?`)) {
       return;
     }
 
@@ -249,20 +300,119 @@ export function ListaTarefas({ usuario, aoDeslogar, aoAbrirConta }) {
   const contagemEmAndamento = tarefas.filter((t) => t.status === 'em_andamento').length;
   const contagemConcluidas = tarefasConcluidas;
 
-  // Filtragem combinada em tempo real (Status + Texto de busca)
-  const tarefasFiltradas = tarefas.filter((t) => {
+  // Função auxiliar de busca por texto (busca em título, tags, prioridade e datas)
+  const atendeTermoBusca = (t) => {
+    if (!termoBusca.trim()) return true;
+    const termo = termoBusca.toLowerCase().trim();
+    const nomeMatch = t.nome?.toLowerCase().includes(termo);
+    const dataComeMatch = formatarData(t.data_come)?.includes(termo);
+    const dataTermiMatch = formatarData(t.data_termi)?.includes(termo);
+    return nomeMatch || dataComeMatch || dataTermiMatch;
+  };
+
+  // Filtragem para o modo Tabela (Status + Texto de busca)
+  const tarefasFiltradasTabela = tarefas.filter((t) => {
     if (filtroStatus !== 'todos' && t.status !== filtroStatus) {
       return false;
     }
-    if (termoBusca.trim()) {
-      const termo = termoBusca.toLowerCase().trim();
-      const nomeMatch = t.nome?.toLowerCase().includes(termo);
-      const dataComeMatch = formatarData(t.data_come)?.includes(termo);
-      const dataTermiMatch = formatarData(t.data_termi)?.includes(termo);
-      return nomeMatch || dataComeMatch || dataTermiMatch;
-    }
-    return true;
+    return atendeTermoBusca(t);
   });
+
+  // Renderizador inteligente de Título + Prioridade + Tags Todoist
+  const renderIdentificacaoTarefa = (nomeCompleto, concluida) => {
+    const { tituloLimpo, prioridade, tags } = parseTarefaNome(nomeCompleto);
+    const prioConfig = PRIORIDADES[prioridade] || PRIORIDADES.p4;
+
+    return (
+      <div className="flex flex-col gap-1 min-w-0">
+        <div className="flex items-center gap-2 flex-wrap">
+          <span className={`break-words transition-all duration-200 ${
+            concluida
+              ? ehDark ? 'line-through text-purple-300/50' : 'line-through text-gray-400'
+              : ehDark ? 'text-white font-semibold' : 'text-gray-900 font-medium'
+          }`}>
+            {tituloLimpo}
+          </span>
+
+          {/* Badge de Prioridade (P1, P2 ou P3) */}
+          {prioridade !== 'p4' && (
+            <span 
+              className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md text-[10px] font-bold border shrink-0 ${
+                ehDark ? prioConfig.corDark : prioConfig.corClaro
+              }`}
+              title={prioConfig.nome}
+            >
+              <Flag className={`w-2.5 h-2.5 ${prioConfig.iconeCor}`} />
+              {prioConfig.rotulo}
+            </span>
+          )}
+        </div>
+
+        {/* Tags / Categorias */}
+        {tags.length > 0 && (
+          <div className="flex flex-wrap gap-1 items-center">
+            {tags.map((tag) => (
+              <button
+                key={tag}
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setTermoBusca(`#${tag}`);
+                }}
+                title={`Filtrar por #${tag}`}
+                className={`inline-flex items-center px-2 py-0.2 rounded-full text-[10px] font-semibold border transition-all hover:scale-105 cursor-pointer ${obterCorTag(tag, ehDark)}`}
+              >
+                #{tag}
+              </button>
+            ))}
+          </div>
+        )}
+      </div>
+    );
+  };
+
+  // Configuração das Colunas do Quadro Kanban
+  const colunasKanban = [
+    {
+      id: 'pendente',
+      titulo: 'Pendente',
+      icone: Clock,
+      badgeClaro: 'bg-amber-100 text-amber-900 border-amber-300',
+      badgeDark: 'bg-amber-500/20 text-amber-300 border-amber-500/40',
+      corHeaderClaro: 'from-amber-500/10 via-amber-500/5 to-transparent',
+      corHeaderDark: 'from-amber-500/15 via-amber-500/5 to-transparent',
+      bordaClaro: 'border-amber-200/80',
+      bordaDark: 'border-amber-500/20',
+      fundoColunaClaro: 'bg-amber-500/[0.02]',
+      fundoColunaDark: 'bg-white/[0.015]',
+    },
+    {
+      id: 'em_andamento',
+      titulo: 'Em andamento',
+      icone: PlayCircle,
+      badgeClaro: 'bg-purple-100 text-purple-800 border-purple-300',
+      badgeDark: 'bg-purple-500/25 text-purple-200 border-purple-500/40',
+      corHeaderClaro: 'from-purple-500/10 via-purple-500/5 to-transparent',
+      corHeaderDark: 'from-purple-500/15 via-purple-500/5 to-transparent',
+      bordaClaro: 'border-purple-200/80',
+      bordaDark: 'border-purple-500/20',
+      fundoColunaClaro: 'bg-purple-500/[0.02]',
+      fundoColunaDark: 'bg-white/[0.015]',
+    },
+    {
+      id: 'concluido',
+      titulo: 'Concluído',
+      icone: CheckCircle2,
+      badgeClaro: 'bg-green-100 text-green-800 border-green-300',
+      badgeDark: 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40',
+      corHeaderClaro: 'from-emerald-500/10 via-emerald-500/5 to-transparent',
+      corHeaderDark: 'from-emerald-500/15 via-emerald-500/5 to-transparent',
+      bordaClaro: 'border-emerald-200/80',
+      bordaDark: 'border-emerald-500/20',
+      fundoColunaClaro: 'bg-emerald-500/[0.02]',
+      fundoColunaDark: 'bg-white/[0.015]',
+    },
+  ];
 
   return (
     <div className="min-h-screen w-full p-4 sm:p-8 flex flex-col items-center transition-colors duration-500">
@@ -285,7 +435,7 @@ export function ListaTarefas({ usuario, aoDeslogar, aoAbrirConta }) {
 
             {/* Botão Cadastrar (com indicador de atalho 'N') */}
             <button
-              onClick={handleNovoCadastro}
+              onClick={() => handleNovoCadastro('pendente')}
               className="flex items-center gap-1.5 sm:gap-2 px-3.5 sm:px-6 py-2 sm:py-2.5 bg-emerald-500/40 hover:bg-emerald-500/55 border border-emerald-300/60 hover:border-emerald-200/80 backdrop-blur-md text-white font-bold rounded-full shadow-[0_4px_15px_rgba(16,185,129,0.3),inset_0_1px_1px_rgba(255,255,255,0.3)] hover:shadow-[0_6px_25px_rgba(16,185,129,0.45),inset_0_1px_2px_rgba(255,255,255,0.5)] transition-all duration-300 active:scale-95 cursor-pointer group text-xs sm:text-sm"
               title="Cadastrar nova tarefa (Atalho: N)"
             >
@@ -359,7 +509,7 @@ export function ListaTarefas({ usuario, aoDeslogar, aoAbrirConta }) {
                 Você ainda não tem tarefas cadastradas. Clique no botão verde "Cadastrar" acima para começar!
               </p>
               <button
-                onClick={handleNovoCadastro}
+                onClick={() => handleNovoCadastro('pendente')}
                 className="px-6 py-2.5 bg-emerald-600 hover:bg-emerald-500 active:scale-95 text-white font-bold rounded-full shadow-lg shadow-emerald-600/30 transition-all cursor-pointer text-sm"
               >
                 Criar primeira tarefa
@@ -405,7 +555,7 @@ export function ListaTarefas({ usuario, aoDeslogar, aoAbrirConta }) {
                   <div 
                     className={`h-full rounded-full transition-all duration-700 ease-out ${
                       porcentagem === 100
-                        ? 'bg-gradient-to-r from-emerald-500 to-teal-400 shadow-[0_0_12px_rgba(16,185,129,0.5)]'
+                        ? 'bg-gradient-to-r from-emerald-500 to-teal-400 shadow-[0_0_12px_rgba(168,85,247,0.5)]'
                         : 'bg-gradient-to-r from-purple-500 via-indigo-500 to-emerald-400'
                     }`}
                     style={{ width: `${porcentagem}%` }}
@@ -413,7 +563,7 @@ export function ListaTarefas({ usuario, aoDeslogar, aoAbrirConta }) {
                 </div>
               </div>
 
-              {/* 2. Barra de Busca e Abas de Filtros Rápidos */}
+              {/* 2. Barra de Busca, Abas de Filtros e Alternador Tabela / Quadro */}
               <div className="w-full flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3 mb-6">
                 
                 {/* Campo de Pesquisa em Tempo Real */}
@@ -426,7 +576,7 @@ export function ListaTarefas({ usuario, aoDeslogar, aoAbrirConta }) {
                     type="text"
                     value={termoBusca}
                     onChange={(e) => setTermoBusca(e.target.value)}
-                    placeholder="Buscar tarefas... (Pressione /)"
+                    placeholder="Buscar tarefas, #tags, prioridades... (Pressione /)"
                     className={`w-full pl-10 pr-9 py-2 rounded-full text-xs sm:text-sm font-medium border transition-all focus:outline-none focus:ring-2 ${
                       ehDark
                         ? 'bg-white/10 hover:bg-white/[0.14] focus:bg-white/[0.18] text-white placeholder-purple-200/40 border-white/15 focus:border-purple-400 focus:ring-purple-400/30'
@@ -447,47 +597,95 @@ export function ListaTarefas({ usuario, aoDeslogar, aoAbrirConta }) {
                   )}
                 </div>
 
-                {/* Abas de Filtros Rápidos (Pills com Contadores) */}
-                <div className="flex items-center gap-1.5 overflow-x-auto pb-1 md:pb-0 scrollbar-none">
-                  {[
-                    { id: 'todos', label: 'Todas', contagem: totalTarefas },
-                    { id: 'pendente', label: 'Pendentes', contagem: contagemPendentes },
-                    { id: 'em_andamento', label: 'Em andamento', contagem: contagemEmAndamento },
-                    { id: 'concluido', label: 'Concluídas', contagem: contagemConcluidas },
-                  ].map((aba) => {
-                    const ativa = filtroStatus === aba.id;
-                    return (
-                      <button
-                        key={aba.id}
-                        type="button"
-                        onClick={() => setFiltroStatus(aba.id)}
-                        className={`px-3 py-1.5 rounded-full text-xs font-semibold transition-all cursor-pointer whitespace-nowrap flex items-center gap-1.5 active:scale-95 ${
-                          ativa
-                            ? ehDark
-                              ? 'bg-purple-500/30 text-white border border-purple-400/50 shadow-[0_0_12px_rgba(168,85,247,0.25)]'
-                              : 'bg-purple-600 text-white shadow-sm'
-                            : ehDark
-                            ? 'bg-white/5 hover:bg-white/10 text-purple-200/70 hover:text-white border border-white/10'
-                            : 'bg-gray-100 hover:bg-gray-200 text-gray-600 hover:text-gray-900 border border-gray-200/60'
-                        }`}
-                      >
-                        <span>{aba.label}</span>
-                        <span className={`px-1.5 py-0.2 rounded-full text-[10px] font-bold ${
-                          ativa
-                            ? ehDark ? 'bg-purple-400/30 text-white' : 'bg-purple-700 text-white'
-                            : ehDark ? 'bg-white/10 text-purple-200/60' : 'bg-gray-200 text-gray-500'
-                        }`}>
-                          {aba.contagem}
-                        </span>
-                      </button>
-                    );
-                  })}
+                {/* Controles da Direita: Abas (se Tabela) + Alternador Tabela ↔ Quadro */}
+                <div className="flex items-center gap-2 flex-wrap justify-between md:justify-end">
+                  
+                  {/* Abas de Filtros Rápidos (exibidas no modo Tabela) */}
+                  {modoVisualizacao === 'tabela' && (
+                    <div className="flex items-center gap-1.5 overflow-x-auto pb-1 md:pb-0 scrollbar-none">
+                      {[
+                        { id: 'todos', label: 'Todas', contagem: totalTarefas },
+                        { id: 'pendente', label: 'Pendentes', contagem: contagemPendentes },
+                        { id: 'em_andamento', label: 'Em andamento', contagem: contagemEmAndamento },
+                        { id: 'concluido', label: 'Concluídas', contagem: contagemConcluidas },
+                      ].map((aba) => {
+                        const ativa = filtroStatus === aba.id;
+                        return (
+                          <button
+                            key={aba.id}
+                            type="button"
+                            onClick={() => setFiltroStatus(aba.id)}
+                            className={`px-3 py-1.5 rounded-full text-xs font-semibold transition-all cursor-pointer whitespace-nowrap flex items-center gap-1.5 active:scale-95 ${
+                              ativa
+                                ? ehDark
+                                ? 'bg-purple-500/30 text-white border border-purple-400/50 shadow-[0_0_12px_rgba(168,85,247,0.25)]'
+                                : 'bg-purple-600 text-white shadow-sm'
+                                : ehDark
+                                ? 'bg-white/5 hover:bg-white/10 text-purple-200/70 hover:text-white border border-white/10'
+                                : 'bg-gray-100 hover:bg-gray-200 text-gray-600 hover:text-gray-900 border border-gray-200/60'
+                            }`}
+                          >
+                            <span>{aba.label}</span>
+                            <span className={`px-1.5 py-0.2 rounded-full text-[10px] font-bold ${
+                              ativa
+                                ? ehDark ? 'bg-purple-400/30 text-white' : 'bg-purple-700 text-white'
+                                : ehDark ? 'bg-white/10 text-purple-200/60' : 'bg-gray-200 text-gray-500'
+                            }`}>
+                              {aba.contagem}
+                            </span>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  )}
+
+                  {/* Alternador de Modo: Tabela ↔ Quadro Kanban */}
+                  <div className={`inline-flex items-center p-1 rounded-full border shrink-0 ${
+                    ehDark ? 'bg-white/5 border-white/10' : 'bg-gray-100/90 border-gray-200'
+                  }`}>
+                    <button
+                      type="button"
+                      onClick={() => trocarModoVisualizacao('tabela')}
+                      title="Visualização em Lista / Tabela"
+                      className={`flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold transition-all cursor-pointer ${
+                        modoVisualizacao === 'tabela'
+                          ? ehDark
+                            ? 'bg-purple-500/40 text-white shadow-sm border border-purple-400/50'
+                            : 'bg-white text-purple-800 shadow-sm'
+                          : ehDark
+                          ? 'text-purple-300/60 hover:text-white'
+                          : 'text-gray-500 hover:text-gray-900'
+                      }`}
+                    >
+                      <LayoutList className="w-3.5 h-3.5" />
+                      <span>Tabela</span>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => trocarModoVisualizacao('kanban')}
+                      title="Visualização em Quadro Kanban"
+                      className={`flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold transition-all cursor-pointer ${
+                        modoVisualizacao === 'kanban'
+                          ? ehDark
+                            ? 'bg-purple-500/40 text-white shadow-sm border border-purple-400/50'
+                            : 'bg-white text-purple-800 shadow-sm'
+                          : ehDark
+                          ? 'text-purple-300/60 hover:text-white'
+                          : 'text-gray-500 hover:text-gray-900'
+                      }`}
+                    >
+                      <Kanban className="w-3.5 h-3.5" />
+                      <span>Quadro</span>
+                    </button>
+                  </div>
+
                 </div>
 
               </div>
 
-              {/* 3. Se nenhuma tarefa bater com a busca/filtro */}
-              {tarefasFiltradas.length === 0 ? (
+              {/* 3. Se nenhuma tarefa bater com a busca/filtro (modo Tabela) */}
+              {modoVisualizacao === 'tabela' && tarefasFiltradasTabela.length === 0 ? (
                 <div className="py-16 text-center flex flex-col items-center justify-center">
                   <Search className={`w-8 h-8 mb-2 ${ehDark ? 'text-purple-300/40' : 'text-gray-400'}`} />
                   <p className={`font-semibold text-sm sm:text-base ${ehDark ? 'text-white' : 'text-gray-800'}`}>
@@ -506,11 +704,246 @@ export function ListaTarefas({ usuario, aoDeslogar, aoAbrirConta }) {
                     Limpar busca e filtros
                   </button>
                 </div>
+              ) : modoVisualizacao === 'kanban' ? (
+                /* ========================================================================= */
+                /* 4. MODO QUADRO KANBAN (3 COLUNAS: PENDENTE | EM ANDAMENTO | CONCLUÍDO)    */
+                /* ========================================================================= */
+                <div className="w-full grid grid-cols-1 lg:grid-cols-3 gap-5 items-start animate-fade-in">
+                  {colunasKanban.map((coluna) => {
+                    const tarefasDaColuna = tarefas
+                      .filter((t) => t.status === coluna.id)
+                      .filter(atendeTermoBusca);
+                    const ColunaIcone = coluna.icone;
+
+                    return (
+                      <div
+                        key={coluna.id}
+                        className={`rounded-2xl border backdrop-blur-xl flex flex-col transition-all duration-300 overflow-hidden ${
+                          ehDark 
+                            ? `${coluna.fundoColunaDark} ${coluna.bordaDark} shadow-[0_4px_25px_rgba(0,0,0,0.25)]` 
+                            : `${coluna.fundoColunaClaro} ${coluna.bordaClaro} shadow-sm`
+                        }`}
+                      >
+                        {/* Cabeçalho da Coluna com Gradiente e Ação + Rápida */}
+                        <div className={`p-4 border-b flex items-center justify-between gap-2 bg-gradient-to-b ${
+                          ehDark ? `${coluna.corHeaderDark} border-white/10` : `${coluna.corHeaderClaro} border-gray-200/80`
+                        }`}>
+                          <div className="flex items-center gap-2.5">
+                            <ColunaIcone className={`w-4 h-4 ${ehDark ? 'text-white' : 'text-gray-800'}`} />
+                            <h3 className={`font-bold text-sm sm:text-base ${ehDark ? 'text-white' : 'text-gray-900'}`}>
+                              {coluna.titulo}
+                            </h3>
+                            <span className={`px-2 py-0.5 rounded-full text-xs font-bold border ${
+                              ehDark ? coluna.badgeDark : coluna.badgeClaro
+                            }`}>
+                              {tarefasDaColuna.length}
+                            </span>
+                          </div>
+
+                          {/* Botão + rápido para criar tarefa já com o status da coluna */}
+                          <button
+                            type="button"
+                            onClick={() => handleNovoCadastro(coluna.id)}
+                            title={`Adicionar tarefa em ${coluna.titulo}`}
+                            className={`p-1.5 rounded-lg transition-all cursor-pointer active:scale-95 ${
+                              ehDark 
+                                ? 'hover:bg-white/10 text-purple-200 hover:text-white' 
+                                : 'hover:bg-gray-100 text-gray-600 hover:text-purple-700'
+                            }`}
+                          >
+                            <Plus className="w-4 h-4" />
+                          </button>
+                        </div>
+
+                        {/* Corpo da Coluna: Lista de Cards com Rolagem Suave */}
+                        <div className="p-3.5 space-y-3 min-h-[160px] max-h-[620px] overflow-y-auto scrollbar-thin">
+                          {tarefasDaColuna.length === 0 ? (
+                            <div className={`p-6 rounded-xl border border-dashed text-center flex flex-col items-center justify-center gap-2 ${
+                              ehDark 
+                                ? 'border-white/10 text-purple-300/40 bg-white/[0.01]' 
+                                : 'border-gray-200 text-gray-400 bg-gray-50/50'
+                            }`}>
+                              <p className="text-xs font-medium">Nenhuma tarefa {coluna.titulo.toLowerCase()}</p>
+                              <button
+                                type="button"
+                                onClick={() => handleNovoCadastro(coluna.id)}
+                                className={`text-xs font-semibold underline underline-offset-2 transition-colors cursor-pointer ${
+                                  ehDark ? 'text-purple-300 hover:text-white' : 'text-purple-600 hover:text-purple-800'
+                                }`}
+                              >
+                                + Adicionar tarefa
+                              </button>
+                            </div>
+                          ) : (
+                            tarefasDaColuna.map((tarefa, idx) => {
+                              const alerta = verificarPrazo(tarefa.data_termi, tarefa.status);
+                              const concluida = tarefa.status === 'concluido';
+
+                              return (
+                                <div
+                                  key={`kanban-${tarefa.id}`}
+                                  className={`rounded-2xl p-4 transition-all text-left flex flex-col justify-between gap-3 border hover-lift shadow-sm animate-slide-up ${
+                                    ehDark
+                                      ? 'bg-white/[0.05] hover:bg-white/[0.08] border-white/10 hover:border-purple-400/40 text-purple-100 shadow-[0_4px_20px_rgba(0,0,0,0.3)]'
+                                      : 'bg-white hover:bg-purple-50/40 border-gray-200/80 hover:border-purple-300 text-gray-900 shadow-[0_2px_10px_rgba(0,0,0,0.04)]'
+                                  }`}
+                                  style={{ animationDelay: `${idx * 40}ms` }}
+                                >
+                                  {/* Topo do Card: Checkbox Circular + Título/Tags + Ações (Editar e Excluir) */}
+                                  <div className="flex items-start justify-between gap-2.5">
+                                    <div className="flex items-start gap-2.5 flex-1 min-w-0">
+                                      <button
+                                        type="button"
+                                        onClick={() => alternarConclusaoRapida(tarefa)}
+                                        title={concluida ? 'Desmarcar como concluída' : 'Marcar como concluída'}
+                                        className={`w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all cursor-pointer shrink-0 mt-0.5 active:scale-90 ${
+                                          concluida
+                                            ? 'bg-emerald-500 border-emerald-500 text-white shadow-sm'
+                                            : ehDark
+                                            ? 'border-purple-300/40 hover:border-emerald-400 hover:bg-emerald-500/10'
+                                            : 'border-gray-400 hover:border-emerald-500 hover:bg-emerald-50'
+                                        }`}
+                                      >
+                                        {concluida && <Check className="w-3 h-3 stroke-[3]" />}
+                                      </button>
+
+                                      {renderIdentificacaoTarefa(tarefa.nome, concluida)}
+                                    </div>
+
+                                    <div className="flex items-center gap-1 shrink-0">
+                                      <button
+                                        type="button"
+                                        onClick={() => handleEditar(tarefa)}
+                                        title="Editar tarefa"
+                                        className={`p-1 rounded-md transition-colors cursor-pointer ${
+                                          ehDark ? 'text-purple-300/70 hover:text-white hover:bg-white/10' : 'text-gray-400 hover:text-purple-700 hover:bg-purple-50'
+                                        }`}
+                                      >
+                                        <SquarePen className="w-4 h-4" />
+                                      </button>
+                                      <button
+                                        type="button"
+                                        onClick={() => handleExcluir(tarefa.id, tarefa.nome)}
+                                        title="Excluir tarefa"
+                                        className={`p-1 rounded-md transition-colors cursor-pointer ${
+                                          ehDark ? 'text-rose-400/80 hover:text-rose-200 hover:bg-rose-500/20' : 'text-gray-400 hover:text-rose-600 hover:bg-rose-50'
+                                        }`}
+                                      >
+                                        <Trash2 className="w-4 h-4" />
+                                      </button>
+                                    </div>
+                                  </div>
+
+                                  {/* Meio: Datas com badge de alerta inteligente */}
+                                  <div className={`text-xs flex flex-wrap items-center gap-2 pt-1 border-t ${
+                                    ehDark ? 'border-white/5 text-purple-300/75' : 'border-gray-100 text-gray-500'
+                                  }`}>
+                                    <div className="flex items-center gap-1.5">
+                                      <Clock className="w-3 h-3 shrink-0" />
+                                      <span>Até {formatarData(tarefa.data_termi)}</span>
+                                    </div>
+                                    {alerta === 'atrasada' && (
+                                      <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold ${
+                                        ehDark ? 'bg-rose-500/25 text-rose-300 border border-rose-500/40' : 'bg-rose-100 text-rose-700 border border-rose-300'
+                                      }`}>
+                                        <AlertCircle className="w-2.5 h-2.5" />
+                                        Atrasada
+                                      </span>
+                                    )}
+                                    {alerta === 'hoje' && (
+                                      <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold ${
+                                        ehDark ? 'bg-amber-500/25 text-amber-300 border border-amber-500/40' : 'bg-amber-100 text-amber-800 border border-amber-300'
+                                      }`}>
+                                        <Clock className="w-2.5 h-2.5" />
+                                        Hoje
+                                      </span>
+                                    )}
+                                  </div>
+
+                                  {/* Rodapé: Ações rápidas de movimentação entre colunas */}
+                                  <div className={`flex items-center justify-between gap-2 pt-2 border-t border-dashed ${
+                                    ehDark ? 'border-white/5' : 'border-gray-100'
+                                  }`}>
+                                    {coluna.id === 'pendente' && (
+                                      <button
+                                        type="button"
+                                        onClick={() => moverStatus(tarefa, 'em_andamento')}
+                                        className={`w-full flex items-center justify-center gap-1.5 py-1.5 px-3 rounded-xl text-xs font-semibold transition-all cursor-pointer active:scale-95 ${
+                                          ehDark
+                                            ? 'bg-purple-500/20 hover:bg-purple-500/30 text-purple-200 border border-purple-400/30'
+                                            : 'bg-purple-50 hover:bg-purple-100 text-purple-700 border border-purple-200'
+                                        }`}
+                                      >
+                                        <span>Iniciar</span>
+                                        <ArrowRight className="w-3.5 h-3.5" />
+                                      </button>
+                                    )}
+
+                                    {coluna.id === 'em_andamento' && (
+                                      <div className="flex items-center gap-2 w-full">
+                                        <button
+                                          type="button"
+                                          onClick={() => moverStatus(tarefa, 'pendente')}
+                                          title="Voltar para Pendente"
+                                          className={`flex-1 flex items-center justify-center gap-1 py-1.5 px-2.5 rounded-xl text-xs font-medium transition-all cursor-pointer active:scale-95 ${
+                                            ehDark
+                                              ? 'bg-white/5 hover:bg-white/10 text-purple-200/70 border border-white/10'
+                                              : 'bg-gray-100 hover:bg-gray-200 text-gray-700 border border-gray-200'
+                                          }`}
+                                        >
+                                          <ArrowLeft className="w-3 h-3" />
+                                          <span>Voltar</span>
+                                        </button>
+                                        <button
+                                          type="button"
+                                          onClick={() => moverStatus(tarefa, 'concluido')}
+                                          title="Concluir tarefa"
+                                          className={`flex-1 flex items-center justify-center gap-1 py-1.5 px-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer active:scale-95 ${
+                                            ehDark
+                                              ? 'bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-300 border border-emerald-500/40'
+                                              : 'bg-emerald-100 hover:bg-emerald-200 text-emerald-800 border border-emerald-300'
+                                          }`}
+                                        >
+                                          <Check className="w-3 h-3" />
+                                          <span>Concluir</span>
+                                        </button>
+                                      </div>
+                                    )}
+
+                                    {coluna.id === 'concluido' && (
+                                      <button
+                                        type="button"
+                                        onClick={() => moverStatus(tarefa, 'em_andamento')}
+                                        className={`w-full flex items-center justify-center gap-1.5 py-1.5 px-3 rounded-xl text-xs font-medium transition-all cursor-pointer active:scale-95 ${
+                                          ehDark
+                                            ? 'bg-white/5 hover:bg-white/10 text-purple-300/80 hover:text-white border border-white/10'
+                                            : 'bg-gray-100 hover:bg-gray-200 text-gray-700 border border-gray-200'
+                                        }`}
+                                      >
+                                        <ArrowLeft className="w-3.5 h-3.5" />
+                                        <span>Reabrir tarefa</span>
+                                      </button>
+                                    )}
+                                  </div>
+
+                                </div>
+                              );
+                            })
+                          )}
+                        </div>
+
+                      </div>
+                    );
+                  })}
+                </div>
               ) : (
+                /* ========================================================================= */
+                /* 5. MODO TABELA / LISTA (DESKTOP E MOBILE)                                  */
+                /* ========================================================================= */
                 <>
                   {/* Visualização em Cards para Smartphones (< md) */}
                   <div className="block md:hidden space-y-3 w-full">
-                    {tarefasFiltradas.map((tarefa, index) => {
+                    {tarefasFiltradasTabela.map((tarefa, index) => {
                       const alerta = verificarPrazo(tarefa.data_termi, tarefa.status);
                       const concluida = tarefa.status === 'concluido';
 
@@ -524,7 +957,7 @@ export function ListaTarefas({ usuario, aoDeslogar, aoAbrirConta }) {
                           }`}
                           style={{ animationDelay: `${index * 50}ms` }}
                         >
-                          {/* Topo do Card: Checkbox Circular + Nome e Status */}
+                          {/* Topo do Card: Checkbox Circular + Nome/Tags e Status */}
                           <div className="flex items-start justify-between gap-2.5">
                             <div className="flex items-start gap-2.5 flex-1 min-w-0">
                               {/* Checkbox Circular Todoist */}
@@ -543,74 +976,68 @@ export function ListaTarefas({ usuario, aoDeslogar, aoAbrirConta }) {
                                 {concluida && <Check className="w-3 h-3 stroke-[3]" />}
                               </button>
 
-                              <h3 className={`font-bold text-base leading-snug break-words flex-1 transition-all ${
-                                concluida
-                                  ? ehDark ? 'line-through text-purple-300/50' : 'line-through text-gray-400'
-                                  : ehDark ? 'text-white' : 'text-gray-900'
-                              }`}>
-                                {tarefa.nome}
-                              </h3>
+                              {renderIdentificacaoTarefa(tarefa.nome, concluida)}
                             </div>
 
-                            {/* Pill de Status */}
                             <button
                               type="button"
                               onClick={() => alternarProximoStatus(tarefa)}
                               title="Clique para alternar o status"
-                              className={`shrink-0 inline-flex items-center justify-center px-3 py-1 rounded-full font-semibold text-xs cursor-pointer transition-all shadow-sm active:scale-95 ${
+                              className={`shrink-0 text-xs px-2.5 py-1 rounded-full font-semibold transition-all active:scale-95 cursor-pointer ${
                                 tarefa.status === 'concluido'
-                                  ? ehDark ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 hover:bg-emerald-500/30' : 'bg-green-100 text-green-800 border border-green-300 hover:bg-green-200'
+                                  ? ehDark ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40' : 'bg-green-100 text-green-800 border border-green-300'
                                   : tarefa.status === 'em_andamento'
-                                  ? ehDark ? 'bg-purple-500/30 text-purple-100 border border-purple-400/50 hover:bg-purple-500/40 shadow-sm' : 'bg-purple-100 text-purple-800 border border-purple-300 hover:bg-purple-200'
-                                  : ehDark ? 'bg-amber-500/20 text-amber-300 border border-amber-500/40 hover:bg-amber-500/30' : 'bg-amber-100 text-amber-900 border border-amber-300 hover:bg-amber-200'
+                                  ? ehDark ? 'bg-purple-500/30 text-purple-100 border border-purple-400/50' : 'bg-purple-100 text-purple-800 border border-purple-300'
+                                  : ehDark ? 'bg-amber-500/20 text-amber-300 border border-amber-500/40' : 'bg-amber-100 text-amber-900 border border-amber-300'
                               }`}
                             >
                               {rotuloStatus[tarefa.status] || tarefa.status}
                             </button>
                           </div>
 
-                          {/* Meio: Datas com Alertas de Prazo Inteligentes */}
-                          <div className={`flex items-center justify-between text-xs pt-2 border-t ${
-                            ehDark ? 'border-purple-500/15 text-purple-300/70' : 'border-purple-100/60 text-gray-500'
+                          {/* Datas com Alerta Inteligente */}
+                          <div className={`text-xs space-y-1.5 pt-2 border-t ${
+                            ehDark ? 'border-white/10 text-purple-300/70' : 'border-purple-200/60 text-gray-500'
                           }`}>
-                            <div>
-                              <span className={ehDark ? 'text-purple-400/60' : 'text-gray-400'}>Início: </span>
-                              <span className={`font-semibold ${ehDark ? 'text-purple-200' : 'text-gray-700'}`}>{formatarData(tarefa.data_come)}</span>
+                            <div className="flex justify-between items-center">
+                              <span>Início:</span>
+                              <span className="font-medium text-right">{formatarData(tarefa.data_come)}</span>
                             </div>
-                            <div className="flex items-center gap-1.5 flex-wrap justify-end">
-                              <span className={ehDark ? 'text-purple-400/60' : 'text-gray-400'}>Término: </span>
-                              <span className={`font-semibold ${ehDark ? 'text-purple-200' : 'text-gray-700'}`}>{formatarData(tarefa.data_termi)}</span>
-                              
-                              {alerta === 'atrasada' && (
-                                <span className={`inline-flex items-center gap-0.5 px-1.5 py-0.2 rounded-full text-[10px] font-bold ${
-                                  ehDark ? 'bg-rose-500/25 text-rose-300 border border-rose-500/40' : 'bg-rose-100 text-rose-700 border border-rose-300'
-                                }`}>
-                                  <AlertCircle className="w-2.5 h-2.5" />
-                                  Atrasada
-                                </span>
-                              )}
-                              {alerta === 'hoje' && (
-                                <span className={`inline-flex items-center gap-0.5 px-1.5 py-0.2 rounded-full text-[10px] font-bold ${
-                                  ehDark ? 'bg-amber-500/25 text-amber-300 border border-amber-500/40' : 'bg-amber-100 text-amber-800 border border-amber-300'
-                                }`}>
-                                  <Clock className="w-2.5 h-2.5" />
-                                  Hoje
-                                </span>
-                              )}
+                            <div className="flex justify-between items-center">
+                              <span className="flex items-center gap-1">
+                                Término:
+                                {alerta === 'atrasada' && (
+                                  <span className={`inline-flex items-center gap-0.5 px-1.5 py-0.2 rounded-full text-[10px] font-bold ${
+                                    ehDark ? 'bg-rose-500/25 text-rose-300 border border-rose-500/40' : 'bg-rose-100 text-rose-700 border border-rose-300'
+                                  }`}>
+                                    <AlertCircle className="w-2.5 h-2.5" />
+                                    Atrasada
+                                  </span>
+                                )}
+                                {alerta === 'hoje' && (
+                                  <span className={`inline-flex items-center gap-0.5 px-1.5 py-0.2 rounded-full text-[10px] font-bold ${
+                                    ehDark ? 'bg-amber-500/25 text-amber-300 border border-amber-500/40' : 'bg-amber-100 text-amber-800 border border-amber-300'
+                                  }`}>
+                                    <Clock className="w-2.5 h-2.5" />
+                                    Hoje
+                                  </span>
+                                )}
+                              </span>
+                              <span className="font-medium text-right">{formatarData(tarefa.data_termi)}</span>
                             </div>
                           </div>
 
-                          {/* Rodapé: Ações Editar e Excluir */}
+                          {/* Ações (Editar e Excluir) */}
                           <div className={`flex items-center justify-end gap-2 pt-2 border-t ${
-                            ehDark ? 'border-purple-500/15' : 'border-purple-100/60'
+                            ehDark ? 'border-white/10' : 'border-purple-200/60'
                           }`}>
                             <button
                               type="button"
                               onClick={() => handleEditar(tarefa)}
-                              className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-xl transition-colors cursor-pointer active:scale-95 ${
-                                ehDark
-                                  ? 'text-purple-200 hover:text-white bg-purple-950/40 hover:bg-purple-900/60 border border-purple-500/30'
-                                  : 'text-purple-700 hover:bg-purple-100/80 bg-purple-100/40'
+                              className={`flex items-center gap-1 text-xs px-3 py-1.5 rounded-lg transition-colors cursor-pointer ${
+                                ehDark 
+                                  ? 'bg-purple-900/40 hover:bg-purple-900/70 text-purple-200 border border-purple-500/30' 
+                                  : 'bg-purple-50 hover:bg-purple-100 text-purple-700 border border-purple-200'
                               }`}
                             >
                               <SquarePen className="w-3.5 h-3.5" />
@@ -619,10 +1046,10 @@ export function ListaTarefas({ usuario, aoDeslogar, aoAbrirConta }) {
                             <button
                               type="button"
                               onClick={() => handleExcluir(tarefa.id, tarefa.nome)}
-                              className={`flex items-center gap-1.5 px-3 py-1.5 text-xs font-semibold rounded-xl transition-colors cursor-pointer active:scale-95 ${
-                                ehDark
-                                  ? 'text-rose-300 hover:text-rose-200 bg-rose-950/40 hover:bg-rose-950/70 border border-rose-800/40'
-                                  : 'text-rose-700 hover:bg-rose-100/80 bg-rose-100/40'
+                              className={`flex items-center gap-1 text-xs px-3 py-1.5 rounded-lg transition-colors cursor-pointer ${
+                                ehDark 
+                                  ? 'bg-rose-950/40 hover:bg-rose-950/70 text-rose-300 border border-rose-500/30' 
+                                  : 'bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200'
                               }`}
                             >
                               <Trash2 className="w-3.5 h-3.5" />
@@ -634,47 +1061,49 @@ export function ListaTarefas({ usuario, aoDeslogar, aoAbrirConta }) {
                     })}
                   </div>
 
-                  {/* Visualização em Tabela para Desktop (>= md) */}
-                  <div className="hidden md:block w-full overflow-x-auto">
-                    <table className="w-full text-left border-collapse">
+                  {/* Tabela de Tarefas para Computadores e Telas Maiores (>= md) */}
+                  <div className="hidden md:block w-full overflow-x-auto rounded-2xl border border-transparent">
+                    <table className="w-full border-collapse text-left">
                       
                       {/* Cabeçalho da Tabela */}
                       <thead>
-                        <tr className={`border-b text-base sm:text-lg font-bold ${
-                          ehDark ? 'border-purple-500/20 text-purple-200' : 'border-gray-200 text-gray-900'
+                        <tr className={`border-b text-xs sm:text-sm font-semibold tracking-wider uppercase ${
+                          ehDark 
+                            ? 'border-purple-500/30 text-purple-300/80 bg-white/[0.02]' 
+                            : 'border-purple-200 text-purple-950 bg-purple-50/50'
                         }`}>
-                          <th className="py-4 px-4 font-bold">Tarefa</th>
-                          <th className="py-4 px-4 font-bold text-center sm:text-left">Começa</th>
-                          <th className="py-4 px-4 font-bold text-center sm:text-left">Termina</th>
-                          <th className="py-4 px-4 font-bold text-center">Status</th>
-                          <th className="py-4 px-4 font-bold text-right pr-6">Ações</th>
+                          <th className="py-3 px-4 font-bold">Título</th>
+                          <th className="py-3 px-4 font-bold text-center sm:text-left">Início</th>
+                          <th className="py-3 px-4 font-bold text-center sm:text-left">Término</th>
+                          <th className="py-3 px-4 font-bold text-center">Status</th>
+                          <th className="py-3 px-4 font-bold text-right pr-4">Ações</th>
                         </tr>
                       </thead>
 
-                      {/* Corpo da Tabela */}
-                      <tbody className={`divide-y ${ehDark ? 'divide-purple-500/15' : 'divide-gray-200'}`}>
-                        {tarefasFiltradas.map((tarefa, index) => {
+                      {/* Corpo da Tabela com Efeito Zebrado Suave */}
+                      <tbody className="divide-y divide-transparent text-sm">
+                        {tarefasFiltradasTabela.map((tarefa, index) => {
                           const alerta = verificarPrazo(tarefa.data_termi, tarefa.status);
                           const concluida = tarefa.status === 'concluido';
 
                           return (
-                            <tr 
-                              key={tarefa.id} 
-                              className={`transition-colors text-sm sm:text-base animate-slide-up ${ehDark ? 'hover-row-glow' : ''} ${
+                            <tr
+                              key={tarefa.id}
+                              className={`transition-colors duration-200 animate-slide-up ${
                                 ehDark
                                   ? 'hover:bg-purple-500/10 text-purple-200'
                                   : 'hover:bg-purple-50/40 text-gray-800'
                               }`}
                               style={{ animationDelay: `${index * 40}ms` }}
                             >
-                              {/* Coluna: Nome/Título com Checkbox Circular Todoist */}
+                              {/* Coluna: Nome/Título com Checkbox Circular e Tags/Prioridade */}
                               <td className="py-4 px-4 max-w-xs sm:max-w-md">
-                                <div className="flex items-center gap-3">
+                                <div className="flex items-start gap-3">
                                   <button
                                     type="button"
                                     onClick={() => alternarConclusaoRapida(tarefa)}
                                     title={concluida ? 'Desmarcar como concluída' : 'Marcar como concluída'}
-                                    className={`w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all cursor-pointer shrink-0 active:scale-90 ${
+                                    className={`w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all cursor-pointer shrink-0 mt-0.5 active:scale-90 ${
                                       concluida
                                         ? 'bg-emerald-500 border-emerald-500 text-white shadow-sm'
                                         : ehDark
@@ -684,13 +1113,8 @@ export function ListaTarefas({ usuario, aoDeslogar, aoAbrirConta }) {
                                   >
                                     {concluida && <Check className="w-3 h-3 stroke-[3]" />}
                                   </button>
-                                  <span className={`break-words transition-all duration-200 ${
-                                    concluida
-                                      ? ehDark ? 'line-through text-purple-300/50' : 'line-through text-gray-400'
-                                      : ehDark ? 'text-white font-semibold' : 'text-gray-900 font-medium'
-                                  }`}>
-                                    {tarefa.nome}
-                                  </span>
+                                  
+                                  {renderIdentificacaoTarefa(tarefa.nome, concluida)}
                                 </div>
                               </td>
 
@@ -792,12 +1216,14 @@ export function ListaTarefas({ usuario, aoDeslogar, aoAbrirConta }) {
       {/* Modal de Criação / Edição de Tarefa */}
       {modalAberto && (
         <ModalTarefa
-          key={tarefaEmEdicao?.id || 'nova'}
+          key={tarefaEmEdicao?.id || statusInicialParaNova || 'nova'}
           tarefaParaEditar={tarefaEmEdicao}
+          statusInicial={statusInicialParaNova}
           aoSalvar={handleSalvarTarefa}
           aoFechar={() => {
             setModalAberto(false);
             setTarefaEmEdicao(null);
+            setStatusInicialParaNova('pendente');
           }}
         />
       )}
