@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { obterSessao, salvarSessao, limparSessao, acordarServidorApi } from './services/api.js';
 import { ThemeProvider, useTheme } from './context/ThemeContext.jsx';
 import { SeletorTema } from './components/SeletorTema.jsx';
@@ -43,6 +43,18 @@ function AppConteudo() {
     const sessao = obterSessao();
     return sessao.token && sessao.usuario ? 'tarefas' : 'login';
   });
+
+  // Sistema de transição suave entre telas
+  const [transicao, setTransicao] = useState(false);
+
+  // Transição com fade-out → troca → fade-in
+  const navegarPara = useCallback((novaTela) => {
+    setTransicao(true);
+    setTimeout(() => {
+      setTelaAtual(novaTela);
+      setTransicao(false);
+    }, 250); // Duração do fadeSlideOut
+  }, []);
 
   // Controle dos modais globais
   const [modalSucessoAberto, setModalSucessoAberto] = useState(false);
@@ -103,6 +115,7 @@ function AppConteudo() {
   const handleLoginSucesso = (dadosUsuario) => {
     setUsuario(dadosUsuario);
     setTelaAtual('tarefas');
+    navegarPara('tarefas');
   };
 
   // Handler executado quando o cadastro é concluído com sucesso
@@ -115,6 +128,7 @@ function AppConteudo() {
   const handleFecharModalSucesso = () => {
     setModalSucessoAberto(false);
     setTelaAtual('login');
+    navegarPara('login');
   };
 
   // Handler para encerrar a sessão (Logout)
@@ -122,6 +136,7 @@ function AppConteudo() {
     limparSessao();
     setUsuario(null);
     setTelaAtual('login');
+    navegarPara('login');
   };
 
   // Atualiza os dados locais do usuário quando editados no modal de conta
@@ -146,40 +161,43 @@ function AppConteudo() {
       
       {/* Seletor de Tema discreto no canto superior direito nas telas de login e cadastro */}
       {(telaAtual === 'login' || telaAtual === 'cadastro') && (
-        <div className="fixed top-3 right-3 sm:top-5 sm:right-5 z-50 animate-fade-in">
+        <div className="fixed top-3 right-3 sm:top-5 sm:right-5 z-50 animate-slide-up">
           <SeletorTema />
         </div>
       )}
 
-      {/* 1. TELA DE LOGIN */}
-      {telaAtual === 'login' && (
-        <Login
-          aoIrParaCadastro={() => setTelaAtual('cadastro')}
-          aoLogarComSucesso={handleLoginSucesso}
-          aoEsqueceuSenha={() => setModalRecuperarSenhaAberto(true)}
-        />
-      )}
+      {/* Container com transição suave entre telas */}
+      <div className={transicao ? 'animate-slide-out' : 'animate-slide-up'}>
+        {/* 1. TELA DE LOGIN */}
+        {telaAtual === 'login' && (
+          <Login
+            aoIrParaCadastro={() => navegarPara('cadastro')}
+            aoLogarComSucesso={handleLoginSucesso}
+            aoEsqueceuSenha={() => setModalRecuperarSenhaAberto(true)}
+          />
+        )}
 
-      {/* 2. TELA DE CADASTRO */}
-      {telaAtual === 'cadastro' && (
-        <Cadastro
-          aoVoltarParaLogin={() => setTelaAtual('login')}
-          aoAbrirTermos={(cb) => {
-            setOnConfirmarTermos(() => cb);
-            setModalTermosAberto(true);
-          }}
-          aoCadastroSucesso={handleCadastroSucesso}
-        />
-      )}
+        {/* 2. TELA DE CADASTRO */}
+        {telaAtual === 'cadastro' && (
+          <Cadastro
+            aoVoltarParaLogin={() => navegarPara('login')}
+            aoAbrirTermos={(cb) => {
+              setOnConfirmarTermos(() => cb);
+              setModalTermosAberto(true);
+            }}
+            aoCadastroSucesso={handleCadastroSucesso}
+          />
+        )}
 
-      {/* 3. TELA DE LISTAGEM DE TAREFAS */}
-      {telaAtual === 'tarefas' && (
-        <ListaTarefas
-          usuario={usuario}
-          aoDeslogar={handleDeslogar}
-          aoAbrirConta={() => setModalContaAberto(true)}
-        />
-      )}
+        {/* 3. TELA DE LISTAGEM DE TAREFAS */}
+        {telaAtual === 'tarefas' && (
+          <ListaTarefas
+            usuario={usuario}
+            aoDeslogar={handleDeslogar}
+            aoAbrirConta={() => setModalContaAberto(true)}
+          />
+        )}
+      </div>
 
       {/* MODAL: SUCESSO DE CADASTRO (Autenticação.png) */}
       {modalSucessoAberto && (

@@ -25,6 +25,7 @@
 /**
  * ============================================================================
  * GRADIENTES DOS TEMAS (VIOLETA E DARK OBSIDIAN)
+ * GRADIENTES DOS TEMAS (VIOLETA E DARK OBSIDIAN) — COM BREATHING ANIMATION
  * ============================================================================
  */
 
@@ -39,7 +40,9 @@
     linear-gradient(135deg, #2a023a 0%, #46045f 45%, #250354 100%);
   background-attachment: fixed;
   background-size: cover;
+  background-size: 200% 200%;
   background-repeat: no-repeat;
+  animation: bgBreathe 25s ease-in-out infinite;
 }
 
 /* 2. Tema Dark (Midnight Amethyst / Obsidian Violet) */
@@ -52,7 +55,175 @@
     linear-gradient(135deg, #07050a 0%, #0e0a16 45%, #050408 100%);
   background-attachment: fixed;
   background-size: cover;
+  background-size: 200% 200%;
   background-repeat: no-repeat;
+  animation: bgBreathe 25s ease-in-out infinite;
+}
+
+/**
+ * ============================================================================
+ * ANIMAÇÕES ORGÂNICAS — KEYFRAMES
+ * ============================================================================
+ * Animações sutis para dar vida ao site sem distrair o usuário.
+ */
+
+/* Entrada com fade + deslize de baixo para cima (principal) */
+@keyframes fadeSlideUp {
+  from {
+    opacity: 0;
+    transform: translateY(18px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Saída com fade + deslize para cima (para transições de página) */
+@keyframes fadeSlideOut {
+  from {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(-12px);
+  }
+}
+
+/* Respiração do background — gradiente se move sutilmente */
+@keyframes bgBreathe {
+  0%, 100% {
+    background-position: 50% 50%;
+  }
+  25% {
+    background-position: 40% 55%;
+  }
+  50% {
+    background-position: 55% 45%;
+  }
+  75% {
+    background-position: 45% 50%;
+  }
+}
+
+/* Shimmer — brilho que percorre o elemento no hover */
+@keyframes shimmer {
+  0% {
+    background-position: -200% center;
+  }
+  100% {
+    background-position: 200% center;
+  }
+}
+
+/* Loading dots — pulsação sequencial */
+@keyframes dotPulse {
+  0%, 80%, 100% {
+    opacity: 0.3;
+    transform: scale(0.8);
+  }
+  40% {
+    opacity: 1;
+    transform: scale(1.2);
+  }
+}
+
+/**
+ * ============================================================================
+ * CLASSES UTILITÁRIAS DE ANIMAÇÃO
+ * ============================================================================
+ */
+
+/* Animação principal de entrada (fadeSlideUp) */
+.animate-slide-up {
+  animation: fadeSlideUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+/* Animação de saída de página */
+.animate-slide-out {
+  animation: fadeSlideOut 0.25s ease-in both;
+}
+
+/* Delays escalonados para entrada em cascata */
+.animate-delay-75  { animation-delay: 75ms; }
+.animate-delay-150 { animation-delay: 150ms; }
+.animate-delay-225 { animation-delay: 225ms; }
+.animate-delay-300 { animation-delay: 300ms; }
+.animate-delay-375 { animation-delay: 375ms; }
+.animate-delay-450 { animation-delay: 450ms; }
+
+/* Shimmer hover (aplicar junto com bg-gradient para funcionar) */
+.hover-shimmer {
+  position: relative;
+  overflow: hidden;
+}
+.hover-shimmer::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    105deg,
+    transparent 35%,
+    rgba(255, 255, 255, 0.12) 45%,
+    rgba(255, 255, 255, 0.2) 50%,
+    rgba(255, 255, 255, 0.12) 55%,
+    transparent 65%
+  );
+  background-size: 200% 100%;
+  background-position: -200% center;
+  border-radius: inherit;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  pointer-events: none;
+}
+.hover-shimmer:hover::after {
+  opacity: 1;
+  animation: shimmer 0.8s ease-in-out;
+}
+
+/* Loading dots container */
+.loading-dots {
+  display: inline-flex;
+  gap: 6px;
+  align-items: center;
+}
+.loading-dots .dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: currentColor;
+  animation: dotPulse 1.2s ease-in-out infinite;
+}
+.loading-dots .dot:nth-child(2) { animation-delay: 0.15s; }
+.loading-dots .dot:nth-child(3) { animation-delay: 0.3s; }
+
+/* Card hover lift — elevação tátil suave */
+.hover-lift {
+  transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.25s ease;
+}
+.hover-lift:hover {
+  transform: translateY(-2px);
+}
+
+/* Row glow — borda lateral brilhante que aparece no hover (desktop table) */
+.hover-row-glow {
+  position: relative;
+}
+.hover-row-glow::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 15%;
+  height: 70%;
+  width: 3px;
+  border-radius: 0 4px 4px 0;
+  background: linear-gradient(180deg, rgba(168, 85, 247, 0), rgba(168, 85, 247, 0.6), rgba(168, 85, 247, 0));
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+.hover-row-glow:hover::before {
+  opacity: 1;
 }
 
 /**
@@ -81,4 +252,18 @@
   -webkit-text-fill-color: #ffffff !important;
   caret-color: #ffffff !important;
   transition: background-color 5000s ease-in-out 0s;
+}
+
+/**
+ * ============================================================================
+ * PREFERÊNCIA DE REDUÇÃO DE MOVIMENTO (ACESSIBILIDADE)
+ * ============================================================================
+ * Respeita a preferência do sistema para desabilitar animações.
+ */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }

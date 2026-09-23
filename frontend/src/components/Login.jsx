@@ -48,25 +48,25 @@ export function Login({ aoIrParaCadastro, aoLogarComSucesso, aoEsqueceuSenha }) 
   return (
     <div className="min-h-screen min-h-dvh w-full flex flex-col items-center justify-center px-4 py-6 sm:py-10 text-white transition-colors duration-500">
       {/* Card Estilizado de Login com Glassmorphism Translúcido e Borda com Brilho */}
-      <div className={`w-full max-w-md backdrop-blur-2xl rounded-2xl sm:rounded-3xl p-6 sm:p-10 flex flex-col items-center text-center transition-all duration-500 animate-fade-in my-auto ${
+      <div className={`w-full max-w-md backdrop-blur-2xl rounded-2xl sm:rounded-3xl p-6 sm:p-10 flex flex-col items-center text-center transition-all duration-500 my-auto ${
         ehDark
           ? 'bg-gradient-to-b from-white/[0.08] via-[#140b20]/90 to-[#0a0610]/95 border border-white/15 shadow-[0_25px_60px_-15px_rgba(0,0,0,0.9),0_0_40px_rgba(168,85,247,0.14),inset_0_1px_1px_rgba(255,255,255,0.15)]'
           : 'bg-gradient-to-b from-white/[0.13] via-[#2f0440]/60 to-[#1c0228]/80 border border-white/25 shadow-[0_25px_60px_-15px_rgba(0,0,0,0.65),0_0_45px_rgba(168,85,247,0.18),inset_0_1px_1px_rgba(255,255,255,0.3)]'
       }`}>
         
-        {/* Título Principal */}
-        <h1 className="text-3xl sm:text-5xl font-bold mb-2 tracking-wide text-white drop-shadow-sm">
+        {/* Título Principal — entrada delay 0 */}
+        <h1 className="text-3xl sm:text-5xl font-bold mb-2 tracking-wide text-white drop-shadow-sm animate-slide-up">
           Login
         </h1>
 
-        {/* Subtítulo de Boas-vindas */}
-        <p className={`text-sm sm:text-lg mb-6 sm:mb-8 font-normal ${ehDark ? 'text-purple-200/80' : 'text-purple-200/90'}`}>
+        {/* Subtítulo de Boas-vindas — entrada delay 75ms */}
+        <p className={`text-sm sm:text-lg mb-6 sm:mb-8 font-normal animate-slide-up animate-delay-75 ${ehDark ? 'text-purple-200/80' : 'text-purple-200/90'}`}>
           Seja Bem Vindo de Volta!
         </p>
 
         {/* Mensagem de Erro */}
         {erro && (
-          <div className="w-full mb-6 p-3 bg-red-500/20 border border-red-500/50 text-red-200 text-sm rounded-2xl animate-fade-in">
+          <div className="w-full mb-6 p-3 bg-red-500/20 border border-red-500/50 text-red-200 text-sm rounded-2xl animate-slide-up">
             {erro}
           </div>
         )}
@@ -74,8 +74,8 @@ export function Login({ aoIrParaCadastro, aoLogarComSucesso, aoEsqueceuSenha }) 
         {/* Formulário de Login */}
         <form onSubmit={handleSubmit} className="w-full flex flex-col items-center space-y-5">
           
-          {/* Campo: E-mail */}
-          <div className="w-full flex flex-col items-center">
+          {/* Campo: E-mail — entrada delay 150ms */}
+          <div className="w-full flex flex-col items-center animate-slide-up animate-delay-150">
             <label className={`text-base sm:text-lg font-medium mb-2 ${ehDark ? 'text-purple-200' : 'text-purple-100'}`}>
               E-mail
             </label>
@@ -84,7 +84,7 @@ export function Login({ aoIrParaCadastro, aoLogarComSucesso, aoEsqueceuSenha }) 
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               placeholder="seuemail@exemplo.com"
-              className={`w-full max-w-sm px-5 py-3 rounded-full text-center focus:outline-none focus:ring-4 transition-all font-medium border shadow-md ${
+              className={`w-full max-w-sm px-5 py-3 rounded-full text-center focus:outline-none focus:ring-4 transition-all duration-200 font-medium border shadow-md focus:scale-[1.01] ${
                 ehDark
                   ? 'bg-white/10 hover:bg-white/[0.14] focus:bg-white/[0.16] text-white placeholder-purple-200/50 border-white/20 focus:border-purple-400 focus:ring-purple-400/50'
                   : 'bg-[#d9d9d9]/95 hover:bg-white focus:bg-white text-gray-900 placeholder-gray-500 border-white/30 focus:border-purple-400 focus:ring-purple-400/50'
@@ -93,8 +93,8 @@ export function Login({ aoIrParaCadastro, aoLogarComSucesso, aoEsqueceuSenha }) 
             />
           </div>
 
-          {/* Campo: Senha */}
-          <div className="w-full flex flex-col items-center">
+          {/* Campo: Senha — entrada delay 225ms */}
+          <div className="w-full flex flex-col items-center animate-slide-up animate-delay-225">
             <label className={`text-base sm:text-lg font-medium mb-2 ${ehDark ? 'text-purple-200' : 'text-purple-100'}`}>
               Senha
             </label>
@@ -104,7 +104,7 @@ export function Login({ aoIrParaCadastro, aoLogarComSucesso, aoEsqueceuSenha }) 
                 value={senha}
                 onChange={(e) => setSenha(e.target.value)}
                 placeholder="••••••••"
-                className={`w-full px-12 py-3 rounded-full text-center focus:outline-none focus:ring-4 transition-all font-medium border shadow-md ${
+                className={`w-full px-12 py-3 rounded-full text-center focus:outline-none focus:ring-4 transition-all duration-200 font-medium border shadow-md focus:scale-[1.01] ${
                   ehDark
                     ? 'bg-white/10 hover:bg-white/[0.14] focus:bg-white/[0.16] text-white placeholder-purple-200/50 border-white/20 focus:border-purple-400 focus:ring-purple-400/50'
                     : 'bg-[#d9d9d9]/95 hover:bg-white focus:bg-white text-gray-900 placeholder-gray-500 border-white/30 focus:border-purple-400 focus:ring-purple-400/50'
@@ -138,12 +138,12 @@ export function Login({ aoIrParaCadastro, aoLogarComSucesso, aoEsqueceuSenha }) 
             </div>
           </div>
 
-          {/* Botão Entrar em Cristal Translúcido (Opção 3) */}
-          <div className="pt-3 w-full flex justify-center">
+          {/* Botão Entrar com Shimmer — entrada delay 300ms */}
+          <div className="pt-3 w-full flex justify-center animate-slide-up animate-delay-300">
             <button
               type="submit"
               disabled={carregando}
-              className="px-14 py-3.5 bg-white/15 hover:bg-white/25 active:scale-95 text-white text-lg font-semibold rounded-full shadow-[0_8px_25px_rgba(0,0,0,0.35),inset_0_1px_1px_rgba(255,255,255,0.4),0_0_20px_rgba(255,255,255,0.15)] hover:shadow-[0_12px_30px_rgba(0,0,0,0.45),inset_0_1px_2px_rgba(255,255,255,0.6),0_0_30px_rgba(168,85,247,0.35)] backdrop-blur-md border border-white/35 hover:border-white/55 transition-all duration-300 cursor-pointer disabled:opacity-50"
+              className="hover-shimmer px-14 py-3.5 bg-white/15 hover:bg-white/25 active:scale-95 text-white text-lg font-semibold rounded-full shadow-[0_8px_25px_rgba(0,0,0,0.35),inset_0_1px_1px_rgba(255,255,255,0.4),0_0_20px_rgba(255,255,255,0.15)] hover:shadow-[0_12px_30px_rgba(0,0,0,0.45),inset_0_1px_2px_rgba(255,255,255,0.6),0_0_30px_rgba(168,85,247,0.35)] backdrop-blur-md border border-white/35 hover:border-white/55 transition-all duration-300 cursor-pointer disabled:opacity-50"
             >
               {carregando ? 'Entrando...' : 'Entrar'}
             </button>
@@ -151,8 +151,8 @@ export function Login({ aoIrParaCadastro, aoLogarComSucesso, aoEsqueceuSenha }) 
 
         </form>
 
-        {/* Rodapé: Link para Cadastro com divisor suave */}
-        <div className="mt-8 pt-6 border-t border-white/15 w-full">
+        {/* Rodapé: Link para Cadastro com divisor suave — entrada delay 375ms */}
+        <div className="mt-8 pt-6 border-t border-white/15 w-full animate-slide-up animate-delay-375">
           <p className="text-sm sm:text-base text-purple-100 font-medium">
             Tem uma conta?{' '}
             <button

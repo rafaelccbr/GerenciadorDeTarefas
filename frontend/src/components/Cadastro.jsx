@@ -94,19 +94,19 @@ export function Cadastro({ aoVoltarParaLogin, aoAbrirTermos, aoCadastroSucesso }
       </div>
 
       {/* Card Estilizado de Cadastro com Glassmorphism Translúcido e Borda com Brilho */}
-      <div className={`w-full max-w-xl backdrop-blur-2xl rounded-2xl sm:rounded-3xl p-5 sm:p-10 flex flex-col items-center text-center transition-all duration-500 animate-fade-in my-auto ${
+      <div className={`w-full max-w-xl backdrop-blur-2xl rounded-2xl sm:rounded-3xl p-5 sm:p-10 flex flex-col items-center text-center transition-all duration-500 my-auto ${
         ehDark
           ? 'bg-gradient-to-b from-white/[0.08] via-[#140b20]/90 to-[#0a0610]/95 border border-white/15 shadow-[0_25px_60px_-15px_rgba(0,0,0,0.9),0_0_40px_rgba(168,85,247,0.14),inset_0_1px_1px_rgba(255,255,255,0.15)]'
           : 'bg-gradient-to-b from-white/[0.13] via-[#2f0440]/60 to-[#1c0228]/80 border border-white/25 shadow-[0_25px_60px_-15px_rgba(0,0,0,0.65),0_0_45px_rgba(168,85,247,0.18),inset_0_1px_1px_rgba(255,255,255,0.3)]'
       }`}>
         
         {/* Título Principal */}
-        <h1 className="text-3xl sm:text-5xl font-bold mb-2 tracking-wide text-white drop-shadow-sm">
+        <h1 className="text-3xl sm:text-5xl font-bold mb-2 tracking-wide text-white drop-shadow-sm animate-slide-up">
           Crie sua conta
         </h1>
 
         {/* Subtítulo */}
-        <p className={`text-sm sm:text-lg mb-6 sm:mb-8 font-normal ${ehDark ? 'text-purple-200/80' : 'text-purple-200/90'}`}>
+        <p className={`text-sm sm:text-lg mb-6 sm:mb-8 font-normal animate-slide-up animate-delay-75 ${ehDark ? 'text-purple-200/80' : 'text-purple-200/90'}`}>
           Preencha os dados abaixo para criar sua conta
         </p>
 
@@ -121,7 +121,7 @@ export function Cadastro({ aoVoltarParaLogin, aoAbrirTermos, aoCadastroSucesso }
         <form onSubmit={handleSubmit} className="w-full space-y-5 text-left">
           
           {/* Campo: Nome Completo */}
-          <div>
+          <div className="animate-slide-up animate-delay-150">
             <label className={`block text-sm sm:text-base font-semibold mb-1.5 ${ehDark ? 'text-purple-200' : 'text-purple-100'}`}>
               Nome Completo
             </label>
@@ -130,7 +130,7 @@ export function Cadastro({ aoVoltarParaLogin, aoAbrirTermos, aoCadastroSucesso }
               value={nome}
               onChange={(e) => setNome(e.target.value)}
               placeholder="Digite seu nome completo"
-              className={`w-full px-5 py-3 rounded-full focus:outline-none focus:ring-4 transition-all font-medium border shadow-md ${
+              className={`w-full px-5 py-3 rounded-full focus:outline-none focus:ring-4 transition-all duration-200 font-medium border shadow-md focus:scale-[1.01] ${
                 ehDark
                   ? 'bg-white/10 hover:bg-white/[0.14] focus:bg-white/[0.16] text-white placeholder-purple-200/50 border-white/20 focus:border-purple-400 focus:ring-purple-400/50'
                   : 'bg-[#d9d9d9]/95 hover:bg-white focus:bg-white text-gray-900 placeholder-gray-500 border-white/30 focus:border-purple-400 focus:ring-purple-400/50'
@@ -140,7 +140,7 @@ export function Cadastro({ aoVoltarParaLogin, aoAbrirTermos, aoCadastroSucesso }
           </div>
 
           {/* Campo: E-mail */}
-          <div>
+          <div className="animate-slide-up animate-delay-225">
             <label className={`block text-sm sm:text-base font-semibold mb-1.5 ${ehDark ? 'text-purple-200' : 'text-purple-100'}`}>
               E-mail
             </label>
@@ -149,7 +149,7 @@ export function Cadastro({ aoVoltarParaLogin, aoAbrirTermos, aoCadastroSucesso }
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               placeholder="seuemail@exemplo.com"
-              className={`w-full px-5 py-3 rounded-full focus:outline-none focus:ring-4 transition-all font-medium border shadow-md ${
+              className={`w-full px-5 py-3 rounded-full focus:outline-none focus:ring-4 transition-all duration-200 font-medium border shadow-md focus:scale-[1.01] ${
                 ehDark
                   ? 'bg-white/10 hover:bg-white/[0.14] focus:bg-white/[0.16] text-white placeholder-purple-200/50 border-white/20 focus:border-purple-400 focus:ring-purple-400/50'
                   : 'bg-[#d9d9d9]/95 hover:bg-white focus:bg-white text-gray-900 placeholder-gray-500 border-white/30 focus:border-purple-400 focus:ring-purple-400/50'
@@ -159,7 +159,7 @@ export function Cadastro({ aoVoltarParaLogin, aoAbrirTermos, aoCadastroSucesso }
           </div>
 
           {/* Linha com Senha e Confirmar Senha lado a lado */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 animate-slide-up animate-delay-300">
             
             {/* Campo: Senha */}
             <div>
@@ -259,7 +259,7 @@ export function Cadastro({ aoVoltarParaLogin, aoAbrirTermos, aoCadastroSucesso }
           )}
 
           {/* Checkbox Termos de Uso */}
-          <div className="flex items-center gap-3 pt-2">
+          <div className="flex items-center gap-3 pt-2 animate-slide-up animate-delay-375">
             <input
               type="checkbox"
               id="termos"
@@ -287,12 +287,12 @@ export function Cadastro({ aoVoltarParaLogin, aoAbrirTermos, aoCadastroSucesso }
             </label>
           </div>
 
-          {/* Botão Criar Conta em Cristal Translúcido */}
-          <div className="flex justify-center pt-4">
+          {/* Botão Criar Conta com Shimmer */}
+          <div className="flex justify-center pt-4 animate-slide-up animate-delay-450">
             <button
               type="submit"
               disabled={carregando}
-              className="px-14 py-3.5 bg-white/15 hover:bg-white/25 active:scale-95 text-white text-lg font-semibold rounded-full shadow-[0_8px_25px_rgba(0,0,0,0.35),inset_0_1px_1px_rgba(255,255,255,0.4),0_0_20px_rgba(255,255,255,0.15)] hover:shadow-[0_12px_30px_rgba(0,0,0,0.45),inset_0_1px_2px_rgba(255,255,255,0.6),0_0_30px_rgba(168,85,247,0.35)] backdrop-blur-md border border-white/35 hover:border-white/55 transition-all duration-300 cursor-pointer disabled:opacity-50"
+              className="hover-shimmer px-14 py-3.5 bg-white/15 hover:bg-white/25 active:scale-95 text-white text-lg font-semibold rounded-full shadow-[0_8px_25px_rgba(0,0,0,0.35),inset_0_1px_1px_rgba(255,255,255,0.4),0_0_20px_rgba(255,255,255,0.15)] hover:shadow-[0_12px_30px_rgba(0,0,0,0.45),inset_0_1px_2px_rgba(255,255,255,0.6),0_0_30px_rgba(168,85,247,0.35)] backdrop-blur-md border border-white/35 hover:border-white/55 transition-all duration-300 cursor-pointer disabled:opacity-50"
             >
               {carregando ? 'Criando conta...' : 'Criar Conta'}
             </button>
@@ -301,7 +301,7 @@ export function Cadastro({ aoVoltarParaLogin, aoAbrirTermos, aoCadastroSucesso }
         </form>
 
         {/* Rodapé: Link para Login */}
-        <div className="mt-8 pt-6 border-t border-white/15 w-full">
+        <div className="mt-8 pt-6 border-t border-white/15 w-full animate-slide-up animate-delay-450">
           <p className={`text-sm sm:text-base font-medium ${ehDark ? 'text-purple-200' : 'text-purple-100'}`}>
             Já tem uma conta?{' '}
             <button

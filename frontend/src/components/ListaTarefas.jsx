@@ -159,7 +159,7 @@ export function ListaTarefas({ usuario, aoDeslogar, aoAbrirConta }) {
       <div className="w-full max-w-6xl flex flex-col space-y-4">
         
         {/* Barra Superior de Ações com Auto-Encaixe Responsivo */}
-        <div className="flex items-center justify-between gap-2.5 sm:gap-3 w-full flex-wrap">
+        <div className="flex items-center justify-between gap-2.5 sm:gap-3 w-full flex-wrap animate-slide-up">
           
           <div className="flex items-center gap-2 sm:gap-3">
             {/* Botão Sair (Vidro Semi-Translúcido Ruby com Alta Nitidez) */}
@@ -167,7 +167,7 @@ export function ListaTarefas({ usuario, aoDeslogar, aoAbrirConta }) {
               onClick={aoDeslogar}
               className="flex items-center gap-1.5 sm:gap-2 px-3.5 sm:px-6 py-2 sm:py-2.5 bg-rose-500/40 hover:bg-rose-500/55 border border-rose-400/50 hover:border-rose-300/70 backdrop-blur-md text-white font-bold rounded-full shadow-[0_4px_15px_rgba(244,63,94,0.25)] hover:shadow-[0_6px_20px_rgba(244,63,94,0.4)] transition-all duration-300 active:scale-95 cursor-pointer group text-xs sm:text-sm"
             >
-              <LogOut className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-rose-200 group-hover:text-white transition-colors" />
+              <LogOut className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-rose-200 group-hover:text-white group-hover:-translate-x-0.5 transition-all duration-300" />
               Sair
             </button>
 
@@ -176,7 +176,7 @@ export function ListaTarefas({ usuario, aoDeslogar, aoAbrirConta }) {
               onClick={handleNovoCadastro}
               className="flex items-center gap-1.5 sm:gap-2 px-3.5 sm:px-6 py-2 sm:py-2.5 bg-emerald-500/40 hover:bg-emerald-500/55 border border-emerald-300/60 hover:border-emerald-200/80 backdrop-blur-md text-white font-bold rounded-full shadow-[0_4px_15px_rgba(16,185,129,0.3),inset_0_1px_1px_rgba(255,255,255,0.3)] hover:shadow-[0_6px_25px_rgba(16,185,129,0.45),inset_0_1px_2px_rgba(255,255,255,0.5)] transition-all duration-300 active:scale-95 cursor-pointer group text-xs sm:text-sm"
             >
-              <PlusCircle className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-emerald-100 group-hover:text-white transition-colors" />
+              <PlusCircle className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-emerald-100 group-hover:text-white group-hover:rotate-90 transition-all duration-300" />
               Cadastrar
             </button>
           </div>
@@ -210,7 +210,7 @@ export function ListaTarefas({ usuario, aoDeslogar, aoAbrirConta }) {
         </div>
 
         {/* Card Central com Efeito Glassmorphism e Sombra Suave (Adapta ao tema Violeta ou Dark) */}
-        <div className={`w-full backdrop-blur-2xl rounded-2xl sm:rounded-3xl p-4 sm:p-6 md:p-8 min-h-[480px] sm:min-h-[520px] flex flex-col transition-all duration-500 ${
+        <div className={`w-full backdrop-blur-2xl rounded-2xl sm:rounded-3xl p-4 sm:p-6 md:p-8 min-h-[480px] sm:min-h-[520px] flex flex-col transition-all duration-500 animate-slide-up animate-delay-150 ${
           ehDark
             ? 'bg-gradient-to-b from-white/[0.08] via-[#140b20]/90 to-[#0a0610]/95 border border-white/15 shadow-[0_25px_60px_-15px_rgba(0,0,0,0.9),0_0_40px_rgba(168,85,247,0.12),inset_0_1px_1px_rgba(255,255,255,0.15)] text-purple-100'
             : 'bg-white/95 border border-white/60 shadow-[0_16px_50px_rgba(0,0,0,0.25)] text-gray-800'
@@ -230,8 +230,12 @@ export function ListaTarefas({ usuario, aoDeslogar, aoAbrirConta }) {
           {/* Estado de Carregando */}
           {carregando ? (
             <div className={`flex-1 flex flex-col items-center justify-center py-20 ${ehDark ? 'text-zinc-400' : 'text-gray-500'}`}>
-              <div className={`w-10 h-10 border-4 border-t-transparent rounded-full animate-spin mb-4 ${ehDark ? 'border-zinc-400' : 'border-purple-600'}`}></div>
-              <p className="font-medium text-sm sm:text-base">Carregando suas tarefas...</p>
+              <div className={`loading-dots mb-4 ${ehDark ? 'text-purple-400' : 'text-purple-600'}`}>
+                <span className="dot"></span>
+                <span className="dot"></span>
+                <span className="dot"></span>
+              </div>
+              <p className="font-medium text-sm sm:text-base animate-slide-up animate-delay-300">Carregando suas tarefas...</p>
             </div>
           ) : tarefas.length === 0 ? (
             /* Estado Vazio */
@@ -251,14 +255,15 @@ export function ListaTarefas({ usuario, aoDeslogar, aoAbrirConta }) {
             <>
               {/* Visualização em Cards para Smartphones (< md) */}
               <div className="block md:hidden space-y-3 w-full">
-                {tarefas.map((tarefa) => (
+                {tarefas.map((tarefa, index) => (
                   <div 
                     key={`card-${tarefa.id}`}
-                    className={`rounded-2xl p-4 shadow-sm transition-all text-left flex flex-col justify-between gap-3 border ${
+                    className={`rounded-2xl p-4 shadow-sm transition-all text-left flex flex-col justify-between gap-3 border hover-lift animate-slide-up ${
                       ehDark
-                        ? 'bg-white/[0.05] hover:bg-white/[0.08] border-purple-500/20 text-purple-100 shadow-md'
-                        : 'bg-purple-50/50 hover:bg-purple-50/80 border-purple-100/80 text-gray-900'
+                        ? 'bg-white/[0.05] hover:bg-white/[0.08] border-purple-500/20 text-purple-100 shadow-md hover:shadow-lg'
+                        : 'bg-purple-50/50 hover:bg-purple-50/80 border-purple-100/80 text-gray-900 hover:shadow-md'
                     }`}
+                    style={{ animationDelay: `${index * 60}ms` }}
                   >
                     {/* Topo do Card: Nome e Status */}
                     <div className="flex items-start justify-between gap-2">
@@ -347,14 +352,15 @@ export function ListaTarefas({ usuario, aoDeslogar, aoAbrirConta }) {
 
                   {/* Corpo da Tabela */}
                   <tbody className={`divide-y ${ehDark ? 'divide-purple-500/15' : 'divide-gray-200'}`}>
-                    {tarefas.map((tarefa) => (
+                    {tarefas.map((tarefa, index) => (
                       <tr 
                         key={tarefa.id} 
-                        className={`transition-colors text-sm sm:text-base ${
+                        className={`transition-colors text-sm sm:text-base animate-slide-up ${ehDark ? 'hover-row-glow' : ''} ${
                           ehDark
                             ? 'hover:bg-purple-500/10 text-purple-200'
                             : 'hover:bg-purple-50/40 text-gray-800'
                         }`}
+                        style={{ animationDelay: `${index * 50}ms` }}
                       >
                         {/* Coluna: Nome/Título */}
                         <td className={`py-4 px-4 font-medium max-w-xs sm:max-w-md break-words ${ehDark ? 'text-white font-semibold' : 'text-gray-900'}`}>
