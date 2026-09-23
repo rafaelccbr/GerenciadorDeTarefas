@@ -157,7 +157,7 @@ function AppConteudo() {
   };
 
   return (
-    <main className={`w-full min-h-screen ${tema === 'dark' ? 'bg-theme-dark' : 'bg-theme-violeta'} selection:bg-purple-400 selection:text-purple-950 font-sans transition-colors duration-500 relative`}>
+    <main className={`w-full min-h-screen ${tema === 'dark' ? 'bg-theme-dark' : 'bg-theme-violeta'} selection:bg-purple-400 selection:text-purple-950 font-sans transition-colors duration-500 relative overflow-x-hidden`}>
       
       {/* Seletor de Tema discreto no canto superior direito nas telas de login e cadastro */}
       {(telaAtual === 'login' || telaAtual === 'cadastro') && (
@@ -166,8 +166,8 @@ function AppConteudo() {
         </div>
       )}
 
-      {/* Container com transição suave entre telas */}
-      <div className={transicao ? 'animate-slide-out' : 'animate-slide-up'}>
+      {/* Container com transição suave entre telas (crossfade limpo) */}
+      <div className={`w-full ${transicao ? 'animate-screen-exit' : 'animate-screen-enter'}`}>
         {/* 1. TELA DE LOGIN */}
         {telaAtual === 'login' && (
           <Login

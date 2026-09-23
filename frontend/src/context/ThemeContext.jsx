@@ -42,6 +42,12 @@ export function ThemeProvider({ children }) {
       root.classList.add('theme-violeta');
       root.classList.remove('theme-dark');
     }
+
+    // Sincroniza a cor da barra de navegação/status no navegador do celular
+    const metaThemeColor = document.querySelector('meta[name="theme-color"]');
+    if (metaThemeColor) {
+      metaThemeColor.setAttribute('content', tema === 'dark' ? '#07050a' : '#270237');
+    }
   }, [tema]);
 
   return (

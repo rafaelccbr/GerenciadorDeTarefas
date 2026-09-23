@@ -5,6 +5,23 @@
     box-sizing: border-box;
   }
 
+  html {
+    background-color: #270237;
+    color-scheme: dark;
+  }
+
+  html.theme-dark,
+  html.theme-dark body,
+  html.theme-dark #root {
+    background-color: #07050a;
+  }
+
+  html.theme-violeta,
+  html.theme-violeta body,
+  html.theme-violeta #root {
+    background-color: #270237;
+  }
+
   body {
     margin: 0;
     padding: 0;
@@ -12,26 +29,33 @@
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
     min-height: 100vh;
+    min-height: 100dvh;
+    background-color: inherit;
+    overflow-x: hidden;
+    overscroll-behavior-y: none;
   }
 
   #root {
     min-height: 100vh;
+    min-height: 100dvh;
     width: 100%;
     margin: 0;
     padding: 0;
+    background-color: inherit;
   }
 }
 
 /**
  * ============================================================================
- * GRADIENTES DOS TEMAS (VIOLETA E DARK OBSIDIAN)
  * GRADIENTES DOS TEMAS (VIOLETA E DARK OBSIDIAN) — COM BREATHING ANIMATION
  * ============================================================================
  */
 
 /* 1. Tema Violeta (Figma Original vibrante) */
 .bg-theme-violeta,
-.bg-figma-gradient {
+.bg-figma-gradient,
+html.theme-violeta,
+html.theme-violeta body {
   background-color: #270237;
   background-image: 
     radial-gradient(ellipse 65% 55% at 90% 15%, rgba(65, 8, 200, 0.95) 0%, rgba(59, 8, 179, 0.35) 45%, transparent 70%),
@@ -39,14 +63,15 @@
     radial-gradient(ellipse 55% 45% at 50% 5%, rgba(154, 5, 207, 0.85) 0%, rgba(121, 3, 172, 0.35) 40%, transparent 65%),
     linear-gradient(135deg, #2a023a 0%, #46045f 45%, #250354 100%);
   background-attachment: fixed;
-  background-size: cover;
   background-size: 200% 200%;
   background-repeat: no-repeat;
   animation: bgBreathe 25s ease-in-out infinite;
 }
 
 /* 2. Tema Dark (Midnight Amethyst / Obsidian Violet) */
-.bg-theme-dark {
+.bg-theme-dark,
+html.theme-dark,
+html.theme-dark body {
   background-color: #07050a;
   background-image: 
     radial-gradient(ellipse 65% 55% at 90% 15%, rgba(76, 12, 140, 0.45) 0%, rgba(45, 8, 90, 0.15) 50%, transparent 70%),
@@ -54,7 +79,6 @@
     radial-gradient(ellipse 55% 45% at 50% 5%, rgba(65, 10, 120, 0.3) 0%, rgba(20, 4, 40, 0.1) 40%, transparent 65%),
     linear-gradient(135deg, #07050a 0%, #0e0a16 45%, #050408 100%);
   background-attachment: fixed;
-  background-size: cover;
   background-size: 200% 200%;
   background-repeat: no-repeat;
   animation: bgBreathe 25s ease-in-out infinite;
@@ -88,6 +112,25 @@
   to {
     opacity: 0;
     transform: translateY(-12px);
+  }
+}
+
+/* Transição suave de telas inteiras (apenas opacidade para evitar overflow/scrollbar falsa) */
+@keyframes screenFadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes screenFadeOut {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
   }
 }
 
@@ -143,6 +186,15 @@
 /* Animação de saída de página */
 .animate-slide-out {
   animation: fadeSlideOut 0.25s ease-in both;
+}
+
+/* Transição suave do container de telas inteiras */
+.animate-screen-enter {
+  animation: screenFadeIn 0.25s ease-out both;
+}
+
+.animate-screen-exit {
+  animation: screenFadeOut 0.2s ease-in both;
 }
 
 /* Delays escalonados para entrada em cascata */
