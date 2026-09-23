@@ -276,10 +276,10 @@ export function ListaTarefas({ usuario, aoDeslogar, aoAbrirConta }) {
                         title="Clique para alternar o status"
                         className={`shrink-0 inline-flex items-center justify-center px-3 py-1 rounded-full font-semibold text-xs cursor-pointer transition-all shadow-sm active:scale-95 ${
                           tarefa.status === 'concluido'
-                            ? ehDark ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 hover:bg-emerald-500/30' : 'bg-green-100 text-green-800 border border-green-300'
+                            ? ehDark ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 hover:bg-emerald-500/30' : 'bg-green-100 text-green-800 border border-green-300 hover:bg-green-200'
                             : tarefa.status === 'em_andamento'
-                            ? ehDark ? 'bg-purple-500/30 text-purple-100 border border-purple-400/50 hover:bg-purple-500/40 shadow-sm' : 'bg-purple-100 text-purple-800 border border-purple-300'
-                            : ehDark ? 'bg-amber-500/20 text-amber-300 border border-amber-500/40 hover:bg-amber-500/30' : 'bg-gray-200 text-gray-700 hover:bg-gray-300 border border-gray-300'
+                            ? ehDark ? 'bg-purple-500/30 text-purple-100 border border-purple-400/50 hover:bg-purple-500/40 shadow-sm' : 'bg-purple-100 text-purple-800 border border-purple-300 hover:bg-purple-200'
+                            : ehDark ? 'bg-amber-500/20 text-amber-300 border border-amber-500/40 hover:bg-amber-500/30' : 'bg-amber-100 text-amber-900 border border-amber-300 hover:bg-amber-200'
                         }`}
                       >
                         {rotuloStatus[tarefa.status] || tarefa.status}
@@ -385,10 +385,10 @@ export function ListaTarefas({ usuario, aoDeslogar, aoAbrirConta }) {
                             title="Clique para alternar o status"
                             className={`inline-flex items-center justify-center px-4 py-1.5 rounded-full font-medium text-xs sm:text-sm cursor-pointer transition-all shadow-sm active:scale-95 ${
                               tarefa.status === 'concluido'
-                                ? ehDark ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 hover:bg-emerald-500/30' : 'bg-green-100 text-green-800 border border-green-300'
+                                ? ehDark ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 hover:bg-emerald-500/30' : 'bg-green-100 text-green-800 border border-green-300 hover:bg-green-200'
                                 : tarefa.status === 'em_andamento'
-                                ? ehDark ? 'bg-purple-500/30 text-purple-100 border border-purple-400/50 hover:bg-purple-500/40 shadow-sm' : 'bg-purple-100 text-purple-800 border border-purple-300'
-                                : ehDark ? 'bg-amber-500/20 text-amber-300 border border-amber-500/40 hover:bg-amber-500/30' : 'bg-gray-200 text-gray-700 hover:bg-gray-300 border border-gray-300'
+                                ? ehDark ? 'bg-purple-500/30 text-purple-100 border border-purple-400/50 hover:bg-purple-500/40 shadow-sm' : 'bg-purple-100 text-purple-800 border border-purple-300 hover:bg-purple-200'
+                                : ehDark ? 'bg-amber-500/20 text-amber-300 border border-amber-500/40 hover:bg-amber-500/30' : 'bg-amber-100 text-amber-900 border border-amber-300 hover:bg-amber-200'
                             }`}
                           >
                             {rotuloStatus[tarefa.status] || tarefa.status}
