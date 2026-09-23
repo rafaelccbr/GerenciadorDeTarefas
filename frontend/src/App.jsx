@@ -159,11 +159,14 @@ function AppConteudo() {
   return (
     <main className="w-full min-h-screen isolate selection:bg-purple-400 selection:text-purple-950 font-sans relative overflow-x-hidden">
       
-      {/* Background fixo do tema que nunca rola nem descola — elimina 100% de faixas em scroll e overscroll */}
-      <div 
-        className={`fixed inset-0 -z-10 pointer-events-none transition-colors duration-500 ${tema === 'dark' ? 'bg-theme-dark' : 'bg-theme-violeta'}`} 
-        aria-hidden="true" 
-      />
+      {/* Background vivo com respiração 100% acelerada pela GPU (sem repintura, sem faixas) */}
+      <div className="fixed inset-0 -z-10 pointer-events-none overflow-hidden" aria-hidden="true">
+        {/* Camada base sólida do tema que garante cobertura total em qualquer circunstância */}
+        <div className={`absolute inset-0 transition-colors duration-500 ${tema === 'dark' ? 'bg-[#07050a]' : 'bg-[#270237]'}`} />
+        
+        {/* Camada viva dos gradientes que respira suavemente via transform/opacity na GPU */}
+        <div className={`absolute -inset-6 transition-colors duration-500 animate-breathe ${tema === 'dark' ? 'bg-theme-dark' : 'bg-theme-violeta'}`} />
+      </div>
 
       {/* Seletor de Tema discreto no canto superior direito nas telas de login e cadastro */}
       {(telaAtual === 'login' || telaAtual === 'cadastro') && (

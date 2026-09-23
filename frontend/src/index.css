@@ -122,6 +122,23 @@
   }
 }
 
+/* Respiração orgânica acelerada 100% pela GPU (sem repintura, sem faixas) */
+@keyframes gpuBreathe {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 0.85;
+  }
+  50% {
+    transform: scale(1.04) translate(-0.6%, 0.6%);
+    opacity: 1;
+  }
+}
+
+.animate-breathe {
+  animation: gpuBreathe 16s ease-in-out infinite;
+  will-change: transform, opacity;
+}
+
 /* Shimmer — brilho que percorre o elemento no hover */
 @keyframes shimmer {
   0% {
