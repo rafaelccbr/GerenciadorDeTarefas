@@ -157,8 +157,14 @@ function AppConteudo() {
   };
 
   return (
-    <main className={`w-full min-h-screen ${tema === 'dark' ? 'bg-theme-dark' : 'bg-theme-violeta'} selection:bg-purple-400 selection:text-purple-950 font-sans transition-colors duration-500 relative overflow-x-hidden`}>
+    <main className="w-full min-h-screen isolate selection:bg-purple-400 selection:text-purple-950 font-sans relative overflow-x-hidden">
       
+      {/* Background fixo do tema que nunca rola nem descola — elimina 100% de faixas em scroll e overscroll */}
+      <div 
+        className={`fixed inset-0 -z-10 pointer-events-none transition-colors duration-500 ${tema === 'dark' ? 'bg-theme-dark' : 'bg-theme-violeta'}`} 
+        aria-hidden="true" 
+      />
+
       {/* Seletor de Tema discreto no canto superior direito nas telas de login e cadastro */}
       {(telaAtual === 'login' || telaAtual === 'cadastro') && (
         <div className="fixed top-3 right-3 sm:top-5 sm:right-5 z-50 animate-slide-up">

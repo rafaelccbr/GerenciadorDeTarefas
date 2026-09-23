@@ -10,15 +10,11 @@
     color-scheme: dark;
   }
 
-  html.theme-dark,
-  html.theme-dark body,
-  html.theme-dark #root {
+  html.theme-dark {
     background-color: #07050a;
   }
 
-  html.theme-violeta,
-  html.theme-violeta body,
-  html.theme-violeta #root {
+  html.theme-violeta {
     background-color: #270237;
   }
 
@@ -31,8 +27,6 @@
     min-height: 100vh;
     min-height: 100dvh;
     background-color: inherit;
-    overflow-x: hidden;
-    overscroll-behavior-y: none;
   }
 
   #root {
@@ -47,41 +41,35 @@
 
 /**
  * ============================================================================
- * GRADIENTES DOS TEMAS (VIOLETA E DARK OBSIDIAN) — COM BREATHING ANIMATION
+ * GRADIENTES DOS TEMAS (VIOLETA E DARK OBSIDIAN)
  * ============================================================================
  */
 
 /* 1. Tema Violeta (Figma Original vibrante) */
 .bg-theme-violeta,
-.bg-figma-gradient,
-html.theme-violeta,
-html.theme-violeta body {
+.bg-figma-gradient {
   background-color: #270237;
   background-image: 
     radial-gradient(ellipse 65% 55% at 90% 15%, rgba(65, 8, 200, 0.95) 0%, rgba(59, 8, 179, 0.35) 45%, transparent 70%),
     radial-gradient(ellipse 65% 65% at 85% 85%, rgba(135, 4, 210, 0.95) 0%, rgba(112, 4, 173, 0.35) 45%, transparent 70%),
     radial-gradient(ellipse 55% 45% at 50% 5%, rgba(154, 5, 207, 0.85) 0%, rgba(121, 3, 172, 0.35) 40%, transparent 65%),
     linear-gradient(135deg, #2a023a 0%, #46045f 45%, #250354 100%);
-  background-attachment: fixed;
-  background-size: 200% 200%;
+  background-size: cover;
+  background-position: center;
   background-repeat: no-repeat;
-  animation: bgBreathe 25s ease-in-out infinite;
 }
 
 /* 2. Tema Dark (Midnight Amethyst / Obsidian Violet) */
-.bg-theme-dark,
-html.theme-dark,
-html.theme-dark body {
+.bg-theme-dark {
   background-color: #07050a;
   background-image: 
     radial-gradient(ellipse 65% 55% at 90% 15%, rgba(76, 12, 140, 0.45) 0%, rgba(45, 8, 90, 0.15) 50%, transparent 70%),
     radial-gradient(ellipse 65% 65% at 80% 85%, rgba(95, 10, 160, 0.35) 0%, rgba(35, 6, 65, 0.15) 45%, transparent 70%),
     radial-gradient(ellipse 55% 45% at 50% 5%, rgba(65, 10, 120, 0.3) 0%, rgba(20, 4, 40, 0.1) 40%, transparent 65%),
     linear-gradient(135deg, #07050a 0%, #0e0a16 45%, #050408 100%);
-  background-attachment: fixed;
-  background-size: 200% 200%;
+  background-size: cover;
+  background-position: center;
   background-repeat: no-repeat;
-  animation: bgBreathe 25s ease-in-out infinite;
 }
 
 /**
@@ -131,22 +119,6 @@ html.theme-dark body {
   }
   to {
     opacity: 0;
-  }
-}
-
-/* Respiração do background — gradiente se move sutilmente */
-@keyframes bgBreathe {
-  0%, 100% {
-    background-position: 50% 50%;
-  }
-  25% {
-    background-position: 40% 55%;
-  }
-  50% {
-    background-position: 55% 45%;
-  }
-  75% {
-    background-position: 45% 50%;
   }
 }
 
