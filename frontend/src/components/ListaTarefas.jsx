@@ -471,7 +471,7 @@ export function ListaTarefas({ usuario, aoDeslogar, aoAbrirConta }) {
     setTarefaEmEdicao(null);
   };
 
-  // Exportar CSV
+  // Exportar CSV formatado nativamente para Excel (padrão brasileiro com ponto e vírgula)
   const exportarCsv = (listaParaExportar) => {
     setMenuExportarAberto(false);
     if (!listaParaExportar || listaParaExportar.length === 0) {
@@ -480,25 +480,46 @@ export function ListaTarefas({ usuario, aoDeslogar, aoAbrirConta }) {
     }
 
     try {
+      const escapar = (valor) => {
+        if (valor === null || valor === undefined || valor === '') return '';
+        const str = String(valor).trim();
+        if (str.includes(';') || str.includes('"') || str.includes('\n') || str.includes('\r')) {
+          return `"${str.replace(/"/g, '""')}"`;
+        }
+        return str;
+      };
+
       const cabecalho = ['Título', 'Início', 'Término', 'Horário', 'Status', 'Prioridade', 'Tags', 'Recorrência', 'Etapas'];
+      
+      const rotuloRecorrencia = {
+        daily: 'Diariamente',
+        weekly: 'Semanalmente',
+        monthly: 'Mensalmente',
+        never: 'Não',
+      };
+
       const linhas = listaParaExportar.map((t) => {
         const { tituloLimpo, prioridade, hora, tags, recorrencia, subtarefas } = parseTarefaNome(t.nome);
         const prog = calcularProgressoSubtarefas(subtarefas);
-        const etapasStr = subtarefas.length > 0 ? `${prog.feitas}/${prog.total}` : 'Nenhuma';
+        const etapasStr = subtarefas.length > 0 ? `${prog.feitas}/${prog.total} concluídas` : 'Nenhuma';
+        const tagsStr = (tags && tags.length > 0) ? tags.map(tg => `#${tg}`).join(' ') : '';
+        const recStr = rotuloRecorrencia[recorrencia] || 'Não';
+
         return [
-          `"${(tituloLimpo || '').replace(/"/g, '""')}"`,
-          formatarData(t.data_come),
-          formatarData(t.data_termi),
-          hora || '-',
-          rotuloStatus[t.status] || t.status,
-          (prioridade || 'p4').toUpperCase(),
-          `"${(tags || []).join(', ')}"`,
-          recorrencia && recorrencia !== 'never' ? recorrencia : 'Não',
-          `"${etapasStr}"`,
-        ].join(',');
+          escapar(tituloLimpo || 'Sem título'),
+          escapar(formatarData(t.data_come)),
+          escapar(formatarData(t.data_termi)),
+          escapar(hora || '-'),
+          escapar(rotuloStatus[t.status] || t.status),
+          escapar((prioridade || 'p4').toUpperCase()),
+          escapar(tagsStr),
+          escapar(recStr),
+          escapar(etapasStr),
+        ].join(';');
       });
 
-      const conteudoCsv = '\uFEFF' + [cabecalho.join(','), ...linhas].join('\n');
+      // \uFEFF adiciona o Byte Order Mark (BOM) UTF-8 para o Excel abrir com acentuação correta
+      const conteudoCsv = '\uFEFF' + [cabecalho.map(escapar).join(';'), ...linhas].join('\r\n');
       const blob = new Blob([conteudoCsv], { type: 'text/csv;charset=utf-8;' });
       const url = URL.createObjectURL(blob);
       const link = document.createElement('a');
