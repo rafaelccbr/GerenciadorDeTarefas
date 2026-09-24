@@ -30,7 +30,13 @@ import {
   CheckSquare,
   Square,
   Zap,
-  Calendar
+  Calendar,
+  Flame,
+  BarChart3,
+  Bell,
+  BellRing,
+  ExternalLink,
+  GripVertical
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import jsPDF from 'jspdf';
@@ -46,6 +52,8 @@ import {
   atualizarTarefaApi 
 } from '../services/api.js';
 import { ModalTarefa } from './ModalTarefa.jsx';
+import { WidgetPomodoro } from './WidgetPomodoro.jsx';
+import { ModalEstatisticas } from './ModalEstatisticas.jsx';
 import { 
   parseTarefaNome, 
   montarTarefaNome,
@@ -54,21 +62,28 @@ import {
   verificarPrazoInteligente,
   parseQuickAdd,
   calcularProximaData,
-  calcularProgressoSubtarefas
+  calcularProgressoSubtarefas,
+  extrairLinksDeTexto,
+  tocarSomAlerta
 } from '../utils/tarefaParser.js';
 
 /**
  * ============================================================================
- * TELA PRINCIPAL (DASHBOARD COMPLETO ESTILO TODOIST)
+ * TELA PRINCIPAL (DASHBOARD COMPLETO ESTILO TODOIST PRO)
  * ============================================================================
- * Recursos Todoist:
+ * Recursos Todoist + Pro:
  * 1. 📅 Visões de Foco: "Hoje", "Próximos 7 Dias" e filtros por status
  * 2. ⚡ Quick Add: Criação em 1 linha com linguagem natural (@hora, #tags, p1, amanhã)
  * 3. 🎯 Gamificação: Confetes ao concluir tarefa e celebração aos 100% de produtividade
  * 4. 🔀 Ordenação Inteligente: Por Prioridade, Prazo, Alfabética e Recentes
  * 5. ☑️ Subtarefas / Mini-Checklist interativo com progresso
  * 6. 🔁 Tarefas Recorrentes (Rotinas automáticas com reagendamento)
- * 7. 📄 Exportação de Relatórios: PDF formatado e CSV para Excel
+ * 7. 📄 Exportação de Relatórios: PDF formatado e Planilha Excel (.XLSX)
+ * 8. 🍅 Timer Pomodoro Integrado (Modo Foco vinculado à tarefa)
+ * 9. 🖱️ Drag & Drop nativo no Quadro Kanban
+ * 10. 📊 Painel de Estatísticas e Gráficos (Dashboard Analytics)
+ * 11. 🔔 Notificações Nativas do Navegador + Alerta Sonoro de Horário (@HH:mm)
+ * 12. 📝 Notas Rápidas e Links Clicáveis nas Tarefas
  */
 export function ListaTarefas({ usuario, aoDeslogar, aoAbrirConta }) {
   const { tema } = useTheme();
@@ -117,6 +132,100 @@ export function ListaTarefas({ usuario, aoDeslogar, aoAbrirConta }) {
   const [modalAberto, setModalAberto] = useState(false);
   const [tarefaEmEdicao, setTarefaEmEdicao] = useState(null);
   const [statusInicialParaNova, setStatusInicialParaNova] = useState('pendente');
+
+  // 🍅 Controle do Timer Pomodoro Flutuante
+  const [tarefaPomodoroAtiva, setTarefaPomodoroAtiva] = useState(null);
+
+  // 📊 Controle do Modal de Estatísticas (Analytics)
+  const [modalEstatisticasAberto, setModalEstatisticasAberto] = useState(false);
+
+  // 🖱️ Controle de Drag & Drop no Quadro Kanban
+  const [tarefaArrastada, setTarefaArrastada] = useState(null);
+  const [colunaAlvoDrag, setColunaAlvoDrag] = useState(null);
+
+  // 🔔 Controle de Alertas e Notificações Nativas do Navegador
+  const [alertasAtivos, setAlertasAtivos] = useState(() => {
+    return localStorage.getItem('gerenciador_alertas_ativos') === 'true';
+  });
+  const tarefasNotificadasRef = useRef(new Set());
+
+  const alternarAlertasNativos = async () => {
+    if (!alertasAtivos) {
+      if ('Notification' in window) {
+        const perm = await Notification.requestPermission();
+        if (perm === 'granted') {
+          setAlertasAtivos(true);
+          localStorage.setItem('gerenciador_alertas_ativos', 'true');
+          tocarSomAlerta('notificacao');
+          try {
+            new Notification('🔔 Alertas de Horário Ativados!', {
+              body: 'Você será avisado quando uma tarefa agendada (@HH:mm) estiver próxima do horário.',
+            });
+          } catch {
+            // Ignora
+          }
+        } else {
+          alert('Permissão de notificação negada no navegador. Habilite nas configurações do site para receber alertas.');
+        }
+      } else {
+        setAlertasAtivos(true);
+        localStorage.setItem('gerenciador_alertas_ativos', 'true');
+        tocarSomAlerta('notificacao');
+      }
+    } else {
+      setAlertasAtivos(false);
+      localStorage.setItem('gerenciador_alertas_ativos', 'false');
+    }
+  };
+
+  // Monitora a cada 30 segundos tarefas agendadas para hoje com @HH:mm (avisa faltando <= 5 min)
+  useEffect(() => {
+    if (!alertasAtivos || tarefas.length === 0) return;
+
+    const verificarHorariosTarefas = () => {
+      const agora = new Date();
+      const hojeIso = agora.toISOString().split('T')[0];
+      const minutosAgora = agora.getHours() * 60 + agora.getMinutes();
+
+      tarefas.forEach((t) => {
+        if (t.status === 'concluido') return;
+        const dataTermi = t.data_termi?.split('T')[0];
+        if (dataTermi !== hojeIso) return;
+
+        const { tituloLimpo, hora } = parseTarefaNome(t.nome);
+        if (!hora) return;
+
+        const [hh, mm] = hora.split(':').map(Number);
+        if (isNaN(hh) || isNaN(mm)) return;
+
+        const minutosTarefa = hh * 60 + mm;
+        const diff = minutosTarefa - minutosAgora;
+
+        // Dispara se faltar entre 0 e 5 minutos e ainda não tiver notificado nesta sessão
+        const chaveNotif = `${t.id}-${hojeIso}-${hora}`;
+        if (diff >= 0 && diff <= 5 && !tarefasNotificadasRef.current.has(chaveNotif)) {
+          tarefasNotificadasRef.current.add(chaveNotif);
+          tocarSomAlerta('notificacao');
+
+          if ('Notification' in window && Notification.permission === 'granted') {
+            try {
+              new Notification(`⏰ Prazo Próximo (${hora}): ${tituloLimpo}`, {
+                body: diff === 0
+                  ? `Sua tarefa "${tituloLimpo}" está agendada para agora (${hora})!`
+                  : `Faltam ${diff} min para o horário agendado (${hora}) da tarefa "${tituloLimpo}".`,
+              });
+            } catch {
+              // Ignora
+            }
+          }
+        }
+      });
+    };
+
+    verificarHorariosTarefas();
+    const timer = setInterval(verificarHorariosTarefas, 30000);
+    return () => clearInterval(timer);
+  }, [alertasAtivos, tarefas]);
 
   // Abre o modal para cadastro de nova tarefa
   const handleNovoCadastro = (statusPadrao = 'pendente') => {
@@ -169,6 +278,8 @@ export function ListaTarefas({ usuario, aoDeslogar, aoAbrirConta }) {
         if (modalAberto) {
           setModalAberto(false);
           setTarefaEmEdicao(null);
+        } else if (modalEstatisticasAberto) {
+          setModalEstatisticasAberto(false);
         } else if (termoBusca) {
           setTermoBusca('');
         }
@@ -189,7 +300,7 @@ export function ListaTarefas({ usuario, aoDeslogar, aoAbrirConta }) {
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [modalAberto, termoBusca]);
+  }, [modalAberto, modalEstatisticasAberto, termoBusca]);
 
   // Efeitos de Gamificação (Confetes)
   const dispararConfetes = () => {
@@ -236,7 +347,7 @@ export function ListaTarefas({ usuario, aoDeslogar, aoAbrirConta }) {
 
   // Trata recorrência ao concluir tarefa
   const processarRecorrenciaSeHouver = async (tarefa) => {
-    const { recorrencia, subtarefas, tituloLimpo, prioridade, hora, tags } = parseTarefaNome(tarefa.nome);
+    const { recorrencia, subtarefas, tituloLimpo, prioridade, hora, tags, notas } = parseTarefaNome(tarefa.nome);
     if (recorrencia && recorrencia !== 'never') {
       const proximaData = calcularProximaData(tarefa.data_termi, recorrencia);
       const subtarefasResetadas = subtarefas.map(s => ({ ...s, feito: false }));
@@ -246,7 +357,8 @@ export function ListaTarefas({ usuario, aoDeslogar, aoAbrirConta }) {
         hora,
         tags,
         recorrencia,
-        subtarefas: subtarefasResetadas
+        subtarefas: subtarefasResetadas,
+        notas
       });
 
       try {
@@ -342,6 +454,45 @@ export function ListaTarefas({ usuario, aoDeslogar, aoAbrirConta }) {
     }
   };
 
+  // 🖱️ Handlers de Drag & Drop para o Quadro Kanban
+  const handleDragStart = (e, tarefa) => {
+    setTarefaArrastada(tarefa);
+    e.dataTransfer.effectAllowed = 'move';
+    try {
+      e.dataTransfer.setData('text/plain', String(tarefa.id));
+    } catch {
+      // Ignora
+    }
+  };
+
+  const handleDragEnd = () => {
+    setTarefaArrastada(null);
+    setColunaAlvoDrag(null);
+  };
+
+  const handleDragOverColuna = (e, colunaId) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+    if (colunaAlvoDrag !== colunaId) {
+      setColunaAlvoDrag(colunaId);
+    }
+  };
+
+  const handleDragLeaveColuna = (e) => {
+    if (!e.currentTarget.contains(e.relatedTarget)) {
+      setColunaAlvoDrag(null);
+    }
+  };
+
+  const handleDropColuna = (e, colunaId) => {
+    e.preventDefault();
+    setColunaAlvoDrag(null);
+    if (tarefaArrastada && tarefaArrastada.status !== colunaId) {
+      moverStatus(tarefaArrastada, colunaId);
+    }
+    setTarefaArrastada(null);
+  };
+
   // Alterna o checklist de uma subtarefa diretamente na listagem
   const alternarSubtarefaDireta = async (tarefa, indexEtapa) => {
     const parsed = parseTarefaNome(tarefa.nome);
@@ -356,6 +507,7 @@ export function ListaTarefas({ usuario, aoDeslogar, aoAbrirConta }) {
       tags: parsed.tags,
       subtarefas: novasSubtarefas,
       recorrencia: parsed.recorrencia,
+      notas: parsed.notas,
     });
 
     setTarefas((atuais) =>
@@ -489,7 +641,7 @@ export function ListaTarefas({ usuario, aoDeslogar, aoAbrirConta }) {
       };
 
       const dadosPlanilha = listaParaExportar.map((t) => {
-        const { tituloLimpo, prioridade, hora, tags, recorrencia, subtarefas } = parseTarefaNome(t.nome);
+        const { tituloLimpo, prioridade, hora, tags, recorrencia, subtarefas, notas } = parseTarefaNome(t.nome);
         const prog = calcularProgressoSubtarefas(subtarefas);
         const etapasStr = subtarefas.length > 0 ? `${prog.feitas}/${prog.total} concluídas` : 'Nenhuma';
         const tagsStr = (tags && tags.length > 0) ? tags.map((tg) => `#${tg}`).join(' ') : '-';
@@ -505,6 +657,7 @@ export function ListaTarefas({ usuario, aoDeslogar, aoAbrirConta }) {
           'Tags': tagsStr,
           'Recorrência': recStr,
           'Etapas': etapasStr,
+          'Notas / Links': notas ? notas.replace(/\s+/g, ' ').trim() : '-',
         };
       });
 
@@ -684,13 +837,14 @@ export function ListaTarefas({ usuario, aoDeslogar, aoAbrirConta }) {
     filtrarPorAba(tarefas).filter(atendeTermoBusca)
   );
 
-  // Renderizador inteligente de Título + Prioridade + Tags + Recorrência + Subtarefas
+  // Renderizador inteligente de Título + Prioridade + Tags + Recorrência + Subtarefas + Notas/Links
   const renderIdentificacaoTarefa = (tarefa, concluida) => {
-    const { tituloLimpo, prioridade, tags, recorrencia, subtarefas } = parseTarefaNome(tarefa.nome);
+    const { tituloLimpo, prioridade, tags, recorrencia, subtarefas, notas } = parseTarefaNome(tarefa.nome);
     const prioConfig = PRIORIDADES[prioridade] || PRIORIDADES.p4;
     const progEtapas = calcularProgressoSubtarefas(subtarefas);
     const temEtapas = subtarefas.length > 0;
     const expandida = etapasExpandidas.has(tarefa.id);
+    const { links, textoLimpo: notasTexto } = extrairLinksDeTexto(notas);
 
     return (
       <div className="flex flex-col gap-1.5 min-w-0 w-full">
@@ -753,8 +907,8 @@ export function ListaTarefas({ usuario, aoDeslogar, aoAbrirConta }) {
           )}
         </div>
 
-        {/* Tags / Categorias */}
-        {tags.length > 0 && (
+        {/* Tags / Categorias + Pílulas de Links Rápidos */}
+        {(tags.length > 0 || links.length > 0) && (
           <div className="flex flex-wrap gap-1 items-center">
             {tags.map((tag) => (
               <button
@@ -770,7 +924,43 @@ export function ListaTarefas({ usuario, aoDeslogar, aoAbrirConta }) {
                 #{tag}
               </button>
             ))}
+
+            {links.map((url, idx) => {
+              let dominio = 'Abrir Link';
+              try {
+                dominio = new URL(url).hostname.replace('www.', '');
+              } catch {
+                // Fallback
+              }
+              return (
+                <a
+                  key={`link-${idx}`}
+                  href={url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  onClick={(e) => e.stopPropagation()}
+                  title={url}
+                  className={`inline-flex items-center gap-1 px-2 py-0.2 rounded-full text-[10px] font-bold border transition-all hover:scale-105 cursor-pointer ${
+                    ehDark
+                      ? 'bg-sky-500/20 text-sky-300 border-sky-500/40 hover:bg-sky-500/30'
+                      : 'bg-sky-100 text-sky-800 border-sky-300 hover:bg-sky-200'
+                  }`}
+                >
+                  <ExternalLink className="w-2.5 h-2.5" />
+                  <span className="truncate max-w-[130px]">{dominio}</span>
+                </a>
+              );
+            })}
           </div>
+        )}
+
+        {/* Notas / Observações Rápidas */}
+        {notasTexto && (
+          <p className={`text-[11px] leading-relaxed break-words line-clamp-2 ${
+            ehDark ? 'text-purple-200/65' : 'text-gray-500'
+          }`}>
+            📝 {notasTexto}
+          </p>
         )}
 
         {/* Lista Expandida de Subtarefas com Checkbox Direto */}
@@ -977,6 +1167,36 @@ export function ListaTarefas({ usuario, aoDeslogar, aoAbrirConta }) {
                 </div>
               )}
             </div>
+
+            {/* 📊 Botão Estatísticas (Dashboard Analytics) */}
+            <button
+              type="button"
+              onClick={() => setModalEstatisticasAberto(true)}
+              className="flex items-center gap-1.5 sm:gap-2 px-3.5 sm:px-5 py-2 sm:py-2.5 bg-indigo-500/40 hover:bg-indigo-500/60 border border-indigo-400/50 hover:border-indigo-300/70 backdrop-blur-md text-white font-bold rounded-full shadow-[0_4px_15px_rgba(99,102,241,0.25)] hover:shadow-[0_6px_20px_rgba(99,102,241,0.4)] transition-all duration-300 active:scale-95 cursor-pointer group text-xs sm:text-sm"
+              title="Abrir painel de estatísticas e gráficos"
+            >
+              <BarChart3 className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-indigo-200 group-hover:text-white transition-all duration-300" />
+              <span>Estatísticas</span>
+            </button>
+
+            {/* 🔔 Botão de Alertas Nativos do Navegador */}
+            <button
+              type="button"
+              onClick={alternarAlertasNativos}
+              className={`flex items-center gap-1.5 px-3.5 py-2 sm:py-2.5 border backdrop-blur-md font-bold rounded-full transition-all duration-300 active:scale-95 cursor-pointer text-xs sm:text-sm ${
+                alertasAtivos
+                  ? 'bg-amber-500/45 hover:bg-amber-500/60 border-amber-300/70 text-white shadow-[0_4px_15px_rgba(245,158,11,0.35)]'
+                  : 'bg-white/10 hover:bg-white/20 border-white/25 text-purple-100 hover:text-white'
+              }`}
+              title={alertasAtivos ? 'Alertas sonoros e notificações ativados (clique para desativar)' : 'Ativar alertas de horário (@HH:mm) no navegador'}
+            >
+              {alertasAtivos ? (
+                <BellRing className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-amber-200 animate-bounce" />
+              ) : (
+                <Bell className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-purple-200" />
+              )}
+              <span className="hidden sm:inline">{alertasAtivos ? 'Alertas ON' : 'Alertas'}</span>
+            </button>
           </div>
 
           <div className="flex items-center gap-2 sm:gap-3">
@@ -1289,7 +1509,7 @@ export function ListaTarefas({ usuario, aoDeslogar, aoAbrirConta }) {
                 </div>
               ) : modoVisualizacao === 'kanban' ? (
                 /* ========================================================================= */
-                /* 6. MODO QUADRO KANBAN (3 COLUNAS)                                         */
+                /* 6. MODO QUADRO KANBAN (3 COLUNAS COM DRAG & DROP)                         */
                 /* ========================================================================= */
                 <div className="w-full grid grid-cols-1 lg:grid-cols-3 gap-5 items-start animate-fade-in">
                   {colunasKanban.map((coluna) => {
@@ -1299,12 +1519,20 @@ export function ListaTarefas({ usuario, aoDeslogar, aoAbrirConta }) {
                         .filter(atendeTermoBusca)
                     );
                     const ColunaIcone = coluna.icone;
+                    const ehAlvoDrop = colunaAlvoDrag === coluna.id;
 
                     return (
                       <div
                         key={coluna.id}
+                        onDragOver={(e) => handleDragOverColuna(e, coluna.id)}
+                        onDragLeave={handleDragLeaveColuna}
+                        onDrop={(e) => handleDropColuna(e, coluna.id)}
                         className={`rounded-2xl border backdrop-blur-xl flex flex-col transition-all duration-300 overflow-hidden ${
-                          ehDark 
+                          ehAlvoDrop
+                            ? ehDark
+                              ? 'ring-2 ring-purple-400 border-purple-400/70 bg-purple-500/10 scale-[1.01]'
+                              : 'ring-2 ring-purple-500 border-purple-400 bg-purple-50/80 scale-[1.01]'
+                            : ehDark 
                             ? `${coluna.fundoColunaDark} ${coluna.bordaDark} shadow-[0_4px_25px_rgba(0,0,0,0.25)]` 
                             : `${coluna.fundoColunaClaro} ${coluna.bordaClaro} shadow-sm`
                         }`}
@@ -1340,14 +1568,18 @@ export function ListaTarefas({ usuario, aoDeslogar, aoAbrirConta }) {
                         </div>
 
                         {/* Corpo da Coluna */}
-                        <div className="p-3.5 space-y-3 min-h-[160px] max-h-[620px] overflow-y-auto scrollbar-thin">
+                        <div className="p-3.5 space-y-3 min-h-[180px] max-h-[620px] overflow-y-auto scrollbar-thin">
                           {tarefasDaColuna.length === 0 ? (
-                            <div className={`p-6 rounded-xl border border-dashed text-center flex flex-col items-center justify-center gap-2 ${
-                              ehDark 
+                            <div className={`p-6 rounded-xl border border-dashed text-center flex flex-col items-center justify-center gap-2 transition-all ${
+                              ehAlvoDrop
+                                ? ehDark ? 'border-purple-400 text-purple-200 bg-purple-500/15' : 'border-purple-400 text-purple-700 bg-purple-100/60'
+                                : ehDark 
                                 ? 'border-white/10 text-purple-300/40 bg-white/[0.01]' 
                                 : 'border-gray-200 text-gray-400 bg-gray-50/50'
                             }`}>
-                              <p className="text-xs font-medium">Nenhuma tarefa {coluna.titulo.toLowerCase()}</p>
+                              <p className="text-xs font-medium">
+                                {ehAlvoDrop ? `Solte aqui para mover para ${coluna.titulo}` : `Nenhuma tarefa ${coluna.titulo.toLowerCase()}`}
+                              </p>
                               <button
                                 type="button"
                                 onClick={() => handleNovoCadastro(coluna.id)}
@@ -1363,11 +1595,18 @@ export function ListaTarefas({ usuario, aoDeslogar, aoAbrirConta }) {
                               const { hora } = parseTarefaNome(tarefa.nome);
                               const alerta = verificarPrazoInteligente(tarefa.data_termi, tarefa.status, hora);
                               const concluida = tarefa.status === 'concluido';
+                              const sendoArrastada = tarefaArrastada?.id === tarefa.id;
 
                               return (
                                 <div
                                   key={`kanban-${tarefa.id}`}
-                                  className={`rounded-2xl p-4 transition-all text-left flex flex-col justify-between gap-3 border hover-lift shadow-sm animate-slide-up ${
+                                  draggable
+                                  onDragStart={(e) => handleDragStart(e, tarefa)}
+                                  onDragEnd={handleDragEnd}
+                                  title="Arraste para outra coluna para mudar o status"
+                                  className={`rounded-2xl p-4 transition-all text-left flex flex-col justify-between gap-3 border hover-lift shadow-sm animate-slide-up cursor-grab active:cursor-grabbing ${
+                                    sendoArrastada ? 'opacity-40 scale-95 ring-2 ring-purple-400' : ''
+                                  } ${
                                     ehDark
                                       ? 'bg-white/[0.05] hover:bg-white/[0.08] border-white/10 hover:border-purple-400/40 text-purple-100 shadow-[0_4px_20px_rgba(0,0,0,0.3)]'
                                       : 'bg-white hover:bg-purple-50/40 border-gray-200/80 hover:border-purple-300 text-gray-900 shadow-[0_2px_10px_rgba(0,0,0,0.04)]'
@@ -1375,8 +1614,9 @@ export function ListaTarefas({ usuario, aoDeslogar, aoAbrirConta }) {
                                   style={{ animationDelay: `${idx * 40}ms` }}
                                 >
                                   {/* Topo do Card */}
-                                  <div className="flex items-start justify-between gap-2.5">
-                                    <div className="flex items-start gap-2.5 flex-1 min-w-0">
+                                  <div className="flex items-start justify-between gap-2">
+                                    <div className="flex items-start gap-2 flex-1 min-w-0">
+                                      <GripVertical className={`w-4 h-4 mt-0.5 shrink-0 opacity-40 hover:opacity-90 ${ehDark ? 'text-purple-300' : 'text-gray-400'}`} />
                                       <button
                                         type="button"
                                         onClick={() => alternarConclusaoRapida(tarefa)}
@@ -1395,7 +1635,19 @@ export function ListaTarefas({ usuario, aoDeslogar, aoAbrirConta }) {
                                       {renderIdentificacaoTarefa(tarefa, concluida)}
                                     </div>
 
-                                    <div className="flex items-center gap-1 shrink-0">
+                                    <div className="flex items-center gap-0.5 shrink-0">
+                                      <button
+                                        type="button"
+                                        onClick={() => setTarefaPomodoroAtiva(tarefa)}
+                                        title="🍅 Iniciar Foco Pomodoro nesta tarefa"
+                                        className={`p-1 rounded-md transition-colors cursor-pointer ${
+                                          tarefaPomodoroAtiva?.id === tarefa.id
+                                            ? 'text-rose-400 bg-rose-500/20'
+                                            : ehDark ? 'text-amber-300/70 hover:text-rose-300 hover:bg-rose-500/15' : 'text-gray-400 hover:text-rose-600 hover:bg-rose-50'
+                                        }`}
+                                      >
+                                        <Flame className="w-4 h-4" />
+                                      </button>
                                       <button
                                         type="button"
                                         onClick={() => handleEditar(tarefa)}
@@ -1614,10 +1866,22 @@ export function ListaTarefas({ usuario, aoDeslogar, aoAbrirConta }) {
                             </div>
                           </div>
 
-                          {/* Ações (Editar e Excluir) */}
+                          {/* Ações (Focar Pomodoro, Editar e Excluir) */}
                           <div className={`flex items-center justify-end gap-2 pt-2 border-t ${
                             ehDark ? 'border-white/10' : 'border-purple-200/60'
                           }`}>
+                            <button
+                              type="button"
+                              onClick={() => setTarefaPomodoroAtiva(tarefa)}
+                              className={`flex items-center gap-1 text-xs px-3 py-1.5 rounded-lg transition-colors cursor-pointer ${
+                                ehDark 
+                                  ? 'bg-amber-900/30 hover:bg-amber-900/60 text-amber-200 border border-amber-500/30' 
+                                  : 'bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-200'
+                              }`}
+                            >
+                              <Flame className="w-3.5 h-3.5 text-rose-400" />
+                              Focar
+                            </button>
                             <button
                               type="button"
                               onClick={() => handleEditar(tarefa)}
@@ -1764,7 +2028,22 @@ export function ListaTarefas({ usuario, aoDeslogar, aoAbrirConta }) {
 
                               {/* Coluna: Ações */}
                               <td className="py-4 px-4 text-right pr-4 whitespace-nowrap">
-                                <div className="flex items-center justify-end gap-3">
+                                <div className="flex items-center justify-end gap-2">
+                                  <button
+                                    type="button"
+                                    onClick={() => setTarefaPomodoroAtiva(tarefa)}
+                                    title="🍅 Iniciar Foco Pomodoro nesta tarefa"
+                                    className={`p-1.5 rounded-lg transition-colors cursor-pointer ${
+                                      tarefaPomodoroAtiva?.id === tarefa.id
+                                        ? 'text-rose-400 bg-rose-500/20'
+                                        : ehDark
+                                        ? 'text-amber-300 hover:text-rose-300 hover:bg-rose-500/20'
+                                        : 'text-amber-600 hover:text-rose-600 hover:bg-rose-50'
+                                    }`}
+                                  >
+                                    <Flame className="w-5 h-5" />
+                                  </button>
+
                                   <button
                                     type="button"
                                     onClick={() => handleEditar(tarefa)}
@@ -1820,6 +2099,27 @@ export function ListaTarefas({ usuario, aoDeslogar, aoAbrirConta }) {
             setModalAberto(false);
             setTarefaEmEdicao(null);
             setStatusInicialParaNova('pendente');
+          }}
+        />
+      )}
+
+      {/* 📊 Modal de Estatísticas e Gráficos (Dashboard Analytics) */}
+      {modalEstatisticasAberto && (
+        <ModalEstatisticas
+          tarefas={tarefas}
+          aoFechar={() => setModalEstatisticasAberto(false)}
+        />
+      )}
+
+      {/* 🍅 Widget Flutuante do Timer Pomodoro Integrado */}
+      {tarefaPomodoroAtiva && (
+        <WidgetPomodoro
+          tarefaAtiva={tarefaPomodoroAtiva}
+          aoFechar={() => setTarefaPomodoroAtiva(null)}
+          aoConcluirTarefa={(t) => {
+            if (t.status !== 'concluido') {
+              alternarConclusaoRapida(t);
+            }
           }}
         />
       )}

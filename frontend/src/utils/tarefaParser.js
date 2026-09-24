@@ -72,6 +72,7 @@ export function parseTarefaNome(nomeCompleto = '') {
       tags: [],
       subtarefas: [],
       recorrencia: 'never',
+      notas: '',
     };
   }
 
@@ -80,6 +81,18 @@ export function parseTarefaNome(nomeCompleto = '') {
   let recorrencia = 'never';
   let prioridade = 'p4';
   let hora = '';
+  let notas = '';
+
+  // 0. Extrai Notas / Links embutidos: <<NOTA:encoded>>
+  const matchNota = texto.match(/<<NOTA:(.*?)>>/);
+  if (matchNota) {
+    try {
+      notas = decodeURIComponent(matchNota[1]);
+    } catch {
+      notas = matchNota[1];
+    }
+    texto = texto.replace(/<<NOTA:(.*?)>>/g, ' ').trim();
+  }
 
   // 1. Extrai subtarefas / checklist embutido: ||[{"t":"...","d":true}]
   const idxSub = texto.indexOf('||');
@@ -145,11 +158,12 @@ export function parseTarefaNome(nomeCompleto = '') {
     tags,
     subtarefas,
     recorrencia,
+    notas,
   };
 }
 
 /**
- * Monta o nome completo para salvar no banco agregando hora, tags, prioridade, recorrência e subtarefas.
+ * Monta o nome completo para salvar no banco agregando hora, tags, prioridade, recorrência, notas e subtarefas.
  */
 export function montarTarefaNome({
   titulo,
@@ -158,6 +172,7 @@ export function montarTarefaNome({
   tags = [],
   subtarefas = [],
   recorrencia = 'never',
+  notas = '',
 }) {
   let resultado = (titulo || '').trim();
 
@@ -181,6 +196,10 @@ export function montarTarefaNome({
     resultado += ` ~~${recorrencia}~~`;
   }
 
+  if (notas && notas.trim()) {
+    resultado += ` <<NOTA:${encodeURIComponent(notas.trim())}>>`;
+  }
+
   if (subtarefas && subtarefas.length > 0) {
     const compactas = subtarefas
       .filter((s) => s.texto && s.texto.trim())
@@ -191,6 +210,44 @@ export function montarTarefaNome({
   }
 
   return resultado.trim();
+}
+
+/**
+ * Extrai URLs clicáveis e texto limpo de um campo de notas.
+ */
+export function extrairLinksDeTexto(notas = '') {
+  if (!notas) return { links: [], textoObservacao: '' };
+  const urlRegex = /(https?:\/\/[^\s]+)/g;
+  const links = notas.match(urlRegex) || [];
+  const textoObservacao = notas.replace(urlRegex, '').replace(/\s+/g, ' ').trim();
+  return { links, textoObservacao };
+}
+
+/**
+ * Emite um aviso sonoro suave usando Web Audio API (sem necessidade de arquivos MP3 externos).
+ */
+export function tocarSomAlerta(tipo = 'notificacao') {
+  try {
+    const AudioCtx = window.AudioContext || window.webkitAudioContext;
+    if (!AudioCtx) return;
+    const ctx = new AudioCtx();
+    const notasSom = tipo === 'pomodoro' ? [523.25, 659.25, 783.99, 1046.5] : [587.33, 880];
+
+    notasSom.forEach((freq, idx) => {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(freq, ctx.currentTime + idx * 0.14);
+      gain.gain.setValueAtTime(0.15, ctx.currentTime + idx * 0.14);
+      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + idx * 0.14 + 0.35);
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.start(ctx.currentTime + idx * 0.14);
+      osc.stop(ctx.currentTime + idx * 0.14 + 0.35);
+    });
+  } catch {
+    // Ignora caso o navegador bloqueie áudio sem interação
+  }
 }
 
 /**

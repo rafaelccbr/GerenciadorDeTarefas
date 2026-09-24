@@ -1,8 +1,8 @@
 <div align="center">
 
-# 📋 Organizador de Tarefas
+# 📋 Organizador de Tarefas Pro
 
-### *Gerenciador pessoal de tarefas Full Stack com autenticação segura e estética Glassmorphism*
+### *Plataforma Full Stack de Produtividade, Gestão de Rotina, Kanban e Foco Pomodoro com estética Liquid Glass*
 
 [![React](https://img.shields.io/badge/React_19-20232A?style=for-the-badge&logo=react&logoColor=61DAFB)](https://react.dev/)
 [![Vite](https://img.shields.io/badge/Vite-646CFF?style=for-the-badge&logo=vite&logoColor=white)](https://vitejs.dev/)
@@ -24,47 +24,58 @@
 
 ## 📖 Sobre o Projeto
 
-O **Organizador de Tarefas** é uma aplicação web Full Stack desenvolvida para proporcionar um controle de rotina e produtividade prático, rápido e visualmente sofisticado.
+O **Organizador de Tarefas Pro** é uma aplicação web Full Stack inspirada em ferramentas modernas de alta produtividade (como **Todoist**, **TickTick** e **Notion**), desenvolvida para oferecer um controle completo de estudos, trabalho e rotina pessoal.
 
-A aplicação adota a estética visual **Glassmorphism / Liquid Glass**, combinando fundos translúcidos jateados, chanfros luminosos, efeitos de desfoque (*backdrop blur*) e anéis de foco neon violeta, garantindo uma experiência de usuário elegante e responsiva tanto em desktops quanto em dispositivos móveis.
-
----
-
-## ✨ Principais Funcionalidades
-
-- 🔐 **Autenticação Completa & Segura**:
-  - Cadastro com requisitos de senha forte (mínimo 8 caracteres, letra maiúscula, número e caractere especial).
-  - Checklist interativo em tempo real que surge dinamicamente ao focar no campo de senha.
-  - Login seguro com geração de tokens JWT.
-  - Recuperação de senha por e-mail integrada ao Supabase Auth.
-- 📋 **CRUD Completo de Tarefas**:
-  - Criação de tarefas com prazos (data de início e de término).
-  - Listagem ordenada e isolada por usuário autenticado.
-  - Edição completa e atualização dinâmica de informações.
-  - ⚡ **Atualização Otimista (Optimistic UI - 0ms)**: alternância instantânea de status e exclusão de tarefas sem delay perceptível.
-- 🏷️ **Controle de Status com Badges**:
-  - `Pendente` (Neutro / Aguardando início)
-  - `Em andamento` (Violeta / Em progresso)
-  - `Concluído` (Verde Esmeralda / Finalizada)
-- 📱 **Design Responsivo & Mobile-First**:
-  - **Exibição Híbrida Inteligente**: Tabela ampla de 5 colunas no Desktop/Tablet e **Cards de Tarefas Individuais** no celular, eliminando completamente a rolagem horizontal em telas pequenas.
-  - Modais com proteção de altura dinâmica (`max-h-[90dvh]`), garantindo acessibilidade mesmo quando o teclado virtual estiver aberto.
-- ⚙️ **Gerenciamento de Conta ("Minha Conta")**:
-  - Centralizado no badge do usuário com engrenagem animada.
-  - Atualização cadastral de **Nome** e **E-mail**.
-  - Redefinição de senha com validação completa dos 4 requisitos.
-  - Zona de perigo: exclusão definitiva de conta e tarefas associadas com confirmação textual (`EXCLUIR`).
-- 📜 **Termos de Uso e Privacidade**:
-  - Modal translúcido com scroll suave e aceite inteligente automatizado.
+A interface combina dois temas com estética **Glassmorphism / Liquid Glass** (**Tema Violeta** e **Tema Dark Midnight Amethyst**), unindo desempenho instantâneo (**Optimistic UI — 0ms**), atalhos globais de teclado, gamificação e ferramentas avançadas de foco.
 
 ---
 
-## 🎨 Design & Identidade Visual
+## ✨ Funcionalidades Principais
 
-A interface foi projetada sob o conceito de **Vidro Translúcido Líquido (Liquid Glass)**:
-* **Cards & Modais**: Gradientes profundos de violeta escuro (`#2f0440` a `#1c0228`) com `backdrop-blur-2xl` e chanfro reflexivo (`inset_0_1px_1px_rgba(255,255,255,0.3)`).
-* **Botões em Vidro com Brilho Funcional**: Ações de cadastro/salvamento em esmeralda translúcido nítido e ações de perigo/saída em rosé/ruby translúcido, com alto contraste e leitura em branco puro.
-* **Inputs de Alto Contraste**: Fundo claro com anel luminoso de foco neon violeta (`focus:ring-4 focus:ring-purple-400/50`).
+### ⚡ Produtividade & Gestão Inteligente (Estilo Todoist)
+- **⚡ Quick Add com Linguagem Natural (NLP)**:
+  - Crie tarefas completas em uma única linha digitando comandos inteligentes:
+  - Exemplo: `Estudar Cálculo amanhã @15:00 #Faculdade p1` → extrai automaticamente o título, define a data para amanhã, agenda o horário `15:00`, aplica a categoria `#Faculdade` e define a prioridade como **Urgente (P1)**.
+  - Reconhece palavras-chave como `hoje`, `amanhã`, `segunda`, `terça`, `quarta`, `quinta`, `sexta`, `sábado` e `domingo`.
+- **🚩 Sistema de Prioridades (`P1` a `P4`) & Categorias (`#Tags`)**:
+  - Bandeiras coloridas de prioridade (`P1 Urgente`, `P2 Alta`, `P3 Média`, `P4 Normal`).
+  - Pílulas de categorias (`#Faculdade`, `#Trabalho`, `#Pessoal`, `#Saúde`, `#Urgente` ou tags personalizadas) com filtro instantâneo ao clicar.
+- **☑️ Subtarefas (Checklist Interativo)**:
+  - Adicione etapas dentro de cada tarefa, marque-as diretamente na listagem ou no Kanban e acompanhe a barra de progresso percentual (`X de Y etapas concluídas`).
+- **🔁 Tarefas Recorrentes (Rotinas Automáticas)**:
+  - Configure repetições **Diárias**, **Semanais** ou **Mensais**. Ao concluir uma tarefa recorrente, o sistema agenda automaticamente a próxima ocorrência com o checklist reiniciado.
+- **📝 Notas de Apoio & Pílulas de Links Clicáveis**:
+  - Adicione observações ou cole URLs (`https://meet.google.com/...`, `https://github.com/...`). O sistema converte links automaticamente em botões clicáveis com o domínio formatado diretamente no card da tarefa.
+
+---
+
+### 🍅 Foco, Visualizações & Analytics Pro
+- **🍅 Timer Pomodoro Flutuante Integrado**:
+  - Inicie sessões de foco vinculadas a qualquer tarefa com os modos **Foco (25 min)**, **Pausa Curta (5 min)** e **Pausa Longa (15 min)**.
+  - Possui modo compacto (minimizado em pílula), contador de ciclos (`🍅`), botão `+5m`, alerta sonoro via Web Audio API e botão rápido para concluir a tarefa.
+- **🖱️ Quadro Kanban com Drag & Drop (Arrastar e Soltar)**:
+  - Alterne com 1 clique entre o **Modo Tabela/Lista** e o **Quadro Kanban** de 3 colunas (`Pendente`, `Em andamento`, `Concluído`).
+  - Arraste e solte cartões livremente entre as colunas com destaque visual em tempo real e atualização otimista.
+- **📊 Painel de Estatísticas e Gráficos (Dashboard Analytics)**:
+  - Modal analítico com KPIs gerais (*Total*, *Taxa de Conclusão*, *Foco de Hoje*, *Atrasadas*), barra segmentada de proporção por status, distribuição por nível de prioridade (`P1`–`P4`) e desempenho detalhado por categoria (`#Tag`).
+- **📄 Exportação Profissional para Excel (`.XLSX`) e PDF**:
+  - **Planilha Excel Nativa (`SheetJS / xlsx`)**: exporta todas as colunas (Título, Início, Término, Horário, Status, Prioridade, Tags, Recorrência, Etapas e Notas) com **largura de coluna calculada automaticamente** para evitar textos cortados ou `########`.
+  - **Relatório em PDF (`jsPDF` + `autoTable`)**: gera documento pronto para impressão com cabeçalho personalizado e resumo de produtividade.
+- **🔔 Notificações Nativas do Navegador & Alerta Sonoro**:
+  - Monitoramento inteligente que envia uma notificação na área de trabalho (`Notification API`) acompanhada de alerta sonoro suave (Web Audio API) quando uma tarefa agendada com horário (`@HH:mm`) está prestes a vencer.
+- **🎯 Gamificação & Atalhos de Teclado**:
+  - Explosão de confetes (`canvas-confetti`) ao concluir tarefas e celebração especial ao atingir **100% de produtividade**.
+  - Atalhos globais: pressione `N` para criar nova tarefa, `/` para focar na busca e `ESC` para fechar modais ou limpar filtros.
+
+---
+
+### 🔐 Segurança, Temas & Gerenciamento de Conta
+- **🌗 Seletor de Tema Dual (Violeta Claro & Midnight Amethyst Dark)**:
+  - Alternância instantânea com persistência no navegador (`localStorage`).
+- **🔐 Autenticação Completa & Segura**:
+  - Cadastro com validação de senha forte em tempo real, login JWT, recuperação de senha com código OTP de 6 dígitos (fluxo com privacidade de e-mail via API HTTPS Brevo/Nodemailer) e proteção Row Level Security (RLS) no Supabase.
+- **⚙️ Minha Conta**:
+  - Edição de nome e e-mail, redefinição de senha e exclusão de conta com confirmação de segurança (`EXCLUIR`).
 
 ---
 
@@ -74,13 +85,14 @@ A interface foi projetada sob o conceito de **Vidro Translúcido Líquido (Liqui
 flowchart TD
     subgraph Cliente ["🌐 Frontend (Vercel)"]
         UI["React 19 + Vite"]
-        TW["Tailwind CSS v4"]
-        Icons["Lucide Icons"]
+        TW["Tailwind CSS v4 (Dual Theme Glassmorphism)"]
+        Pro["Kanban Drag&Drop / Pomodoro / Analytics / XLSX & PDF"]
     end
 
     subgraph Servidor ["🚀 Backend (Render)"]
         API["Fastify Server"]
         AuthMid["Middleware JWT & Auth"]
+        Mailer["Serviço de E-mail OTP (Brevo / Nodemailer)"]
         Routes["Rotas (/auth, /tarefas)"]
     end
 
@@ -90,8 +102,10 @@ flowchart TD
     end
 
     UI -->|Requisições HTTP / Bearer Token| API
+    UI --> Pro
     API --> AuthMid
     AuthMid --> Routes
+    Routes --> Mailer
     Routes -->|Supabase SDK| SupaAuth
     Routes -->|Queries Parametrizadas| Postgres
 ```

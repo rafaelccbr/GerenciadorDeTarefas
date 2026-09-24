@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Flag, Tag, Plus, X, Clock, Repeat, ListChecks, CheckSquare, Square, Trash2 } from 'lucide-react';
+import { Flag, Tag, Plus, X, Clock, Repeat, ListChecks, CheckSquare, Square, Trash2, FileText, Link2 } from 'lucide-react';
 import { useTheme } from '../context/ThemeContext.jsx';
 import { 
   parseTarefaNome, 
@@ -21,13 +21,14 @@ import {
  * - Horário de conclusão com alerta preciso de minutos
  * - ☑️ Etapas / Subtarefas (Mini-Checklist dinâmico com progresso)
  * - 🔁 Recorrência (Diária, Semanal, Mensal)
+ * - 📝 Notas e Links Rápidos clicáveis
  */
 export function ModalTarefa({ tarefaParaEditar, statusInicial, aoSalvar, aoFechar }) {
   const { tema } = useTheme();
   const ehDark = tema === 'dark';
   const hoje = new Date().toISOString().split('T')[0];
 
-  // Extrai título limpo, prioridade, horário, tags, subtarefas e recorrência se for edição
+  // Extrai título limpo, prioridade, horário, tags, subtarefas, recorrência e notas se for edição
   const parsed = parseTarefaNome(tarefaParaEditar?.nome || '');
   const [nome, setNome] = useState(parsed.tituloLimpo);
   const [prioridade, setPrioridade] = useState(parsed.prioridade || 'p4');
@@ -39,8 +40,9 @@ export function ModalTarefa({ tarefaParaEditar, statusInicial, aoSalvar, aoFecha
   const [subtarefas, setSubtarefas] = useState(parsed.subtarefas || []);
   const [novaEtapaTexto, setNovaEtapaTexto] = useState('');
 
-  // Recorrência
+  // Recorrência e Notas
   const [recorrencia, setRecorrencia] = useState(parsed.recorrencia || 'never');
+  const [notas, setNotas] = useState(parsed.notas || '');
 
   const [status, setStatus] = useState(tarefaParaEditar?.status || statusInicial || 'pendente');
   const [dataCome, setDataCome] = useState(tarefaParaEditar?.data_come || hoje);
@@ -113,7 +115,7 @@ export function ModalTarefa({ tarefaParaEditar, statusInicial, aoSalvar, aoFecha
       return;
     }
 
-    // Monta o nome composto com horário, tags, prioridade, recorrência e subtarefas
+    // Monta o nome composto com horário, tags, prioridade, recorrência, notas e subtarefas
     const nomeComposto = montarTarefaNome({
       titulo: nome,
       prioridade,
@@ -121,6 +123,7 @@ export function ModalTarefa({ tarefaParaEditar, statusInicial, aoSalvar, aoFecha
       tags,
       subtarefas,
       recorrencia,
+      notas,
     });
 
     try {
@@ -430,6 +433,32 @@ export function ModalTarefa({ tarefaParaEditar, statusInicial, aoSalvar, aoFecha
                 <span>Etapa</span>
               </button>
             </div>
+          </div>
+
+          {/* NOVA SEÇÃO: Notas / Descrição & Links Rápidos */}
+          <div>
+            <label className={`flex items-center justify-between text-xs sm:text-sm font-bold mb-1.5 ${
+              ehDark ? 'text-purple-200' : 'text-gray-900'
+            }`}>
+              <span className="flex items-center gap-1.5">
+                <FileText className="w-3.5 h-3.5 text-purple-400" />
+                Notas ou Links de Apoio
+              </span>
+              <span className={`text-[10px] font-normal flex items-center gap-1 ${ehDark ? 'text-purple-300/60' : 'text-gray-400'}`}>
+                <Link2 className="w-3 h-3" /> Links viram botões clicáveis
+              </span>
+            </label>
+            <textarea
+              rows={2}
+              value={notas}
+              onChange={(e) => setNotas(e.target.value)}
+              placeholder="Ex: Link do Google Docs https://docs.google.com/... ou anotações importantes sobre a tarefa"
+              className={`w-full px-3.5 py-2 rounded-2xl focus:outline-none focus:ring-4 transition-all text-xs sm:text-sm shadow-sm resize-none ${
+                ehDark
+                  ? 'bg-white/10 hover:bg-white/[0.14] focus:bg-white/[0.16] border border-white/20 text-white placeholder-purple-200/40 focus:ring-purple-400/40 focus:border-purple-400'
+                  : 'bg-white border border-purple-300/60 text-gray-800 placeholder-gray-400 focus:ring-purple-400/40 focus:border-purple-500'
+              }`}
+            />
           </div>
 
           {/* Linha com Status, Início, Término, Horário e Recorrência */}
