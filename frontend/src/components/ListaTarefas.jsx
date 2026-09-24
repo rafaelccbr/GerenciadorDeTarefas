@@ -474,73 +474,105 @@ export function ListaTarefas({ usuario, aoDeslogar, aoAbrirConta }) {
   // Exportar CSV
   const exportarCsv = (listaParaExportar) => {
     setMenuExportarAberto(false);
-    const cabecalho = ['Título', 'Início', 'Término', 'Horário', 'Status', 'Prioridade', 'Tags', 'Recorrência', 'Etapas'];
-    const linhas = listaParaExportar.map((t) => {
-      const { tituloLimpo, prioridade, hora, tags, recorrencia, subtarefas } = parseTarefaNome(t.nome);
-      const prog = calcularProgressoSubtarefas(subtarefas);
-      const etapasStr = subtarefas.length > 0 ? `${prog.feitas}/${prog.total}` : 'Nenhuma';
-      return [
-        `"${tituloLimpo.replace(/"/g, '""')}"`,
-        formatarData(t.data_come),
-        formatarData(t.data_termi),
-        hora || '-',
-        rotuloStatus[t.status] || t.status,
-        prioridade.toUpperCase(),
-        `"${tags.join(', ')}"`,
-        recorrencia !== 'never' ? recorrencia : 'Não',
-        `"${etapasStr}"`,
-      ].join(',');
-    });
+    if (!listaParaExportar || listaParaExportar.length === 0) {
+      alert('Não há tarefas para exportar com os filtros atuais.');
+      return;
+    }
 
-    const conteudoCsv = '\uFEFF' + [cabecalho.join(','), ...linhas].join('\n');
-    const blob = new Blob([conteudoCsv], { type: 'text/csv;charset=utf-8;' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = `tarefas_${new Date().toISOString().split('T')[0]}.csv`;
-    link.click();
-    URL.revokeObjectURL(url);
+    try {
+      const cabecalho = ['Título', 'Início', 'Término', 'Horário', 'Status', 'Prioridade', 'Tags', 'Recorrência', 'Etapas'];
+      const linhas = listaParaExportar.map((t) => {
+        const { tituloLimpo, prioridade, hora, tags, recorrencia, subtarefas } = parseTarefaNome(t.nome);
+        const prog = calcularProgressoSubtarefas(subtarefas);
+        const etapasStr = subtarefas.length > 0 ? `${prog.feitas}/${prog.total}` : 'Nenhuma';
+        return [
+          `"${(tituloLimpo || '').replace(/"/g, '""')}"`,
+          formatarData(t.data_come),
+          formatarData(t.data_termi),
+          hora || '-',
+          rotuloStatus[t.status] || t.status,
+          (prioridade || 'p4').toUpperCase(),
+          `"${(tags || []).join(', ')}"`,
+          recorrencia && recorrencia !== 'never' ? recorrencia : 'Não',
+          `"${etapasStr}"`,
+        ].join(',');
+      });
+
+      const conteudoCsv = '\uFEFF' + [cabecalho.join(','), ...linhas].join('\n');
+      const blob = new Blob([conteudoCsv], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.setAttribute('download', `tarefas_${new Date().toISOString().split('T')[0]}.csv`);
+      document.body.appendChild(link);
+      link.click();
+      setTimeout(() => {
+        if (link.parentNode) {
+          link.parentNode.removeChild(link);
+        }
+        URL.revokeObjectURL(url);
+      }, 300);
+    } catch (e) {
+      console.error('Erro ao exportar CSV:', e);
+      alert(`Falha ao exportar CSV: ${e.message}`);
+    }
   };
 
   // Exportar PDF
   const exportarPdf = (listaParaExportar) => {
     setMenuExportarAberto(false);
+    if (!listaParaExportar || listaParaExportar.length === 0) {
+      alert('Não há tarefas para exportar com os filtros atuais.');
+      return;
+    }
+
     try {
       const doc = new jsPDF();
       doc.setFontSize(18);
       doc.setTextColor(88, 28, 135);
-      doc.text('Relatório de Produtividade', 14, 20);
+      doc.text('Relatório de Tarefas', 14, 20);
 
       doc.setFontSize(10);
       doc.setTextColor(100);
       const dataHoje = new Date().toLocaleDateString('pt-BR');
       doc.text(`Usuário: ${usuario?.nome || 'Usuário'} | Gerado em: ${dataHoje}`, 14, 28);
-      doc.text(`Total de Tarefas no Relatório: ${listaParaExportar.length}`, 14, 34);
+      doc.text(`Total de tarefas: ${listaParaExportar.length} | Produtividade: ${porcentagem}%`, 14, 34);
 
       const head = [['Título', 'Início', 'Término', 'Status', 'Prioridade', 'Tags']];
       const body = listaParaExportar.map((t) => {
         const { tituloLimpo, prioridade, hora, tags } = parseTarefaNome(t.nome);
         return [
-          tituloLimpo,
+          tituloLimpo || 'Sem título',
           formatarData(t.data_come),
           formatarData(t.data_termi) + (hora ? ` às ${hora}` : ''),
           rotuloStatus[t.status] || t.status,
-          prioridade.toUpperCase(),
-          tags.map((tg) => `#${tg}`).join(' '),
+          (prioridade || 'P4').toUpperCase(),
+          (tags || []).map((tg) => `#${tg}`).join(' '),
         ];
       });
 
-      autoTable(doc, {
-        startY: 40,
-        head,
-        body,
-        headStyles: { fillColor: [126, 34, 206] },
-        theme: 'striped',
-        styles: { fontSize: 8 },
-      });
+      const autoTableFunc = typeof autoTable === 'function' ? autoTable : (autoTable?.default || doc.autoTable);
+      if (typeof autoTableFunc === 'function') {
+        autoTableFunc(doc, {
+          startY: 40,
+          head,
+          body,
+          headStyles: { 
+            fillColor: [126, 34, 206],
+            textColor: [255, 255, 255],
+            fontStyle: 'bold'
+          },
+          alternateRowStyles: {
+            fillColor: [248, 245, 255]
+          },
+          theme: 'striped',
+          styles: { fontSize: 8, cellPadding: 2.5 },
+        });
+      }
 
       doc.save(`relatorio_tarefas_${new Date().toISOString().split('T')[0]}.pdf`);
     } catch (e) {
+      console.error('Erro ao gerar PDF:', e);
       alert(`Falha ao gerar PDF: ${e.message}`);
     }
   };
@@ -837,7 +869,7 @@ export function ListaTarefas({ usuario, aoDeslogar, aoAbrirConta }) {
       <div className="w-full max-w-6xl flex flex-col space-y-4">
         
         {/* Barra Superior de Ações com Auto-Encaixe Responsivo */}
-        <div className="flex items-center justify-between gap-2.5 sm:gap-3 w-full flex-wrap animate-slide-up">
+        <div className="relative z-50 flex items-center justify-between gap-2.5 sm:gap-3 w-full flex-wrap animate-slide-up">
           
           <div className="flex items-center gap-2 sm:gap-3 flex-wrap">
             {/* Botão Sair */}
@@ -865,44 +897,69 @@ export function ListaTarefas({ usuario, aoDeslogar, aoAbrirConta }) {
               <button
                 type="button"
                 onClick={() => setMenuExportarAberto(!menuExportarAberto)}
-                className={`flex items-center gap-1.5 px-3.5 sm:px-4 py-2 sm:py-2.5 rounded-full border text-xs sm:text-sm font-semibold transition-all active:scale-95 cursor-pointer shadow-sm ${
-                  ehDark
-                    ? 'bg-white/10 hover:bg-white/15 text-purple-200 border-white/20'
-                    : 'bg-white hover:bg-gray-50 text-gray-700 border-gray-200 shadow-sm'
+                className={`flex items-center gap-1.5 sm:gap-2 px-3.5 sm:px-5 py-2 sm:py-2.5 border backdrop-blur-md text-white font-bold rounded-full transition-all duration-300 active:scale-95 cursor-pointer group text-xs sm:text-sm ${
+                  menuExportarAberto
+                    ? 'bg-purple-600/70 border-purple-300 shadow-[0_0_20px_rgba(168,85,247,0.5)]'
+                    : 'bg-purple-500/40 hover:bg-purple-500/60 border border-purple-400/50 hover:border-purple-300/70 shadow-[0_4px_15px_rgba(168,85,247,0.25)] hover:shadow-[0_6px_20px_rgba(168,85,247,0.4)]'
                 }`}
-                title="Exportar relatório de tarefas"
+                title="Exportar tarefas para Excel ou PDF"
               >
-                <Download className="w-3.5 h-3.5" />
+                <Download className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-purple-200 group-hover:text-white group-hover:-translate-y-0.5 transition-all duration-300" />
                 <span>Exportar</span>
-                <ChevronDown className="w-3 h-3 opacity-70" />
+                <ChevronDown className={`w-3.5 h-3.5 text-purple-200 transition-transform duration-300 ${menuExportarAberto ? 'rotate-180 text-white' : ''}`} />
               </button>
 
               {menuExportarAberto && (
-                <div className={`absolute left-0 mt-2 w-48 rounded-2xl p-1.5 shadow-xl border backdrop-blur-xl z-30 animate-fade-in ${
+                <div className={`absolute left-0 top-full mt-2.5 w-60 rounded-2xl p-2 shadow-2xl border backdrop-blur-2xl z-50 animate-fade-in ${
                   ehDark
-                    ? 'bg-[#180e25]/95 border-purple-500/30 text-purple-200 shadow-[0_10px_30px_rgba(0,0,0,0.8)]'
-                    : 'bg-white border-gray-200 text-gray-800 shadow-lg'
+                    ? 'bg-[#150a24]/98 border-purple-500/40 text-purple-100 shadow-[0_20px_50px_rgba(0,0,0,0.9),0_0_30px_rgba(168,85,247,0.25)] ring-1 ring-white/10'
+                    : 'bg-white/98 border-purple-200 text-gray-800 shadow-[0_20px_50px_rgba(0,0,0,0.3),0_0_20px_rgba(147,51,234,0.15)] ring-1 ring-black/5'
                 }`}>
+                  <div className={`px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider border-b mb-1.5 flex items-center justify-between ${
+                    ehDark ? 'text-purple-300/70 border-white/10' : 'text-purple-700/80 border-purple-100'
+                  }`}>
+                    <span>Exportar Relatório</span>
+                    <span className={`text-[10px] font-semibold px-1.5 py-0.2 rounded-full ${
+                      ehDark ? 'bg-white/10 text-purple-200' : 'bg-purple-100 text-purple-800'
+                    }`}>
+                      {tarefasFiltradasTabela.length} {tarefasFiltradasTabela.length === 1 ? 'item' : 'itens'}
+                    </span>
+                  </div>
+
                   <button
                     type="button"
                     onClick={() => exportarCsv(tarefasFiltradasTabela)}
-                    className={`w-full flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-semibold transition-all text-left cursor-pointer ${
-                      ehDark ? 'hover:bg-white/10 text-white' : 'hover:bg-purple-50 text-purple-900'
+                    className={`w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-xs font-semibold transition-all text-left cursor-pointer active:scale-95 ${
+                      ehDark 
+                        ? 'hover:bg-purple-500/20 text-purple-100 hover:text-white' 
+                        : 'hover:bg-purple-50 text-gray-700 hover:text-purple-900'
                     }`}
                   >
-                    <FileSpreadsheet className="w-4 h-4 text-emerald-400" />
-                    <span>Baixar CSV (Excel)</span>
+                    <div className={`p-2 rounded-xl shrink-0 ${ehDark ? 'bg-emerald-500/20 text-emerald-400' : 'bg-emerald-100 text-emerald-700'}`}>
+                      <FileSpreadsheet className="w-4 h-4" />
+                    </div>
+                    <div>
+                      <div className="font-bold">Planilha Excel (CSV)</div>
+                      <div className={`text-[10px] ${ehDark ? 'text-purple-300/50' : 'text-gray-400'}`}>Arquivo formatado para Excel</div>
+                    </div>
                   </button>
 
                   <button
                     type="button"
                     onClick={() => exportarPdf(tarefasFiltradasTabela)}
-                    className={`w-full flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-semibold transition-all text-left cursor-pointer ${
-                      ehDark ? 'hover:bg-white/10 text-white' : 'hover:bg-purple-50 text-purple-900'
+                    className={`w-full flex items-center gap-2.5 px-3 py-2.5 rounded-xl text-xs font-semibold transition-all text-left cursor-pointer active:scale-95 ${
+                      ehDark 
+                        ? 'hover:bg-purple-500/20 text-purple-100 hover:text-white' 
+                        : 'hover:bg-purple-50 text-gray-700 hover:text-purple-900'
                     }`}
                   >
-                    <FileText className="w-4 h-4 text-purple-400" />
-                    <span>Baixar Relatório PDF</span>
+                    <div className={`p-2 rounded-xl shrink-0 ${ehDark ? 'bg-purple-500/20 text-purple-300' : 'bg-purple-100 text-purple-700'}`}>
+                      <FileText className="w-4 h-4" />
+                    </div>
+                    <div>
+                      <div className="font-bold">Relatório em PDF</div>
+                      <div className={`text-[10px] ${ehDark ? 'text-purple-300/50' : 'text-gray-400'}`}>Documento para impressão</div>
+                    </div>
                   </button>
                 </div>
               )}
