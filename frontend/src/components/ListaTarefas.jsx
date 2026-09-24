@@ -41,7 +41,7 @@ import {
 import confetti from 'canvas-confetti';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
-import * as XLSX from 'xlsx';
+import XLSX from 'xlsx-js-style';
 import { useTheme } from '../context/ThemeContext.jsx';
 import { SeletorTema } from './SeletorTema.jsx';
 import { 
@@ -624,7 +624,7 @@ export function ListaTarefas({ usuario, aoDeslogar, aoAbrirConta }) {
     setTarefaEmEdicao(null);
   };
 
-  // Exportar Planilha Excel nativa (.xlsx) com colunas auto-ajustadas
+  // Exportar Planilha Excel nativa (.xlsx) com estilização executiva (cores, cabeçalho, bordas e badges)
   const exportarCsv = (listaParaExportar) => {
     setMenuExportarAberto(false);
     if (!listaParaExportar || listaParaExportar.length === 0) {
@@ -640,44 +640,207 @@ export function ListaTarefas({ usuario, aoDeslogar, aoAbrirConta }) {
         never: 'Não',
       };
 
-      const dadosPlanilha = listaParaExportar.map((t) => {
+      const rotuloPrio = {
+        p1: 'P1 — Urgente',
+        p2: 'P2 — Alta',
+        p3: 'P3 — Média',
+        p4: 'P4 — Normal',
+      };
+
+      const cabecalhos = [
+        'Título da Tarefa',
+        'Início',
+        'Término',
+        'Horário',
+        'Status',
+        'Prioridade',
+        'Tags / Categorias',
+        'Recorrência',
+        'Progresso Etapas',
+        'Notas / Links',
+      ];
+
+      const linhasDados = listaParaExportar.map((t) => {
         const { tituloLimpo, prioridade, hora, tags, recorrencia, subtarefas, notas } = parseTarefaNome(t.nome);
         const prog = calcularProgressoSubtarefas(subtarefas);
-        const etapasStr = subtarefas.length > 0 ? `${prog.feitas}/${prog.total} concluídas` : 'Nenhuma';
+        const etapasStr = subtarefas.length > 0 ? `${prog.feitas}/${prog.total} (${prog.porcentagem}%)` : 'Sem etapas';
         const tagsStr = (tags && tags.length > 0) ? tags.map((tg) => `#${tg}`).join(' ') : '-';
         const recStr = rotuloRecorrencia[recorrencia] || 'Não';
+        const prioKey = (prioridade || 'p4').toLowerCase();
 
-        return {
-          'Título da Tarefa': tituloLimpo || 'Sem título',
-          'Início': formatarData(t.data_come),
-          'Término': formatarData(t.data_termi),
-          'Horário': hora || '-',
-          'Status': rotuloStatus[t.status] || t.status,
-          'Prioridade': (prioridade || 'p4').toUpperCase(),
-          'Tags': tagsStr,
-          'Recorrência': recStr,
-          'Etapas': etapasStr,
-          'Notas / Links': notas ? notas.replace(/\s+/g, ' ').trim() : '-',
-        };
+        return [
+          tituloLimpo || 'Sem título',
+          formatarData(t.data_come),
+          formatarData(t.data_termi),
+          hora || '-',
+          rotuloStatus[t.status] || t.status,
+          rotuloPrio[prioKey] || prioKey.toUpperCase(),
+          tagsStr,
+          recStr,
+          etapasStr,
+          notas ? notas.replace(/\s+/g, ' ').trim() : '-',
+        ];
       });
 
-      // Cria a aba da planilha a partir dos objetos JSON
-      const ws = XLSX.utils.json_to_sheet(dadosPlanilha);
+      const dataHoje = new Date().toLocaleDateString('pt-BR');
+      const linhaTitulo = ['RELATÓRIO EXECUTIVO DE TAREFAS — ORGANIZADOR DE TAREFAS PRO'];
+      const linhaSubtitulo = [
+        `Usuário: ${usuario?.nome || 'Usuário'}   |   Gerado em: ${dataHoje}   |   Tarefas Exportadas: ${listaParaExportar.length}   |   Produtividade Geral: ${porcentagem}%`,
+      ];
+      const linhaVazia = [''];
 
-      // Calcula automaticamente a largura ideal de cada coluna (em caracteres + margem de segurança)
-      // Isso impede 100% que datas virem "########" ou que títulos fiquem cortados no Excel
-      const chaves = Object.keys(dadosPlanilha[0] || {});
-      ws['!cols'] = chaves.map((chave) => {
-        const maiorTexto = dadosPlanilha.reduce((max, linha) => {
-          const valorStr = String(linha[chave] || '');
+      // Monta matriz completa (AOA)
+      const matrizPlanilha = [
+        linhaTitulo,
+        linhaSubtitulo,
+        linhaVazia,
+        cabecalhos,
+        ...linhasDados,
+      ];
+
+      const ws = XLSX.utils.aoa_to_sheet(matrizPlanilha);
+
+      // Mescla o Banner de Título (A1:J1) e Subtítulo (A2:J2)
+      ws['!merges'] = [
+        { s: { r: 0, c: 0 }, e: { r: 0, c: cabecalhos.length - 1 } },
+        { s: { r: 1, c: 0 }, e: { r: 1, c: cabecalhos.length - 1 } },
+      ];
+
+      // Bordas padrão suaves para células
+      const bordaSuave = {
+        top: { style: 'thin', color: { rgb: 'E5E7EB' } },
+        bottom: { style: 'thin', color: { rgb: 'E5E7EB' } },
+        left: { style: 'thin', color: { rgb: 'E5E7EB' } },
+        right: { style: 'thin', color: { rgb: 'E5E7EB' } },
+      };
+
+      // 1. Estilo do Banner Principal (Linha 1 -> r=0)
+      for (let c = 0; c < cabecalhos.length; c++) {
+        const ref = XLSX.utils.encode_cell({ r: 0, c });
+        if (!ws[ref]) ws[ref] = { t: 's', v: '' };
+        ws[ref].s = {
+          fill: { fgColor: { rgb: '4C1D95' } },
+          font: { name: 'Calibri', sz: 14, bold: true, color: { rgb: 'FFFFFF' } },
+          alignment: { horizontal: 'center', vertical: 'center' },
+        };
+      }
+
+      // 2. Estilo do Subtítulo de Métricas (Linha 2 -> r=1)
+      for (let c = 0; c < cabecalhos.length; c++) {
+        const ref = XLSX.utils.encode_cell({ r: 1, c });
+        if (!ws[ref]) ws[ref] = { t: 's', v: '' };
+        ws[ref].s = {
+          fill: { fgColor: { rgb: 'EDE9FE' } },
+          font: { name: 'Calibri', sz: 10, bold: true, color: { rgb: '5B21B6' } },
+          alignment: { horizontal: 'center', vertical: 'center' },
+          border: bordaSuave,
+        };
+      }
+
+      // 3. Estilo dos Cabeçalhos da Tabela (Linha 4 -> r=3)
+      for (let c = 0; c < cabecalhos.length; c++) {
+        const ref = XLSX.utils.encode_cell({ r: 3, c });
+        if (ws[ref]) {
+          ws[ref].s = {
+            fill: { fgColor: { rgb: '6D28D9' } },
+            font: { name: 'Calibri', sz: 11, bold: true, color: { rgb: 'FFFFFF' } },
+            alignment: { horizontal: c === 0 || c === 9 ? 'left' : 'center', vertical: 'center' },
+            border: {
+              top: { style: 'medium', color: { rgb: '4C1D95' } },
+              bottom: { style: 'medium', color: { rgb: '4C1D95' } },
+              left: { style: 'thin', color: { rgb: '7C3AED' } },
+              right: { style: 'thin', color: { rgb: '7C3AED' } },
+            },
+          };
+        }
+      }
+
+      // 4. Estilo das Linhas de Dados (r >= 4) com efeito Zebrado e Cores Semânticas
+      linhasDados.forEach((linha, idxLinha) => {
+        const r = idxLinha + 4;
+        const ehPar = idxLinha % 2 === 0;
+        const corFundoZebra = ehPar ? 'FFFFFF' : 'F8F5FF';
+        const statusValor = linha[4];
+        const prioValor = linha[5];
+
+        for (let c = 0; c < cabecalhos.length; c++) {
+          const ref = XLSX.utils.encode_cell({ r, c });
+          if (!ws[ref]) continue;
+
+          let fillRgb = corFundoZebra;
+          let fontRgb = '1F2937';
+          let isBold = c === 0;
+          let alignH = c === 0 || c === 6 || c === 9 ? 'left' : 'center';
+
+          // Coluna Status (c === 4): Verde para Concluído, Roxo para Em andamento, Âmbar para Pendente
+          if (c === 4) {
+            isBold = true;
+            if (statusValor === 'Concluído') {
+              fillRgb = 'D1FAE5';
+              fontRgb = '065F46';
+            } else if (statusValor === 'Em andamento') {
+              fillRgb = 'EDE9FE';
+              fontRgb = '5B21B6';
+            } else {
+              fillRgb = 'FEF3C7';
+              fontRgb = '92400E';
+            }
+          }
+
+          // Coluna Prioridade (c === 5): Vermelho P1, Laranja P2, Azul P3, Cinza P4
+          if (c === 5) {
+            isBold = true;
+            if (prioValor.startsWith('P1')) {
+              fillRgb = 'FEE2E2';
+              fontRgb = '991B1B';
+            } else if (prioValor.startsWith('P2')) {
+              fillRgb = 'FFEDD5';
+              fontRgb = '9A3412';
+            } else if (prioValor.startsWith('P3')) {
+              fillRgb = 'DBEAFE';
+              fontRgb = '1E40AF';
+            } else {
+              fontRgb = '6B7280';
+              isBold = false;
+            }
+          }
+
+          // Coluna Tags (c === 6): Destaque Roxo quando tem tag
+          if (c === 6 && linha[6] !== '-') {
+            fontRgb = '6D28D9';
+            isBold = true;
+          }
+
+          ws[ref].s = {
+            fill: { fgColor: { rgb: fillRgb } },
+            font: { name: 'Calibri', sz: 10, bold: isBold, color: { rgb: fontRgb } },
+            alignment: { horizontal: alignH, vertical: 'center' },
+            border: bordaSuave,
+          };
+        }
+      });
+
+      // 5. Altura das linhas (!rows) para visual espaçoso e executivo
+      ws['!rows'] = [
+        { hpt: 32 }, // Linha 1: Banner Principal
+        { hpt: 22 }, // Linha 2: Subtítulo de resumo
+        { hpt: 10 }, // Linha 3: Espaço
+        { hpt: 26 }, // Linha 4: Cabeçalhos da Tabela
+        ...linhasDados.map(() => ({ hpt: 22 })),
+      ];
+
+      // 6. Largura automática de cada coluna (!cols) com margem de segurança
+      ws['!cols'] = cabecalhos.map((cab, colIdx) => {
+        const maiorTexto = linhasDados.reduce((max, linha) => {
+          const valorStr = String(linha[colIdx] || '');
           return Math.max(max, valorStr.length);
-        }, chave.length);
-        return { wch: Math.max(maiorTexto + 6, 16) };
+        }, cab.length);
+        return { wch: Math.min(Math.max(maiorTexto + 6, 16), 55) };
       });
 
       const wb = XLSX.utils.book_new();
-      XLSX.utils.book_append_sheet(wb, ws, 'Minhas Tarefas');
-      XLSX.writeFile(wb, `tarefas_${new Date().toISOString().split('T')[0]}.xlsx`);
+      XLSX.utils.book_append_sheet(wb, ws, 'Relatório de Tarefas');
+      XLSX.writeFile(wb, `relatorio_tarefas_${new Date().toISOString().split('T')[0]}.xlsx`);
     } catch (e) {
       console.error('Erro ao exportar planilha Excel:', e);
       alert(`Falha ao exportar Excel: ${e.message}`);
