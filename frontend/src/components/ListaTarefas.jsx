@@ -18,8 +18,23 @@ import {
   ArrowRight,
   ArrowLeft,
   Plus,
-  Flag
+  Flag,
+  ArrowUpDown,
+  Download,
+  FileSpreadsheet,
+  FileText,
+  ChevronDown,
+  ChevronUp,
+  Repeat,
+  ListChecks,
+  CheckSquare,
+  Square,
+  Zap,
+  Calendar
 } from 'lucide-react';
+import confetti from 'canvas-confetti';
+import jsPDF from 'jspdf';
+import autoTable from 'jspdf-autotable';
 import { useTheme } from '../context/ThemeContext.jsx';
 import { SeletorTema } from './SeletorTema.jsx';
 import { 
@@ -32,27 +47,27 @@ import {
 import { ModalTarefa } from './ModalTarefa.jsx';
 import { 
   parseTarefaNome, 
+  montarTarefaNome,
   PRIORIDADES, 
   obterCorTag,
-  verificarPrazoInteligente 
+  verificarPrazoInteligente,
+  parseQuickAdd,
+  calcularProximaData,
+  calcularProgressoSubtarefas
 } from '../utils/tarefaParser.js';
 
 /**
  * ============================================================================
- * TELA PRINCIPAL (LISTA DE TAREFAS / DASHBOARD COM PRODUTIVIDADE ESTILO TODOIST)
+ * TELA PRINCIPAL (DASHBOARD COMPLETO ESTILO TODOIST)
  * ============================================================================
- * Suporta Tema Violeta (Figma clássico) e Tema Dark (Obsidian Glass).
  * Recursos Todoist:
- * - Busca instantânea em tempo real com atalho '/'
- * - Filtros rápidos por status com contadores dinâmicos
- * - Barra de progresso e produtividade estilo Karma
- * - Checkbox circular de conclusão rápida com efeito riscado (strikethrough)
- * - Alertas inteligentes de prazos (Atrasada, Vence hoje com hora precisa)
- * - Atalhos de teclado globais ('N' para criar, '/' para buscar, 'ESC' para fechar)
- * - Modo de visualização alternável: Tabela ↔ Quadro Kanban com 3 colunas translúcidas
- * - Prioridades Todoist P1 a P4 com bandeiras coloridas
- * - Tags e Categorias com cores automáticas e filtro por clique
- * - Horário de conclusão limite com alerta pontual por minuto
+ * 1. 📅 Visões de Foco: "Hoje", "Próximos 7 Dias" e filtros por status
+ * 2. ⚡ Quick Add: Criação em 1 linha com linguagem natural (@hora, #tags, p1, amanhã)
+ * 3. 🎯 Gamificação: Confetes ao concluir tarefa e celebração aos 100% de produtividade
+ * 4. 🔀 Ordenação Inteligente: Por Prioridade, Prazo, Alfabética e Recentes
+ * 5. ☑️ Subtarefas / Mini-Checklist interativo com progresso
+ * 6. 🔁 Tarefas Recorrentes (Rotinas automáticas com reagendamento)
+ * 7. 📄 Exportação de Relatórios: PDF formatado e CSV para Excel
  */
 export function ListaTarefas({ usuario, aoDeslogar, aoAbrirConta }) {
   const { tema } = useTheme();
@@ -61,7 +76,7 @@ export function ListaTarefas({ usuario, aoDeslogar, aoAbrirConta }) {
   const [carregando, setCarregando] = useState(true);
   const [erro, setErro] = useState('');
   
-  // Modo de visualização: 'tabela' | 'kanban' (persistido no localStorage)
+  // Modo de visualização: 'tabela' | 'kanban'
   const [modoVisualizacao, setModoVisualizacao] = useState(() => {
     return localStorage.getItem('gerenciador_modo_visualizacao') || 'tabela';
   });
@@ -71,10 +86,31 @@ export function ListaTarefas({ usuario, aoDeslogar, aoAbrirConta }) {
     localStorage.setItem('gerenciador_modo_visualizacao', novoModo);
   };
 
+  // Ordenação: 'padrao' | 'prioridade' | 'prazo' | 'alfabetica' | 'recentes'
+  const [ordenacao, setOrdenacao] = useState(() => {
+    return localStorage.getItem('gerenciador_ordenacao') || 'padrao';
+  });
+
+  const trocarOrdenacao = (novaOrd) => {
+    setOrdenacao(novaOrd);
+    localStorage.setItem('gerenciador_ordenacao', novaOrd);
+  };
+
   // Controle de Busca e Filtros
   const [termoBusca, setTermoBusca] = useState('');
-  const [filtroStatus, setFiltroStatus] = useState('todos'); // 'todos' | 'pendente' | 'em_andamento' | 'concluido'
+  const [filtroStatus, setFiltroStatus] = useState('todos'); // 'todos' | 'hoje' | '7dias' | 'pendente' | 'em_andamento' | 'concluido'
   const inputBuscaRef = useRef(null);
+
+  // Quick Add State
+  const [quickAddTexto, setQuickAddTexto] = useState('');
+  const [criandoQuick, setCriandoQuick] = useState(false);
+
+  // Menu de Exportação
+  const [menuExportarAberto, setMenuExportarAberto] = useState(false);
+  const exportarRef = useRef(null);
+
+  // Tarefas com checklist expandido (IDs)
+  const [etapasExpandidas, setEtapasExpandidas] = useState(new Set());
 
   // Controle do Modal de Criação/Edição
   const [modalAberto, setModalAberto] = useState(false);
@@ -111,10 +147,20 @@ export function ListaTarefas({ usuario, aoDeslogar, aoAbrirConta }) {
     };
   }, []);
 
+  // Fecha menu de exportar ao clicar fora
+  useEffect(() => {
+    const handleClickFora = (e) => {
+      if (exportarRef.current && !exportarRef.current.contains(e.target)) {
+        setMenuExportarAberto(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickFora);
+    return () => document.removeEventListener('mousedown', handleClickFora);
+  }, []);
+
   // Atalhos Globais de Teclado (N = Criar, / = Buscar, ESC = Fechar/Limpar)
   useEffect(() => {
     const handleKeyDown = (e) => {
-      // Ignora atalhos se o usuário estiver digitando em campos de texto
       const tag = document.activeElement?.tagName?.toLowerCase();
       const ehInput = tag === 'input' || tag === 'textarea' || tag === 'select';
 
@@ -125,6 +171,7 @@ export function ListaTarefas({ usuario, aoDeslogar, aoAbrirConta }) {
         } else if (termoBusca) {
           setTermoBusca('');
         }
+        setMenuExportarAberto(false);
         return;
       }
 
@@ -143,6 +190,32 @@ export function ListaTarefas({ usuario, aoDeslogar, aoAbrirConta }) {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [modalAberto, termoBusca]);
 
+  // Efeitos de Gamificação (Confetes)
+  const dispararConfetes = () => {
+    try {
+      confetti({
+        particleCount: 50,
+        spread: 60,
+        origin: { y: 0.7 },
+      });
+    } catch {
+      // Ignora erro caso canvas-confetti falhe
+    }
+  };
+
+  const dispararCelebracaoCompleta = () => {
+    try {
+      confetti({
+        particleCount: 100,
+        spread: 100,
+        origin: { y: 0.5 },
+        colors: ['#a855f7', '#10b981', '#f59e0b', '#ec4899', '#3b82f6'],
+      });
+    } catch {
+      // Ignora erro
+    }
+  };
+
   // Formata datas ISO (YYYY-MM-DD) para exibição brasileira (DD/MM/AAAA)
   const formatarData = (dataStr) => {
     if (!dataStr) return 'Não definida';
@@ -160,7 +233,38 @@ export function ListaTarefas({ usuario, aoDeslogar, aoAbrirConta }) {
     concluido: 'Concluído'
   };
 
-  // Alterna o status da tarefa em ciclo ao clicar no badge (Pendente -> Em andamento -> Concluído -> Pendente)
+  // Trata recorrência ao concluir tarefa
+  const processarRecorrenciaSeHouver = async (tarefa) => {
+    const { recorrencia, subtarefas, tituloLimpo, prioridade, hora, tags } = parseTarefaNome(tarefa.nome);
+    if (recorrencia && recorrencia !== 'never') {
+      const proximaData = calcularProximaData(tarefa.data_termi, recorrencia);
+      const subtarefasResetadas = subtarefas.map(s => ({ ...s, feito: false }));
+      const novoNome = montarTarefaNome({
+        titulo: tituloLimpo,
+        prioridade,
+        hora,
+        tags,
+        recorrencia,
+        subtarefas: subtarefasResetadas
+      });
+
+      try {
+        const res = await criarTarefaApi({
+          nome: novoNome,
+          data_come: proximaData,
+          data_termi: proximaData,
+          status: 'pendente'
+        });
+        if (res?.tarefa) {
+          setTarefas((atuais) => [res.tarefa, ...atuais]);
+        }
+      } catch (err) {
+        console.error('Erro ao agendar próxima repetição:', err);
+      }
+    }
+  };
+
+  // Alterna o status da tarefa em ciclo ao clicar no badge
   const alternarProximoStatus = async (tarefa) => {
     const proximaOrdem = {
       pendente: 'em_andamento',
@@ -170,7 +274,11 @@ export function ListaTarefas({ usuario, aoDeslogar, aoAbrirConta }) {
     const novoStatus = proximaOrdem[tarefa.status] || 'pendente';
     const statusAnterior = tarefa.status;
 
-    // Atualização Otimista Imediata (0ms)
+    if (novoStatus === 'concluido') {
+      dispararConfetes();
+      processarRecorrenciaSeHouver(tarefa);
+    }
+
     setTarefas((atuais) =>
       atuais.map((t) => (t.id === tarefa.id ? { ...t, status: novoStatus } : t))
     );
@@ -189,6 +297,11 @@ export function ListaTarefas({ usuario, aoDeslogar, aoAbrirConta }) {
   const alternarConclusaoRapida = async (tarefa) => {
     const novoStatus = tarefa.status === 'concluido' ? 'pendente' : 'concluido';
     const statusAnterior = tarefa.status;
+
+    if (novoStatus === 'concluido') {
+      dispararConfetes();
+      processarRecorrenciaSeHouver(tarefa);
+    }
 
     setTarefas((atuais) =>
       atuais.map((t) => (t.id === tarefa.id ? { ...t, status: novoStatus } : t))
@@ -209,6 +322,11 @@ export function ListaTarefas({ usuario, aoDeslogar, aoAbrirConta }) {
     const statusAnterior = tarefa.status;
     if (statusAnterior === novoStatus) return;
 
+    if (novoStatus === 'concluido') {
+      dispararConfetes();
+      processarRecorrenciaSeHouver(tarefa);
+    }
+
     setTarefas((atuais) =>
       atuais.map((t) => (t.id === tarefa.id ? { ...t, status: novoStatus } : t))
     );
@@ -223,13 +341,94 @@ export function ListaTarefas({ usuario, aoDeslogar, aoAbrirConta }) {
     }
   };
 
+  // Alterna o checklist de uma subtarefa diretamente na listagem
+  const alternarSubtarefaDireta = async (tarefa, indexEtapa) => {
+    const parsed = parseTarefaNome(tarefa.nome);
+    const novasSubtarefas = parsed.subtarefas.map((s, idx) =>
+      idx === indexEtapa ? { ...s, feito: !s.feito } : s
+    );
+
+    const novoNome = montarTarefaNome({
+      titulo: parsed.tituloLimpo,
+      prioridade: parsed.prioridade,
+      hora: parsed.hora,
+      tags: parsed.tags,
+      subtarefas: novasSubtarefas,
+      recorrencia: parsed.recorrencia,
+    });
+
+    setTarefas((atuais) =>
+      atuais.map((t) => (t.id === tarefa.id ? { ...t, nome: novoNome } : t))
+    );
+
+    try {
+      await atualizarTarefaApi(tarefa.id, {
+        nome: novoNome,
+        data_come: tarefa.data_come,
+        data_termi: tarefa.data_termi,
+        status: tarefa.status,
+      });
+    } catch (err) {
+      console.error('Falha ao atualizar etapa:', err);
+    }
+  };
+
+  // Alternar abertura das etapas de uma tarefa
+  const alternarEtapasExpandidas = (tarefaId) => {
+    setEtapasExpandidas((prev) => {
+      const novo = new Set(prev);
+      if (novo.has(tarefaId)) {
+        novo.delete(tarefaId);
+      } else {
+        novo.add(tarefaId);
+      }
+      return novo;
+    });
+  };
+
+  // Criação Rápida em 1 Linha (Quick Add)
+  const handleQuickAdd = async (e) => {
+    e.preventDefault();
+    if (!quickAddTexto.trim() || criandoQuick) return;
+
+    setCriandoQuick(true);
+    const { titulo, prioridade, hora, tags, dataCome, dataTermi } = parseQuickAdd(quickAddTexto);
+
+    if (!titulo) {
+      setCriandoQuick(false);
+      return;
+    }
+
+    const nomeComposto = montarTarefaNome({
+      titulo,
+      prioridade,
+      hora,
+      tags,
+    });
+
+    try {
+      const res = await criarTarefaApi({
+        nome: nomeComposto,
+        data_come: dataCome,
+        data_termi: dataTermi,
+        status: 'pendente',
+      });
+      setTarefas((atuais) => [res.tarefa, ...atuais]);
+      setQuickAddTexto('');
+    } catch (err) {
+      alert(`Falha ao criar tarefa rápida: ${err.message}`);
+    } finally {
+      setCriandoQuick(false);
+    }
+  };
+
   // Abre o modal em modo de edição
   const handleEditar = (tarefa) => {
     setTarefaEmEdicao(tarefa);
     setModalAberto(true);
   };
 
-  // Exclui a tarefa com confirmação (com Atualização Otimista)
+  // Exclui a tarefa com confirmação
   const handleExcluir = async (id, nome) => {
     const { tituloLimpo } = parseTarefaNome(nome);
     if (!window.confirm(`Tem certeza que deseja excluir a tarefa "${tituloLimpo}"?`)) {
@@ -247,7 +446,7 @@ export function ListaTarefas({ usuario, aoDeslogar, aoAbrirConta }) {
     }
   };
 
-  // Salva no backend (Criar ou Editar)
+  // Salva no backend (Criar ou Editar via Modal)
   const handleSalvarTarefa = async (dadosTarefa) => {
     if (dadosTarefa.id) {
       const res = await atualizarTarefaApi(dadosTarefa.id, {
@@ -272,17 +471,115 @@ export function ListaTarefas({ usuario, aoDeslogar, aoAbrirConta }) {
     setTarefaEmEdicao(null);
   };
 
+  // Exportar CSV
+  const exportarCsv = (listaParaExportar) => {
+    setMenuExportarAberto(false);
+    const cabecalho = ['Título', 'Início', 'Término', 'Horário', 'Status', 'Prioridade', 'Tags', 'Recorrência', 'Etapas'];
+    const linhas = listaParaExportar.map((t) => {
+      const { tituloLimpo, prioridade, hora, tags, recorrencia, subtarefas } = parseTarefaNome(t.nome);
+      const prog = calcularProgressoSubtarefas(subtarefas);
+      const etapasStr = subtarefas.length > 0 ? `${prog.feitas}/${prog.total}` : 'Nenhuma';
+      return [
+        `"${tituloLimpo.replace(/"/g, '""')}"`,
+        formatarData(t.data_come),
+        formatarData(t.data_termi),
+        hora || '-',
+        rotuloStatus[t.status] || t.status,
+        prioridade.toUpperCase(),
+        `"${tags.join(', ')}"`,
+        recorrencia !== 'never' ? recorrencia : 'Não',
+        `"${etapasStr}"`,
+      ].join(',');
+    });
+
+    const conteudoCsv = '\uFEFF' + [cabecalho.join(','), ...linhas].join('\n');
+    const blob = new Blob([conteudoCsv], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `tarefas_${new Date().toISOString().split('T')[0]}.csv`;
+    link.click();
+    URL.revokeObjectURL(url);
+  };
+
+  // Exportar PDF
+  const exportarPdf = (listaParaExportar) => {
+    setMenuExportarAberto(false);
+    try {
+      const doc = new jsPDF();
+      doc.setFontSize(18);
+      doc.setTextColor(88, 28, 135);
+      doc.text('Relatório de Produtividade', 14, 20);
+
+      doc.setFontSize(10);
+      doc.setTextColor(100);
+      const dataHoje = new Date().toLocaleDateString('pt-BR');
+      doc.text(`Usuário: ${usuario?.nome || 'Usuário'} | Gerado em: ${dataHoje}`, 14, 28);
+      doc.text(`Total de Tarefas no Relatório: ${listaParaExportar.length}`, 14, 34);
+
+      const head = [['Título', 'Início', 'Término', 'Status', 'Prioridade', 'Tags']];
+      const body = listaParaExportar.map((t) => {
+        const { tituloLimpo, prioridade, hora, tags } = parseTarefaNome(t.nome);
+        return [
+          tituloLimpo,
+          formatarData(t.data_come),
+          formatarData(t.data_termi) + (hora ? ` às ${hora}` : ''),
+          rotuloStatus[t.status] || t.status,
+          prioridade.toUpperCase(),
+          tags.map((tg) => `#${tg}`).join(' '),
+        ];
+      });
+
+      autoTable(doc, {
+        startY: 40,
+        head,
+        body,
+        headStyles: { fillColor: [126, 34, 206] },
+        theme: 'striped',
+        styles: { fontSize: 8 },
+      });
+
+      doc.save(`relatorio_tarefas_${new Date().toISOString().split('T')[0]}.pdf`);
+    } catch (e) {
+      alert(`Falha ao gerar PDF: ${e.message}`);
+    }
+  };
+
   // Métricas de produtividade
   const totalTarefas = tarefas.length;
   const tarefasConcluidas = tarefas.filter((t) => t.status === 'concluido').length;
   const porcentagem = totalTarefas > 0 ? Math.round((tarefasConcluidas / totalTarefas) * 100) : 0;
 
+  // Dispara celebração quando atinge 100%
+  const anteriorPorcentagemRef = useRef(porcentagem);
+  useEffect(() => {
+    if (porcentagem === 100 && totalTarefas > 0 && anteriorPorcentagemRef.current < 100) {
+      dispararCelebracaoCompleta();
+    }
+    anteriorPorcentagemRef.current = porcentagem;
+  }, [porcentagem, totalTarefas]);
+
   // Contadores para as abas de filtro
+  const hojeStr = new Date().toISOString().split('T')[0];
+  const em7Dias = new Date();
+  em7Dias.setDate(em7Dias.getDate() + 7);
+  const em7DiasStr = em7Dias.toISOString().split('T')[0];
+
+  const contagemHoje = tarefas.filter((t) => {
+    const dataTermi = t.data_termi?.split('T')[0];
+    return dataTermi === hojeStr || (t.status !== 'concluido' && dataTermi < hojeStr);
+  }).length;
+
+  const contagem7Dias = tarefas.filter((t) => {
+    const dataTermi = t.data_termi?.split('T')[0];
+    return dataTermi >= hojeStr && dataTermi <= em7DiasStr;
+  }).length;
+
   const contagemPendentes = tarefas.filter((t) => t.status === 'pendente').length;
   const contagemEmAndamento = tarefas.filter((t) => t.status === 'em_andamento').length;
   const contagemConcluidas = tarefasConcluidas;
 
-  // Função auxiliar de busca por texto (busca em título, tags, prioridade, horário e datas)
+  // Busca textual
   const atendeTermoBusca = (t) => {
     if (!termoBusca.trim()) return true;
     const termo = termoBusca.toLowerCase().trim();
@@ -292,21 +589,66 @@ export function ListaTarefas({ usuario, aoDeslogar, aoAbrirConta }) {
     return nomeMatch || dataComeMatch || dataTermiMatch;
   };
 
-  // Filtragem para o modo Tabela (Status + Texto de busca)
-  const tarefasFiltradasTabela = tarefas.filter((t) => {
-    if (filtroStatus !== 'todos' && t.status !== filtroStatus) {
-      return false;
-    }
-    return atendeTermoBusca(t);
-  });
+  // Filtragem conforme a aba selecionada
+  const filtrarPorAba = (lista) => {
+    return lista.filter((t) => {
+      const dataTermi = t.data_termi?.split('T')[0];
 
-  // Renderizador inteligente de Título + Prioridade + Tags Todoist
-  const renderIdentificacaoTarefa = (nomeCompleto, concluida) => {
-    const { tituloLimpo, prioridade, tags } = parseTarefaNome(nomeCompleto);
+      if (filtroStatus === 'hoje') {
+        return dataTermi === hojeStr || (t.status !== 'concluido' && dataTermi < hojeStr);
+      }
+      if (filtroStatus === '7dias') {
+        return dataTermi >= hojeStr && dataTermi <= em7DiasStr;
+      }
+      if (filtroStatus === 'pendente' || filtroStatus === 'em_andamento' || filtroStatus === 'concluido') {
+        return t.status === filtroStatus;
+      }
+      return true; // 'todos'
+    });
+  };
+
+  // Aplicação da Ordenação Inteligente
+  const prioridadeOrdem = { p1: 1, p2: 2, p3: 3, p4: 4 };
+
+  const aplicarOrdenacao = (lista) => {
+    return [...lista].sort((a, b) => {
+      if (ordenacao === 'prioridade') {
+        const pA = parseTarefaNome(a.nome).prioridade || 'p4';
+        const pB = parseTarefaNome(b.nome).prioridade || 'p4';
+        return (prioridadeOrdem[pA] || 4) - (prioridadeOrdem[pB] || 4);
+      }
+      if (ordenacao === 'prazo') {
+        const dataA = a.data_termi || '';
+        const dataB = b.data_termi || '';
+        return dataA.localeCompare(dataB);
+      }
+      if (ordenacao === 'alfabetica') {
+        const tA = parseTarefaNome(a.nome).tituloLimpo.toLowerCase();
+        const tB = parseTarefaNome(b.nome).tituloLimpo.toLowerCase();
+        return tA.localeCompare(tB);
+      }
+      if (ordenacao === 'recentes') {
+        return (b.id || 0) - (a.id || 0);
+      }
+      return 0;
+    });
+  };
+
+  // Tarefas finais filtradas e ordenadas para a Tabela
+  const tarefasFiltradasTabela = aplicarOrdenacao(
+    filtrarPorAba(tarefas).filter(atendeTermoBusca)
+  );
+
+  // Renderizador inteligente de Título + Prioridade + Tags + Recorrência + Subtarefas
+  const renderIdentificacaoTarefa = (tarefa, concluida) => {
+    const { tituloLimpo, prioridade, tags, recorrencia, subtarefas } = parseTarefaNome(tarefa.nome);
     const prioConfig = PRIORIDADES[prioridade] || PRIORIDADES.p4;
+    const progEtapas = calcularProgressoSubtarefas(subtarefas);
+    const temEtapas = subtarefas.length > 0;
+    const expandida = etapasExpandidas.has(tarefa.id);
 
     return (
-      <div className="flex flex-col gap-1 min-w-0">
+      <div className="flex flex-col gap-1.5 min-w-0 w-full">
         <div className="flex items-center gap-2 flex-wrap">
           <span className={`break-words transition-all duration-200 ${
             concluida
@@ -316,7 +658,7 @@ export function ListaTarefas({ usuario, aoDeslogar, aoAbrirConta }) {
             {tituloLimpo}
           </span>
 
-          {/* Badge de Prioridade (P1, P2 ou P3) */}
+          {/* Badge de Prioridade */}
           {prioridade !== 'p4' && (
             <span 
               className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md text-[10px] font-bold border shrink-0 ${
@@ -327,6 +669,42 @@ export function ListaTarefas({ usuario, aoDeslogar, aoAbrirConta }) {
               <Flag className={`w-2.5 h-2.5 ${prioConfig.iconeCor}`} />
               {prioConfig.rotulo}
             </span>
+          )}
+
+          {/* Badge de Recorrência */}
+          {recorrencia && recorrencia !== 'never' && (
+            <span 
+              className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded-md text-[10px] font-semibold border shrink-0 ${
+                ehDark 
+                  ? 'bg-purple-500/20 text-purple-300 border-purple-500/40' 
+                  : 'bg-purple-100 text-purple-800 border-purple-200'
+              }`}
+              title={`Repete: ${recorrencia}`}
+            >
+              <Repeat className="w-2.5 h-2.5" />
+              {recorrencia === 'daily' ? 'Diário' : recorrencia === 'weekly' ? 'Semanal' : 'Mensal'}
+            </span>
+          )}
+
+          {/* Mini-Indicador de Subtarefas com Toggle */}
+          {temEtapas && (
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                alternarEtapasExpandidas(tarefa.id);
+              }}
+              className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold border transition-all cursor-pointer active:scale-95 ${
+                progEtapas.porcentagem === 100
+                  ? ehDark ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40' : 'bg-emerald-50 text-emerald-800 border-emerald-200'
+                  : ehDark ? 'bg-white/10 hover:bg-white/15 text-purple-200 border-white/10' : 'bg-gray-100 hover:bg-gray-200 text-gray-700 border-gray-200'
+              }`}
+              title="Clique para ver ou ocultar etapas"
+            >
+              <ListChecks className="w-3 h-3 text-purple-400" />
+              <span>{progEtapas.feitas}/{progEtapas.total} etapas</span>
+              {expandida ? <ChevronUp className="w-3 h-3 ml-0.5" /> : <ChevronDown className="w-3 h-3 ml-0.5" />}
+            </button>
           )}
         </div>
 
@@ -347,6 +725,62 @@ export function ListaTarefas({ usuario, aoDeslogar, aoAbrirConta }) {
                 #{tag}
               </button>
             ))}
+          </div>
+        )}
+
+        {/* Lista Expandida de Subtarefas com Checkbox Direto */}
+        {temEtapas && expandida && (
+          <div className={`mt-2 p-2.5 rounded-xl border space-y-1.5 animate-slide-up ${
+            ehDark ? 'bg-white/[0.04] border-white/10' : 'bg-purple-50/50 border-purple-100'
+          }`}>
+            <div className="flex items-center justify-between text-[11px] mb-1">
+              <span className={`font-semibold ${ehDark ? 'text-purple-300/80' : 'text-gray-600'}`}>
+                Progresso das etapas:
+              </span>
+              <span className={`font-bold ${progEtapas.porcentagem === 100 ? 'text-emerald-400' : ehDark ? 'text-purple-200' : 'text-purple-800'}`}>
+                {progEtapas.porcentagem}%
+              </span>
+            </div>
+
+            <div className={`w-full h-1.5 rounded-full overflow-hidden mb-2 ${ehDark ? 'bg-white/10' : 'bg-gray-200'}`}>
+              <div 
+                className={`h-full rounded-full transition-all duration-300 ${
+                  progEtapas.porcentagem === 100 ? 'bg-emerald-400' : 'bg-purple-500'
+                }`}
+                style={{ width: `${progEtapas.porcentagem}%` }}
+              />
+            </div>
+
+            <div className="space-y-1">
+              {subtarefas.map((etapa, idx) => (
+                <div 
+                  key={idx}
+                  onClick={(e) => e.stopPropagation()}
+                  className={`flex items-center gap-2 p-1.5 rounded-lg border text-xs transition-all ${
+                    ehDark ? 'bg-white/5 border-white/5' : 'bg-white border-gray-100'
+                  }`}
+                >
+                  <button
+                    type="button"
+                    onClick={() => alternarSubtarefaDireta(tarefa, idx)}
+                    className="cursor-pointer text-purple-400 hover:scale-110 transition-transform shrink-0"
+                  >
+                    {etapa.feito ? (
+                      <CheckSquare className="w-3.5 h-3.5 text-emerald-400" />
+                    ) : (
+                      <Square className="w-3.5 h-3.5 text-gray-400" />
+                    )}
+                  </button>
+                  <span className={`flex-1 break-words ${
+                    etapa.feito 
+                      ? ehDark ? 'line-through text-purple-300/40' : 'line-through text-gray-400'
+                      : ehDark ? 'text-white' : 'text-gray-800'
+                  }`}>
+                    {etapa.texto}
+                  </span>
+                </div>
+              ))}
+            </div>
           </div>
         )}
       </div>
@@ -405,7 +839,7 @@ export function ListaTarefas({ usuario, aoDeslogar, aoAbrirConta }) {
         {/* Barra Superior de Ações com Auto-Encaixe Responsivo */}
         <div className="flex items-center justify-between gap-2.5 sm:gap-3 w-full flex-wrap animate-slide-up">
           
-          <div className="flex items-center gap-2 sm:gap-3">
+          <div className="flex items-center gap-2 sm:gap-3 flex-wrap">
             {/* Botão Sair */}
             <button
               onClick={aoDeslogar}
@@ -415,7 +849,7 @@ export function ListaTarefas({ usuario, aoDeslogar, aoAbrirConta }) {
               Sair
             </button>
 
-            {/* Botão Cadastrar (com indicador de atalho 'N') */}
+            {/* Botão Cadastrar */}
             <button
               onClick={() => handleNovoCadastro('pendente')}
               className="flex items-center gap-1.5 sm:gap-2 px-3.5 sm:px-6 py-2 sm:py-2.5 bg-emerald-500/40 hover:bg-emerald-500/55 border border-emerald-300/60 hover:border-emerald-200/80 backdrop-blur-md text-white font-bold rounded-full shadow-[0_4px_15px_rgba(16,185,129,0.3),inset_0_1px_1px_rgba(255,255,255,0.3)] hover:shadow-[0_6px_25px_rgba(16,185,129,0.45),inset_0_1px_2px_rgba(255,255,255,0.5)] transition-all duration-300 active:scale-95 cursor-pointer group text-xs sm:text-sm"
@@ -425,6 +859,54 @@ export function ListaTarefas({ usuario, aoDeslogar, aoAbrirConta }) {
               Cadastrar
               <span className="hidden sm:inline-block ml-0.5 px-1.5 py-0.2 bg-white/20 rounded text-[10px] font-mono opacity-80">N</span>
             </button>
+
+            {/* Menu de Exportação (CSV e PDF) */}
+            <div className="relative" ref={exportarRef}>
+              <button
+                type="button"
+                onClick={() => setMenuExportarAberto(!menuExportarAberto)}
+                className={`flex items-center gap-1.5 px-3.5 sm:px-4 py-2 sm:py-2.5 rounded-full border text-xs sm:text-sm font-semibold transition-all active:scale-95 cursor-pointer shadow-sm ${
+                  ehDark
+                    ? 'bg-white/10 hover:bg-white/15 text-purple-200 border-white/20'
+                    : 'bg-white hover:bg-gray-50 text-gray-700 border-gray-200 shadow-sm'
+                }`}
+                title="Exportar relatório de tarefas"
+              >
+                <Download className="w-3.5 h-3.5" />
+                <span>Exportar</span>
+                <ChevronDown className="w-3 h-3 opacity-70" />
+              </button>
+
+              {menuExportarAberto && (
+                <div className={`absolute left-0 mt-2 w-48 rounded-2xl p-1.5 shadow-xl border backdrop-blur-xl z-30 animate-fade-in ${
+                  ehDark
+                    ? 'bg-[#180e25]/95 border-purple-500/30 text-purple-200 shadow-[0_10px_30px_rgba(0,0,0,0.8)]'
+                    : 'bg-white border-gray-200 text-gray-800 shadow-lg'
+                }`}>
+                  <button
+                    type="button"
+                    onClick={() => exportarCsv(tarefasFiltradasTabela)}
+                    className={`w-full flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-semibold transition-all text-left cursor-pointer ${
+                      ehDark ? 'hover:bg-white/10 text-white' : 'hover:bg-purple-50 text-purple-900'
+                    }`}
+                  >
+                    <FileSpreadsheet className="w-4 h-4 text-emerald-400" />
+                    <span>Baixar CSV (Excel)</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => exportarPdf(tarefasFiltradasTabela)}
+                    className={`w-full flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-semibold transition-all text-left cursor-pointer ${
+                      ehDark ? 'hover:bg-white/10 text-white' : 'hover:bg-purple-50 text-purple-900'
+                    }`}
+                  >
+                    <FileText className="w-4 h-4 text-purple-400" />
+                    <span>Baixar Relatório PDF</span>
+                  </button>
+                </div>
+              )}
+            </div>
           </div>
 
           <div className="flex items-center gap-2 sm:gap-3">
@@ -455,14 +937,14 @@ export function ListaTarefas({ usuario, aoDeslogar, aoAbrirConta }) {
 
         </div>
 
-        {/* Card Central com Efeito Glassmorphism e Sombra Suave */}
+        {/* Card Central */}
         <div className={`w-full backdrop-blur-2xl rounded-2xl sm:rounded-3xl p-4 sm:p-6 md:p-8 min-h-[480px] sm:min-h-[520px] flex flex-col transition-all duration-500 animate-slide-up animate-delay-150 ${
           ehDark
             ? 'bg-gradient-to-b from-white/[0.08] via-[#140b20]/90 to-[#0a0610]/95 border border-white/15 shadow-[0_25px_60px_-15px_rgba(0,0,0,0.9),0_0_40px_rgba(168,85,247,0.12),inset_0_1px_1px_rgba(255,255,255,0.15)] text-purple-100'
             : 'bg-white/95 border border-white/60 shadow-[0_16px_50px_rgba(0,0,0,0.25)] text-gray-800'
         }`}>
           
-          {/* Mensagem de Erro, se houver */}
+          {/* Mensagem de Erro */}
           {erro && (
             <div className={`mb-4 p-3 rounded-xl text-sm ${
               ehDark 
@@ -472,6 +954,35 @@ export function ListaTarefas({ usuario, aoDeslogar, aoAbrirConta }) {
               {erro}
             </div>
           )}
+
+          {/* 1. Quick Add: Criação Rápida em 1 Linha com Linguagem Natural */}
+          <form onSubmit={handleQuickAdd} className="mb-4">
+            <div className={`relative flex items-center rounded-2xl border transition-all shadow-sm ${
+              ehDark 
+                ? 'bg-white/[0.06] hover:bg-white/[0.09] focus-within:bg-white/[0.1] border-white/15 focus-within:border-purple-400 focus-within:ring-2 focus-within:ring-purple-400/30' 
+                : 'bg-white hover:bg-purple-50/20 focus-within:bg-white border-purple-200 focus-within:border-purple-500 focus-within:ring-2 focus-within:ring-purple-400/30'
+            }`}>
+              <div className="pl-4 pr-2 text-purple-400">
+                <Zap className="w-4 h-4 animate-pulse" />
+              </div>
+              <input
+                type="text"
+                value={quickAddTexto}
+                onChange={(e) => setQuickAddTexto(e.target.value)}
+                placeholder="⚡ Quick Add: 'Estudar Cálculo amanhã @15:00 #Faculdade p1' [Enter]"
+                className={`w-full py-3 pr-24 bg-transparent text-xs sm:text-sm font-medium focus:outline-none ${
+                  ehDark ? 'text-white placeholder-purple-200/40' : 'text-gray-900 placeholder-gray-400'
+                }`}
+              />
+              <button
+                type="submit"
+                disabled={!quickAddTexto.trim() || criandoQuick}
+                className="absolute right-2 px-3 py-1.5 rounded-xl bg-purple-600 hover:bg-purple-500 active:scale-95 text-white font-bold text-xs transition-all disabled:opacity-30 disabled:pointer-events-none cursor-pointer shadow-sm"
+              >
+                {criandoQuick ? 'Criando...' : 'Adicionar'}
+              </button>
+            </div>
+          </form>
 
           {/* Estado de Carregando */}
           {carregando ? (
@@ -488,7 +999,7 @@ export function ListaTarefas({ usuario, aoDeslogar, aoAbrirConta }) {
             <div className={`flex-1 flex flex-col items-center justify-center py-16 sm:py-20 text-center px-4 ${ehDark ? 'text-zinc-400' : 'text-gray-400'}`}>
               <p className={`text-lg sm:text-xl font-semibold mb-2 ${ehDark ? 'text-zinc-200' : 'text-gray-600'}`}>Nenhuma tarefa encontrada</p>
               <p className={`text-xs sm:text-sm max-w-sm mb-6 ${ehDark ? 'text-zinc-400' : 'text-gray-500'}`}>
-                Você ainda não tem tarefas cadastradas. Clique no botão verde "Cadastrar" acima para começar!
+                Você ainda não tem tarefas cadastradas. Use a barra rápida acima ou clique em "Cadastrar"!
               </p>
               <button
                 onClick={() => handleNovoCadastro('pendente')}
@@ -499,7 +1010,7 @@ export function ListaTarefas({ usuario, aoDeslogar, aoAbrirConta }) {
             </div>
           ) : (
             <>
-              {/* 1. Widget de Produtividade (Estilo Karma do Todoist) */}
+              {/* 2. Widget de Produtividade (Estilo Karma do Todoist) */}
               <div className={`w-full rounded-2xl p-4 sm:p-5 mb-5 border transition-all ${
                 ehDark 
                   ? 'bg-white/[0.04] border-white/10 shadow-[0_4px_20px_rgba(0,0,0,0.3)]' 
@@ -545,8 +1056,8 @@ export function ListaTarefas({ usuario, aoDeslogar, aoAbrirConta }) {
                 </div>
               </div>
 
-              {/* 2. Barra de Busca, Abas de Filtros e Alternador Tabela / Quadro */}
-              <div className="w-full flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3 mb-6">
+              {/* 3. Barra de Busca e Ordenação */}
+              <div className="w-full flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3 mb-4">
                 
                 {/* Campo de Pesquisa em Tempo Real */}
                 <div className="relative flex-1 max-w-md">
@@ -579,47 +1090,28 @@ export function ListaTarefas({ usuario, aoDeslogar, aoAbrirConta }) {
                   )}
                 </div>
 
-                {/* Controles da Direita: Abas (se Tabela) + Alternador Tabela ↔ Quadro */}
+                {/* Controles da Direita: Ordenação Inteligente + Modo Tabela / Quadro */}
                 <div className="flex items-center gap-2 flex-wrap justify-between md:justify-end">
                   
-                  {/* Abas de Filtros Rápidos (exibidas no modo Tabela) */}
-                  {modoVisualizacao === 'tabela' && (
-                    <div className="flex items-center gap-1.5 overflow-x-auto pb-1 md:pb-0 scrollbar-none">
-                      {[
-                        { id: 'todos', label: 'Todas', contagem: totalTarefas },
-                        { id: 'pendente', label: 'Pendentes', contagem: contagemPendentes },
-                        { id: 'em_andamento', label: 'Em andamento', contagem: contagemEmAndamento },
-                        { id: 'concluido', label: 'Concluídas', contagem: contagemConcluidas },
-                      ].map((aba) => {
-                        const ativa = filtroStatus === aba.id;
-                        return (
-                          <button
-                            key={aba.id}
-                            type="button"
-                            onClick={() => setFiltroStatus(aba.id)}
-                            className={`px-3 py-1.5 rounded-full text-xs font-semibold transition-all cursor-pointer whitespace-nowrap flex items-center gap-1.5 active:scale-95 ${
-                              ativa
-                                ? ehDark
-                                ? 'bg-purple-500/30 text-white border border-purple-400/50 shadow-[0_0_12px_rgba(168,85,247,0.25)]'
-                                : 'bg-purple-600 text-white shadow-sm'
-                                : ehDark
-                                ? 'bg-white/5 hover:bg-white/10 text-purple-200/70 hover:text-white border border-white/10'
-                                : 'bg-gray-100 hover:bg-gray-200 text-gray-600 hover:text-gray-900 border border-gray-200/60'
-                            }`}
-                          >
-                            <span>{aba.label}</span>
-                            <span className={`px-1.5 py-0.2 rounded-full text-[10px] font-bold ${
-                              ativa
-                                ? ehDark ? 'bg-purple-400/30 text-white' : 'bg-purple-700 text-white'
-                                : ehDark ? 'bg-white/10 text-purple-200/60' : 'bg-gray-200 text-gray-500'
-                            }`}>
-                              {aba.contagem}
-                            </span>
-                          </button>
-                        );
-                      })}
-                    </div>
-                  )}
+                  {/* Seletor de Ordenação Inteligente */}
+                  <div className="flex items-center gap-1.5">
+                    <ArrowUpDown className={`w-3.5 h-3.5 ${ehDark ? 'text-purple-400' : 'text-purple-600'}`} />
+                    <select
+                      value={ordenacao}
+                      onChange={(e) => trocarOrdenacao(e.target.value)}
+                      className={`px-3 py-1.5 rounded-full text-xs font-semibold border transition-all cursor-pointer focus:outline-none ${
+                        ehDark
+                          ? 'bg-white/10 hover:bg-white/15 border-white/15 text-purple-200 [&>option]:bg-[#140b20] [&>option]:text-white'
+                          : 'bg-white hover:bg-gray-50 border-gray-200 text-gray-700 shadow-sm'
+                      }`}
+                    >
+                      <option value="padrao">Ordem: Padrão</option>
+                      <option value="prioridade">Ordem: Prioridade (P1 &rarr; P4)</option>
+                      <option value="prazo">Ordem: Prazo mais urgente</option>
+                      <option value="alfabetica">Ordem: Alfabética (A-Z)</option>
+                      <option value="recentes">Ordem: Mais recentes</option>
+                    </select>
+                  </div>
 
                   {/* Alternador de Modo: Tabela ↔ Quadro Kanban */}
                   <div className={`inline-flex items-center p-1 rounded-full border shrink-0 ${
@@ -666,7 +1158,46 @@ export function ListaTarefas({ usuario, aoDeslogar, aoAbrirConta }) {
 
               </div>
 
-              {/* 3. Se nenhuma tarefa bater com a busca/filtro (modo Tabela) */}
+              {/* 4. Abas de Visões de Foco ("Hoje", "7 Dias", "Todas", "Pendentes", etc.) */}
+              <div className="w-full flex items-center gap-1.5 overflow-x-auto pb-2 mb-4 scrollbar-none">
+                {[
+                  { id: 'todos', label: 'Todas', contagem: totalTarefas },
+                  { id: 'hoje', label: '☀️ Hoje', contagem: contagemHoje },
+                  { id: '7dias', label: '📆 Próximos 7 Dias', contagem: contagem7Dias },
+                  { id: 'pendente', label: 'Pendentes', contagem: contagemPendentes },
+                  { id: 'em_andamento', label: 'Em andamento', contagem: contagemEmAndamento },
+                  { id: 'concluido', label: 'Concluídas', contagem: contagemConcluidas },
+                ].map((aba) => {
+                  const ativa = filtroStatus === aba.id;
+                  return (
+                    <button
+                      key={aba.id}
+                      type="button"
+                      onClick={() => setFiltroStatus(aba.id)}
+                      className={`px-3 py-1.5 rounded-full text-xs font-semibold transition-all cursor-pointer whitespace-nowrap flex items-center gap-1.5 active:scale-95 ${
+                        ativa
+                          ? ehDark
+                            ? 'bg-purple-500/30 text-white border border-purple-400/50 shadow-[0_0_12px_rgba(168,85,247,0.25)]'
+                            : 'bg-purple-600 text-white shadow-sm'
+                          : ehDark
+                          ? 'bg-white/5 hover:bg-white/10 text-purple-200/70 hover:text-white border border-white/10'
+                          : 'bg-gray-100 hover:bg-gray-200 text-gray-600 hover:text-gray-900 border border-gray-200/60'
+                      }`}
+                    >
+                      <span>{aba.label}</span>
+                      <span className={`px-1.5 py-0.2 rounded-full text-[10px] font-bold ${
+                        ativa
+                          ? ehDark ? 'bg-purple-400/30 text-white' : 'bg-purple-700 text-white'
+                          : ehDark ? 'bg-white/10 text-purple-200/60' : 'bg-gray-200 text-gray-500'
+                      }`}>
+                        {aba.contagem}
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+
+              {/* 5. Se nenhuma tarefa bater com a busca/filtro (modo Tabela) */}
               {modoVisualizacao === 'tabela' && tarefasFiltradasTabela.length === 0 ? (
                 <div className="py-16 text-center flex flex-col items-center justify-center">
                   <Search className={`w-8 h-8 mb-2 ${ehDark ? 'text-purple-300/40' : 'text-gray-400'}`} />
@@ -688,13 +1219,15 @@ export function ListaTarefas({ usuario, aoDeslogar, aoAbrirConta }) {
                 </div>
               ) : modoVisualizacao === 'kanban' ? (
                 /* ========================================================================= */
-                /* 4. MODO QUADRO KANBAN (3 COLUNAS: PENDENTE | EM ANDAMENTO | CONCLUÍDO)    */
+                /* 6. MODO QUADRO KANBAN (3 COLUNAS)                                         */
                 /* ========================================================================= */
                 <div className="w-full grid grid-cols-1 lg:grid-cols-3 gap-5 items-start animate-fade-in">
                   {colunasKanban.map((coluna) => {
-                    const tarefasDaColuna = tarefas
-                      .filter((t) => t.status === coluna.id)
-                      .filter(atendeTermoBusca);
+                    const tarefasDaColuna = aplicarOrdenacao(
+                      filtrarPorAba(tarefas)
+                        .filter((t) => t.status === coluna.id)
+                        .filter(atendeTermoBusca)
+                    );
                     const ColunaIcone = coluna.icone;
 
                     return (
@@ -706,7 +1239,7 @@ export function ListaTarefas({ usuario, aoDeslogar, aoAbrirConta }) {
                             : `${coluna.fundoColunaClaro} ${coluna.bordaClaro} shadow-sm`
                         }`}
                       >
-                        {/* Cabeçalho da Coluna com Gradiente e Ação + Rápida */}
+                        {/* Cabeçalho da Coluna */}
                         <div className={`p-4 border-b flex items-center justify-between gap-2 bg-gradient-to-b ${
                           ehDark ? `${coluna.corHeaderDark} border-white/10` : `${coluna.corHeaderClaro} border-gray-200/80`
                         }`}>
@@ -722,7 +1255,6 @@ export function ListaTarefas({ usuario, aoDeslogar, aoAbrirConta }) {
                             </span>
                           </div>
 
-                          {/* Botão + rápido para criar tarefa já com o status da coluna */}
                           <button
                             type="button"
                             onClick={() => handleNovoCadastro(coluna.id)}
@@ -737,7 +1269,7 @@ export function ListaTarefas({ usuario, aoDeslogar, aoAbrirConta }) {
                           </button>
                         </div>
 
-                        {/* Corpo da Coluna: Lista de Cards com Rolagem Suave */}
+                        {/* Corpo da Coluna */}
                         <div className="p-3.5 space-y-3 min-h-[160px] max-h-[620px] overflow-y-auto scrollbar-thin">
                           {tarefasDaColuna.length === 0 ? (
                             <div className={`p-6 rounded-xl border border-dashed text-center flex flex-col items-center justify-center gap-2 ${
@@ -772,7 +1304,7 @@ export function ListaTarefas({ usuario, aoDeslogar, aoAbrirConta }) {
                                   }`}
                                   style={{ animationDelay: `${idx * 40}ms` }}
                                 >
-                                  {/* Topo do Card: Checkbox Circular + Título/Tags + Ações (Editar e Excluir) */}
+                                  {/* Topo do Card */}
                                   <div className="flex items-start justify-between gap-2.5">
                                     <div className="flex items-start gap-2.5 flex-1 min-w-0">
                                       <button
@@ -790,7 +1322,7 @@ export function ListaTarefas({ usuario, aoDeslogar, aoAbrirConta }) {
                                         {concluida && <Check className="w-3 h-3 stroke-[3]" />}
                                       </button>
 
-                                      {renderIdentificacaoTarefa(tarefa.nome, concluida)}
+                                      {renderIdentificacaoTarefa(tarefa, concluida)}
                                     </div>
 
                                     <div className="flex items-center gap-1 shrink-0">
@@ -817,7 +1349,7 @@ export function ListaTarefas({ usuario, aoDeslogar, aoAbrirConta }) {
                                     </div>
                                   </div>
 
-                                  {/* Meio: Datas com badge de alerta inteligente e horário */}
+                                  {/* Meio: Datas com alerta inteligente */}
                                   <div className={`text-xs flex flex-wrap items-center gap-2 pt-1 border-t ${
                                     ehDark ? 'border-white/5 text-purple-300/75' : 'border-gray-100 text-gray-500'
                                   }`}>
@@ -921,7 +1453,7 @@ export function ListaTarefas({ usuario, aoDeslogar, aoAbrirConta }) {
                 </div>
               ) : (
                 /* ========================================================================= */
-                /* 5. MODO TABELA / LISTA (DESKTOP E MOBILE)                                  */
+                /* 7. MODO TABELA / LISTA (DESKTOP E MOBILE)                                  */
                 /* ========================================================================= */
                 <>
                   {/* Visualização em Cards para Smartphones (< md) */}
@@ -941,10 +1473,9 @@ export function ListaTarefas({ usuario, aoDeslogar, aoAbrirConta }) {
                           }`}
                           style={{ animationDelay: `${index * 50}ms` }}
                         >
-                          {/* Topo do Card: Checkbox Circular + Nome/Tags e Status */}
+                          {/* Topo do Card */}
                           <div className="flex items-start justify-between gap-2.5">
                             <div className="flex items-start gap-2.5 flex-1 min-w-0">
-                              {/* Checkbox Circular Todoist */}
                               <button
                                 type="button"
                                 onClick={() => alternarConclusaoRapida(tarefa)}
@@ -960,7 +1491,7 @@ export function ListaTarefas({ usuario, aoDeslogar, aoAbrirConta }) {
                                 {concluida && <Check className="w-3 h-3 stroke-[3]" />}
                               </button>
 
-                              {renderIdentificacaoTarefa(tarefa.nome, concluida)}
+                              {renderIdentificacaoTarefa(tarefa, concluida)}
                             </div>
 
                             <button
@@ -1066,7 +1597,7 @@ export function ListaTarefas({ usuario, aoDeslogar, aoAbrirConta }) {
                         </tr>
                       </thead>
 
-                      {/* Corpo da Tabela com Efeito Zebrado Suave */}
+                      {/* Corpo da Tabela */}
                       <tbody className="divide-y divide-transparent text-sm">
                         {tarefasFiltradasTabela.map((tarefa, index) => {
                           const { hora } = parseTarefaNome(tarefa.nome);
@@ -1083,7 +1614,7 @@ export function ListaTarefas({ usuario, aoDeslogar, aoAbrirConta }) {
                               }`}
                               style={{ animationDelay: `${index * 40}ms` }}
                             >
-                              {/* Coluna: Nome/Título com Checkbox Circular e Tags/Prioridade */}
+                              {/* Coluna: Nome/Título com Checkbox Circular e Tags/Prioridade/Etapas */}
                               <td className="py-4 px-4 max-w-xs sm:max-w-md">
                                 <div className="flex items-start gap-3">
                                   <button
@@ -1101,7 +1632,7 @@ export function ListaTarefas({ usuario, aoDeslogar, aoAbrirConta }) {
                                     {concluida && <Check className="w-3 h-3 stroke-[3]" />}
                                   </button>
                                   
-                                  {renderIdentificacaoTarefa(tarefa.nome, concluida)}
+                                  {renderIdentificacaoTarefa(tarefa, concluida)}
                                 </div>
                               </td>
 
@@ -1143,7 +1674,7 @@ export function ListaTarefas({ usuario, aoDeslogar, aoAbrirConta }) {
                                 </div>
                               </td>
 
-                              {/* Coluna: Status (Pill clicável para alternar) */}
+                              {/* Coluna: Status */}
                               <td className="py-4 px-4 text-center">
                                 <button
                                   type="button"
@@ -1161,10 +1692,9 @@ export function ListaTarefas({ usuario, aoDeslogar, aoAbrirConta }) {
                                 </button>
                               </td>
 
-                              {/* Coluna: Ações (Editar e Excluir) */}
+                              {/* Coluna: Ações */}
                               <td className="py-4 px-4 text-right pr-4 whitespace-nowrap">
                                 <div className="flex items-center justify-end gap-3">
-                                  {/* Botão Editar */}
                                   <button
                                     type="button"
                                     onClick={() => handleEditar(tarefa)}
@@ -1178,7 +1708,6 @@ export function ListaTarefas({ usuario, aoDeslogar, aoAbrirConta }) {
                                     <SquarePen className="w-5 h-5" />
                                   </button>
 
-                                  {/* Botão Excluir */}
                                   <button
                                     type="button"
                                     onClick={() => handleExcluir(tarefa.id, tarefa.nome)}

@@ -1,10 +1,12 @@
 /**
  * ============================================================================
- * UTILITÁRIO DE PARSER DE TAREFAS (TODOIST INLINE TAGS, HORÁRIOS & PRIORIDADES)
+ * UTILITÁRIO DE PARSER DE TAREFAS (TODOIST INLINE TAGS, HORÁRIOS, PRIORIDADES,
+ * SUBTAREFAS, RECORRÊNCIA & QUICK ADD)
  * ============================================================================
- * Permite interpretar e compor prioridades (P1, P2, P3, P4), horários de conclusão
- * (@18:30) e tags (#Faculdade, etc.) diretamente a partir do título da tarefa,
- * com 100% de compatibilidade retroativa com o Supabase/PostgreSQL.
+ * Permite interpretar e compor prioridades (P1-P4), horários de conclusão (@18:30),
+ * tags (#Faculdade), etapas/subtarefas (||[{t, d}]) e regras de recorrência (~~daily~~)
+ * diretamente a partir do título da tarefa, com 100% de compatibilidade retroativa
+ * com o banco Supabase/PostgreSQL sem requerer migrações no banco.
  */
 
 export const PRIORIDADES = {
@@ -51,36 +53,76 @@ export const TAGS_SUGERIDAS = [
   'Finanças'
 ];
 
+export const RECORRENCIA_OPCOES = [
+  { id: 'never', label: 'Não repetir' },
+  { id: 'daily', label: 'Diariamente' },
+  { id: 'weekly', label: 'Semanalmente' },
+  { id: 'monthly', label: 'Mensalmente' },
+];
+
 /**
- * Extrai o título limpo, prioridade, horário e lista de tags a partir do nome completo salvo.
+ * Extrai o título limpo, prioridade, horário, tags, subtarefas e recorrência a partir do nome salvo.
  */
 export function parseTarefaNome(nomeCompleto = '') {
   if (!nomeCompleto) {
-    return { tituloLimpo: '', prioridade: 'p4', hora: '', tags: [] };
+    return {
+      tituloLimpo: '',
+      prioridade: 'p4',
+      hora: '',
+      tags: [],
+      subtarefas: [],
+      recorrencia: 'never',
+    };
   }
 
   let texto = nomeCompleto;
+  let subtarefas = [];
+  let recorrencia = 'never';
   let prioridade = 'p4';
   let hora = '';
 
-  // Procura padrão de prioridade (!p1, p1, P1, !1, etc.)
+  // 1. Extrai subtarefas / checklist embutido: ||[{"t":"...","d":true}]
+  const idxSub = texto.indexOf('||');
+  if (idxSub !== -1) {
+    const jsonStr = texto.substring(idxSub + 2).trim();
+    texto = texto.substring(0, idxSub).trim();
+    try {
+      const arr = JSON.parse(jsonStr);
+      if (Array.isArray(arr)) {
+        subtarefas = arr.map((item) => ({
+          texto: typeof item.t === 'string' ? item.t : '',
+          feito: Boolean(item.d),
+        })).filter(s => s.texto.trim().length > 0);
+      }
+    } catch {
+      // Ignora erro de JSON malformado
+    }
+  }
+
+  // 2. Extrai regra de recorrência: ~~(daily|weekly|monthly)~~
+  const matchRec = texto.match(/~~([a-zA-Z0-9_-]+)~~/);
+  if (matchRec) {
+    recorrencia = matchRec[1];
+    texto = texto.replace(/~~([a-zA-Z0-9_-]+)~~/g, ' ');
+  }
+
+  // 3. Procura padrão de prioridade (!p1, p1, P1, !1, etc.)
   const matchP = texto.match(/(?:^|\s)(?:!|p|P)([1-4])(?:\s|$)/);
   if (matchP) {
     prioridade = 'p' + matchP[1];
     texto = texto.replace(/(?:^|\s)(?:!|p|P)[1-4](?:\s|$)/g, ' ');
   }
 
-  // Procura horário com @ (@14:30 ou @9:00) ou solto se tiver formato HH:mm
+  // 4. Procura horário com @ (@14:30 ou @9:00)
   const matchHora = texto.match(/(?:^|\s)@((?:[01]?\d|2[0-3]):[0-5]\d)(?:\s|$)/);
   if (matchHora) {
     let h = matchHora[1];
     if (h.length === 4) h = '0' + h; // ex: 9:30 -> 09:30
     hora = h;
-    texto = texto.replace(/(?:^|\s)@(text|d|\:|[01]?\d|2[0-3]):[0-5]\d(?:\s|$)/g, ' ');
     texto = texto.replace(/(?:^|\s)@(?:[01]?\d|2[0-3]):[0-5]\d(?:\s|$)/g, ' ');
   }
 
-  // Procura tags com formato #Tag ou #nome-da-tag
+  // 5. Procura tags com formato #Tag ou #nome-da-tag
   const tags = [];
   const tagMatches = texto.match(/#([\wÀ-ÿ-]+)/g);
   if (tagMatches) {
@@ -101,13 +143,22 @@ export function parseTarefaNome(nomeCompleto = '') {
     prioridade,
     hora,
     tags,
+    subtarefas,
+    recorrencia,
   };
 }
 
 /**
- * Monta o nome completo para salvar no banco agregando hora, tags e prioridade.
+ * Monta o nome completo para salvar no banco agregando hora, tags, prioridade, recorrência e subtarefas.
  */
-export function montarTarefaNome({ titulo, prioridade = 'p4', hora = '', tags = [] }) {
+export function montarTarefaNome({
+  titulo,
+  prioridade = 'p4',
+  hora = '',
+  tags = [],
+  subtarefas = [],
+  recorrencia = 'never',
+}) {
   let resultado = (titulo || '').trim();
 
   if (hora && hora.trim()) {
@@ -126,7 +177,179 @@ export function montarTarefaNome({ titulo, prioridade = 'p4', hora = '', tags = 
     resultado += ` ${prioridade.toLowerCase()}`;
   }
 
+  if (recorrencia && recorrencia !== 'never') {
+    resultado += ` ~~${recorrencia}~~`;
+  }
+
+  if (subtarefas && subtarefas.length > 0) {
+    const compactas = subtarefas
+      .filter((s) => s.texto && s.texto.trim())
+      .map((s) => ({ t: s.texto.trim(), d: Boolean(s.feito) }));
+    if (compactas.length > 0) {
+      resultado += ` ||${JSON.stringify(compactas)}`;
+    }
+  }
+
   return resultado.trim();
+}
+
+/**
+ * Calcula o progresso de uma lista de subtarefas.
+ */
+export function calcularProgressoSubtarefas(subtarefas = []) {
+  if (!subtarefas || subtarefas.length === 0) {
+    return { total: 0, feitas: 0, porcentagem: 0 };
+  }
+  const total = subtarefas.length;
+  const feitas = subtarefas.filter((s) => s.feito).length;
+  const porcentagem = Math.round((feitas / total) * 100);
+  return { total, feitas, porcentagem };
+}
+
+/**
+ * Calcula a próxima data (YYYY-MM-DD) a partir de uma data e regra de recorrência.
+ */
+export function calcularProximaData(dataAtualStr, regra) {
+  const agora = new Date();
+  let base = agora;
+
+  if (dataAtualStr) {
+    const [ano, mes, dia] = dataAtualStr.split('T')[0].split('-').map(Number);
+    if (!isNaN(ano) && !isNaN(mes) && !isNaN(dia)) {
+      base = new Date(ano, mes - 1, dia);
+    }
+  }
+
+  const proxima = new Date(base.getTime());
+
+  if (regra === 'daily') {
+    proxima.setDate(proxima.getDate() + 1);
+  } else if (regra === 'weekly') {
+    proxima.setDate(proxima.getDate() + 7);
+  } else if (regra === 'monthly') {
+    proxima.setMonth(proxima.getMonth() + 1);
+  } else {
+    proxima.setDate(proxima.getDate() + 1);
+  }
+
+  const yyyy = proxima.getFullYear();
+  const mm = String(proxima.getMonth() + 1).padStart(2, '0');
+  const dd = String(proxima.getDate()).padStart(2, '0');
+  return `${yyyy}-${mm}-${dd}`;
+}
+
+/**
+ * Parser de Criação Rápida (Quick Add em linguagem natural).
+ * Interpreta títulos como:
+ * "Entregar relatório amanhã @15:00 #Faculdade p1"
+ * "Reunião com equipe sexta @09:30 #Trabalho"
+ */
+export function parseQuickAdd(textoLivre = '') {
+  let texto = (textoLivre || '').trim();
+  const hoje = new Date();
+  
+  const formatarDataIso = (d) => {
+    const yyyy = d.getFullYear();
+    const mm = String(d.getMonth() + 1).padStart(2, '0');
+    const dd = String(d.getDate()).padStart(2, '0');
+    return `${yyyy}-${mm}-${dd}`;
+  };
+
+  let dataDetectada = formatarDataIso(hoje);
+  let prioridade = 'p4';
+  let hora = '';
+  const tags = [];
+
+  // 1. Prioridades: p1, p2, p3, p4
+  const matchP = texto.match(/(?:^|\s)(?:!|p|P)([1-4])(?:\s|$)/);
+  if (matchP) {
+    prioridade = 'p' + matchP[1];
+    texto = texto.replace(/(?:^|\s)(?:!|p|P)[1-4](?:\s|$)/g, ' ');
+  }
+
+  // 2. Horário: @14:30 ou @9:00
+  const matchHora = texto.match(/(?:^|\s)@((?:[01]?\d|2[0-3]):[0-5]\d)(?:\s|$)/);
+  if (matchHora) {
+    let h = matchHora[1];
+    if (h.length === 4) h = '0' + h;
+    hora = h;
+    texto = texto.replace(/(?:^|\s)@(?:[01]?\d|2[0-3]):[0-5]\d(?:\s|$)/g, ' ');
+  }
+
+  // 3. Tags: #Faculdade
+  const tagMatches = texto.match(/#([\wÀ-ÿ-]+)/g);
+  if (tagMatches) {
+    tagMatches.forEach((t) => {
+      const limpa = t.replace('#', '').trim();
+      if (limpa && !tags.includes(limpa)) {
+        tags.push(limpa);
+      }
+    });
+    texto = texto.replace(/#([\wÀ-ÿ-]+)/g, ' ');
+  }
+
+  // 4. Reconhecimento de datas em Português
+  const lower = texto.toLowerCase();
+
+  // Amanhã
+  if (/\b(amanhã|amanha)\b/i.test(texto)) {
+    const d = new Date(hoje);
+    d.setDate(d.getDate() + 1);
+    dataDetectada = formatarDataIso(d);
+    texto = texto.replace(/\b(amanhã|amanha)\b/gi, ' ');
+  } else if (/\b(hoje)\b/i.test(texto)) {
+    dataDetectada = formatarDataIso(hoje);
+    texto = texto.replace(/\b(hoje)\b/gi, ' ');
+  } else if (/\b(depois de amanhã|depois de amanha)\b/i.test(texto)) {
+    const d = new Date(hoje);
+    d.setDate(d.getDate() + 2);
+    dataDetectada = formatarDataIso(d);
+    texto = texto.replace(/\b(depois de amanhã|depois de amanha)\b/gi, ' ');
+  } else if (/\b(semana que vem|próxima semana|proxima semana)\b/i.test(texto)) {
+    const d = new Date(hoje);
+    d.setDate(d.getDate() + 7);
+    dataDetectada = formatarDataIso(d);
+    texto = texto.replace(/\b(semana que vem|próxima semana|proxima semana)\b/gi, ' ');
+  } else {
+    // Dias da semana
+    const diasSemana = [
+      { nomes: ['domingo'], dia: 0 },
+      { nomes: ['segunda', 'segunda-feira'], dia: 1 },
+      { nomes: ['terça', 'terca', 'terça-feira', 'terca-feira'], dia: 2 },
+      { nomes: ['quarta', 'quarta-feira'], dia: 3 },
+      { nomes: ['quinta', 'quinta-feira'], dia: 4 },
+      { nomes: ['sexta', 'sexta-feira'], dia: 5 },
+      { nomes: ['sábado', 'sabado'], dia: 6 },
+    ];
+
+    for (const item of diasSemana) {
+      for (const n of item.nomes) {
+        const regex = new RegExp(`\\b(${n})\\b`, 'i');
+        if (regex.test(texto)) {
+          const d = new Date(hoje);
+          const hojeDia = hoje.getDay();
+          let diasAte = (item.dia - hojeDia + 7) % 7;
+          if (diasAte === 0) diasAte = 7; // Próximo daquela semana
+          d.setDate(d.getDate() + diasAte);
+          dataDetectada = formatarDataIso(d);
+          texto = texto.replace(regex, ' ');
+          break;
+        }
+      }
+    }
+  }
+
+  // Título limpo restante
+  const tituloLimpo = texto.replace(/\s+/g, ' ').trim();
+
+  return {
+    titulo: tituloLimpo,
+    prioridade,
+    hora,
+    tags,
+    dataCome: formatarDataIso(hoje),
+    dataTermi: dataDetectada,
+  };
 }
 
 /**

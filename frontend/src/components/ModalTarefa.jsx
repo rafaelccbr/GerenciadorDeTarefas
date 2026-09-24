@@ -1,29 +1,33 @@
 import { useState } from 'react';
-import { Flag, Tag, Plus, X, Clock } from 'lucide-react';
+import { Flag, Tag, Plus, X, Clock, Repeat, ListChecks, CheckSquare, Square, Trash2 } from 'lucide-react';
 import { useTheme } from '../context/ThemeContext.jsx';
 import { 
   parseTarefaNome, 
   montarTarefaNome, 
   PRIORIDADES, 
   TAGS_SUGERIDAS, 
+  RECORRENCIA_OPCOES,
+  calcularProgressoSubtarefas,
   obterCorTag 
 } from '../utils/tarefaParser.js';
 
 /**
  * ============================================================================
- * MODAL DE CADASTRO / EDIÇÃO DE TAREFAS (COM PRIORIDADES, TAGS E HORÁRIO)
+ * MODAL DE CADASTRO / EDIÇÃO DE TAREFAS
  * ============================================================================
  * Suporte completo a:
  * - Prioridades P1 a P4 Todoist
  * - Tags e Categorias customizadas e sugeridas
  * - Horário de conclusão com alerta preciso de minutos
+ * - ☑️ Etapas / Subtarefas (Mini-Checklist dinâmico com progresso)
+ * - 🔁 Recorrência (Diária, Semanal, Mensal)
  */
 export function ModalTarefa({ tarefaParaEditar, statusInicial, aoSalvar, aoFechar }) {
   const { tema } = useTheme();
   const ehDark = tema === 'dark';
   const hoje = new Date().toISOString().split('T')[0];
 
-  // Extrai título limpo, prioridade, horário e tags se for edição
+  // Extrai título limpo, prioridade, horário, tags, subtarefas e recorrência se for edição
   const parsed = parseTarefaNome(tarefaParaEditar?.nome || '');
   const [nome, setNome] = useState(parsed.tituloLimpo);
   const [prioridade, setPrioridade] = useState(parsed.prioridade || 'p4');
@@ -31,6 +35,13 @@ export function ModalTarefa({ tarefaParaEditar, statusInicial, aoSalvar, aoFecha
   const [tags, setTags] = useState(parsed.tags || []);
   const [inputCustomTag, setInputCustomTag] = useState('');
   
+  // Subtarefas / Etapas
+  const [subtarefas, setSubtarefas] = useState(parsed.subtarefas || []);
+  const [novaEtapaTexto, setNovaEtapaTexto] = useState('');
+
+  // Recorrência
+  const [recorrencia, setRecorrencia] = useState(parsed.recorrencia || 'never');
+
   const [status, setStatus] = useState(tarefaParaEditar?.status || statusInicial || 'pendente');
   const [dataCome, setDataCome] = useState(tarefaParaEditar?.data_come || hoje);
   const [dataTermi, setDataTermi] = useState(tarefaParaEditar?.data_termi || hoje);
@@ -61,6 +72,28 @@ export function ModalTarefa({ tarefaParaEditar, statusInicial, aoSalvar, aoFecha
     }
   };
 
+  // Manipulação de Subtarefas
+  const adicionarSubtarefa = () => {
+    const texto = novaEtapaTexto.trim();
+    if (!texto) return;
+    setSubtarefas([...subtarefas, { texto, feito: false }]);
+    setNovaEtapaTexto('');
+  };
+
+  const alternarSubtarefa = (index) => {
+    setSubtarefas(subtarefas.map((s, idx) => (idx === index ? { ...s, feito: !s.feito } : s)));
+  };
+
+  const atualizarTextoSubtarefa = (index, novoTexto) => {
+    setSubtarefas(subtarefas.map((s, idx) => (idx === index ? { ...s, texto: novoTexto } : s)));
+  };
+
+  const removerSubtarefa = (index) => {
+    setSubtarefas(subtarefas.filter((_, idx) => idx !== index));
+  };
+
+  const progressoSubtarefas = calcularProgressoSubtarefas(subtarefas);
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setErro('');
@@ -80,12 +113,14 @@ export function ModalTarefa({ tarefaParaEditar, statusInicial, aoSalvar, aoFecha
       return;
     }
 
-    // Monta o nome composto com horário, tags e prioridade
+    // Monta o nome composto com horário, tags, prioridade, recorrência e subtarefas
     const nomeComposto = montarTarefaNome({
       titulo: nome,
       prioridade,
       hora,
       tags,
+      subtarefas,
+      recorrencia,
     });
 
     try {
@@ -107,14 +142,14 @@ export function ModalTarefa({ tarefaParaEditar, statusInicial, aoSalvar, aoFecha
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-md p-3 sm:p-4">
-      {/* Container do Modal com Leve Transparência, Bordas Suaves e Rolagem Segura */}
+      {/* Container do Modal com Transparência e Rolagem Segura */}
       <div className={`relative w-full max-w-xl backdrop-blur-2xl rounded-3xl overflow-hidden animate-fade-in max-h-[92dvh] flex flex-col transition-all duration-500 ${
         ehDark
           ? 'bg-gradient-to-b from-[#180e25]/95 via-[#10091a]/95 to-[#09050e]/98 border border-purple-500/25 text-purple-100 shadow-[0_25px_60px_-15px_rgba(0,0,0,0.9),0_0_35px_rgba(168,85,247,0.12)]'
           : 'bg-white/95 border border-white/60 text-gray-800 shadow-[0_20px_60px_rgba(0,0,0,0.5)]'
       }`}>
         
-        {/* Cabeçalho com Degradê Violeta Profundo ou Carvão */}
+        {/* Cabeçalho */}
         <div className={`py-3.5 sm:py-4 px-6 text-center shadow-md shrink-0 ${
           ehDark 
             ? 'bg-gradient-to-r from-[#2a0e44] via-[#3d1264] to-[#2a0e44] border-b border-purple-500/30' 
@@ -125,10 +160,10 @@ export function ModalTarefa({ tarefaParaEditar, statusInicial, aoSalvar, aoFecha
           </h2>
         </div>
 
-        {/* Corpo do Formulário com Rolagem Ativa em Telas Pequenas */}
+        {/* Corpo do Formulário */}
         <form onSubmit={handleSubmit} className="p-5 sm:p-7 space-y-4 sm:space-y-5 overflow-y-auto">
           
-          {/* Mensagem de Erro, se houver */}
+          {/* Mensagem de Erro */}
           {erro && (
             <div className={`p-3 text-xs sm:text-sm rounded-xl ${
               ehDark
@@ -282,8 +317,123 @@ export function ModalTarefa({ tarefaParaEditar, statusInicial, aoSalvar, aoFecha
 
           </div>
 
-          {/* Linha com Status, Início, Término e Horário Limite */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 items-end">
+          {/* NOVA SEÇÃO: Subtarefas / Mini-Checklist */}
+          <div className={`p-3.5 rounded-2xl border ${
+            ehDark ? 'bg-white/[0.03] border-white/10' : 'bg-purple-50/40 border-purple-100'
+          }`}>
+            <div className="flex items-center justify-between mb-2">
+              <label className={`flex items-center gap-1.5 text-xs sm:text-sm font-bold ${
+                ehDark ? 'text-purple-200' : 'text-gray-900'
+              }`}>
+                <ListChecks className="w-4 h-4 text-purple-400" />
+                Etapas (Checklist)
+              </label>
+
+              {subtarefas.length > 0 && (
+                <span className={`text-[11px] font-semibold ${
+                  progressoSubtarefas.porcentagem === 100 
+                    ? 'text-emerald-400' 
+                    : ehDark ? 'text-purple-300/70' : 'text-gray-500'
+                }`}>
+                  {progressoSubtarefas.feitas}/{progressoSubtarefas.total} concluídas ({progressoSubtarefas.porcentagem}%)
+                </span>
+              )}
+            </div>
+
+            {/* Barra de progresso das subtarefas */}
+            {subtarefas.length > 0 && (
+              <div className={`w-full h-1.5 rounded-full overflow-hidden mb-3 ${ehDark ? 'bg-white/10' : 'bg-gray-200'}`}>
+                <div 
+                  className={`h-full rounded-full transition-all duration-300 ${
+                    progressoSubtarefas.porcentagem === 100 
+                      ? 'bg-emerald-400' 
+                      : 'bg-purple-500'
+                  }`}
+                  style={{ width: `${progressoSubtarefas.porcentagem}%` }}
+                />
+              </div>
+            )}
+
+            {/* Lista de etapas cadastradas */}
+            <div className="space-y-1.5 max-h-40 overflow-y-auto mb-2.5">
+              {subtarefas.map((etapa, idx) => (
+                <div 
+                  key={idx} 
+                  className={`flex items-center gap-2 p-1.5 rounded-xl border text-xs transition-all ${
+                    ehDark ? 'bg-white/5 border-white/10' : 'bg-white border-gray-200'
+                  }`}
+                >
+                  <button
+                    type="button"
+                    onClick={() => alternarSubtarefa(idx)}
+                    className="cursor-pointer text-purple-400 hover:scale-110 transition-transform shrink-0"
+                  >
+                    {etapa.feito ? (
+                      <CheckSquare className="w-4 h-4 text-emerald-400" />
+                    ) : (
+                      <Square className="w-4 h-4 text-gray-400" />
+                    )}
+                  </button>
+
+                  <input
+                    type="text"
+                    value={etapa.texto}
+                    onChange={(e) => atualizarTextoSubtarefa(idx, e.target.value)}
+                    className={`flex-1 bg-transparent focus:outline-none text-xs ${
+                      etapa.feito 
+                        ? ehDark ? 'line-through text-purple-300/40' : 'line-through text-gray-400'
+                        : ehDark ? 'text-white' : 'text-gray-800'
+                    }`}
+                  />
+
+                  <button
+                    type="button"
+                    onClick={() => removerSubtarefa(idx)}
+                    className="p-1 hover:text-rose-400 text-gray-400 transition-colors cursor-pointer shrink-0"
+                    title="Remover etapa"
+                  >
+                    <Trash2 className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+              ))}
+            </div>
+
+            {/* Input para adicionar nova etapa */}
+            <div className="flex items-center gap-2">
+              <input
+                type="text"
+                value={novaEtapaTexto}
+                onChange={(e) => setNovaEtapaTexto(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    e.preventDefault();
+                    adicionarSubtarefa();
+                  }
+                }}
+                placeholder="Adicionar nova etapa e pressionar Enter..."
+                className={`flex-1 px-3 py-1.5 rounded-xl text-xs font-medium border transition-all focus:outline-none focus:ring-2 ${
+                  ehDark
+                    ? 'bg-white/10 text-white placeholder-purple-200/40 border-white/15 focus:border-purple-400 focus:ring-purple-400/30'
+                    : 'bg-white text-gray-800 placeholder-gray-400 border-gray-200 focus:border-purple-400 focus:ring-purple-400/30'
+                }`}
+              />
+              <button
+                type="button"
+                onClick={adicionarSubtarefa}
+                className={`px-3 py-1.5 rounded-xl border text-xs font-semibold flex items-center gap-1 transition-all cursor-pointer active:scale-95 ${
+                  ehDark 
+                    ? 'bg-purple-500/20 hover:bg-purple-500/35 border-purple-500/30 text-purple-200' 
+                    : 'bg-purple-50 hover:bg-purple-100 border-purple-200 text-purple-700'
+                }`}
+              >
+                <Plus className="w-3.5 h-3.5" />
+                <span>Etapa</span>
+              </button>
+            </div>
+          </div>
+
+          {/* Linha com Status, Início, Término, Horário e Recorrência */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 items-end">
             
             {/* Campo: Status */}
             <div>
@@ -327,7 +477,7 @@ export function ModalTarefa({ tarefaParaEditar, statusInicial, aoSalvar, aoFecha
               />
             </div>
 
-            {/* Campo: Término (Data) */}
+            {/* Campo: Término */}
             <div>
               <label className={`block text-xs sm:text-sm font-bold mb-1.5 ${
                 ehDark ? 'text-purple-200' : 'text-gray-900'
@@ -347,7 +497,7 @@ export function ModalTarefa({ tarefaParaEditar, statusInicial, aoSalvar, aoFecha
               />
             </div>
 
-            {/* Campo: Horário de Conclusão (Hora) */}
+            {/* Campo: Horário */}
             <div>
               <div className="flex items-center justify-between mb-1.5">
                 <label className={`flex items-center gap-1 text-xs sm:text-sm font-bold ${
@@ -380,12 +530,36 @@ export function ModalTarefa({ tarefaParaEditar, statusInicial, aoSalvar, aoFecha
               />
             </div>
 
+            {/* Campo: Recorrência */}
+            <div className="sm:col-span-2 lg:col-span-2">
+              <label className={`flex items-center gap-1.5 text-xs sm:text-sm font-bold mb-1.5 ${
+                ehDark ? 'text-purple-200' : 'text-gray-900'
+              }`}>
+                <Repeat className="w-3.5 h-3.5 text-purple-400" />
+                Repetição / Rotina
+              </label>
+              <select
+                value={recorrencia}
+                onChange={(e) => setRecorrencia(e.target.value)}
+                className={`w-full px-3 py-2 rounded-xl font-medium text-xs sm:text-sm focus:outline-none focus:ring-4 transition-all cursor-pointer ${
+                  ehDark
+                    ? 'bg-white/10 hover:bg-white/[0.14] border border-white/20 text-white focus:ring-purple-400/40 focus:border-purple-400 [&>option]:bg-[#140b20] [&>option]:text-white'
+                    : 'bg-gray-100 hover:bg-gray-200 border border-purple-300/50 text-gray-800 focus:ring-purple-400/30 focus:border-purple-400'
+                }`}
+              >
+                {RECORRENCIA_OPCOES.map((op) => (
+                  <option key={op.id} value={op.id}>
+                    {op.label}
+                  </option>
+                ))}
+              </select>
+            </div>
+
           </div>
 
-          {/* Botões de Ação (Salvar e Cancelar) */}
+          {/* Botões de Ação */}
           <div className="flex flex-col-reverse sm:flex-row justify-center items-center gap-3 sm:gap-4 pt-3 sm:pt-4">
             
-            {/* Botão Cancelar */}
             <button
               type="button"
               onClick={aoFechar}
@@ -398,7 +572,6 @@ export function ModalTarefa({ tarefaParaEditar, statusInicial, aoSalvar, aoFecha
               Cancelar
             </button>
 
-            {/* Botão Salvar */}
             <button
               type="submit"
               disabled={salvando}
