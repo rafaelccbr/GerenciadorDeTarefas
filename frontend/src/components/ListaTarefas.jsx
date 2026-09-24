@@ -35,6 +35,7 @@ import {
 import confetti from 'canvas-confetti';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
+import * as XLSX from 'xlsx';
 import { useTheme } from '../context/ThemeContext.jsx';
 import { SeletorTema } from './SeletorTema.jsx';
 import { 
@@ -471,7 +472,7 @@ export function ListaTarefas({ usuario, aoDeslogar, aoAbrirConta }) {
     setTarefaEmEdicao(null);
   };
 
-  // Exportar CSV formatado nativamente para Excel (padrão brasileiro com ponto e vírgula)
+  // Exportar Planilha Excel nativa (.xlsx) com colunas auto-ajustadas
   const exportarCsv = (listaParaExportar) => {
     setMenuExportarAberto(false);
     if (!listaParaExportar || listaParaExportar.length === 0) {
@@ -480,17 +481,6 @@ export function ListaTarefas({ usuario, aoDeslogar, aoAbrirConta }) {
     }
 
     try {
-      const escapar = (valor) => {
-        if (valor === null || valor === undefined || valor === '') return '';
-        const str = String(valor).trim();
-        if (str.includes(';') || str.includes('"') || str.includes('\n') || str.includes('\r')) {
-          return `"${str.replace(/"/g, '""')}"`;
-        }
-        return str;
-      };
-
-      const cabecalho = ['Título', 'Início', 'Término', 'Horário', 'Status', 'Prioridade', 'Tags', 'Recorrência', 'Etapas'];
-      
       const rotuloRecorrencia = {
         daily: 'Diariamente',
         weekly: 'Semanalmente',
@@ -498,44 +488,46 @@ export function ListaTarefas({ usuario, aoDeslogar, aoAbrirConta }) {
         never: 'Não',
       };
 
-      const linhas = listaParaExportar.map((t) => {
+      const dadosPlanilha = listaParaExportar.map((t) => {
         const { tituloLimpo, prioridade, hora, tags, recorrencia, subtarefas } = parseTarefaNome(t.nome);
         const prog = calcularProgressoSubtarefas(subtarefas);
         const etapasStr = subtarefas.length > 0 ? `${prog.feitas}/${prog.total} concluídas` : 'Nenhuma';
-        const tagsStr = (tags && tags.length > 0) ? tags.map(tg => `#${tg}`).join(' ') : '';
+        const tagsStr = (tags && tags.length > 0) ? tags.map((tg) => `#${tg}`).join(' ') : '-';
         const recStr = rotuloRecorrencia[recorrencia] || 'Não';
 
-        return [
-          escapar(tituloLimpo || 'Sem título'),
-          escapar(formatarData(t.data_come)),
-          escapar(formatarData(t.data_termi)),
-          escapar(hora || '-'),
-          escapar(rotuloStatus[t.status] || t.status),
-          escapar((prioridade || 'p4').toUpperCase()),
-          escapar(tagsStr),
-          escapar(recStr),
-          escapar(etapasStr),
-        ].join(';');
+        return {
+          'Título da Tarefa': tituloLimpo || 'Sem título',
+          'Início': formatarData(t.data_come),
+          'Término': formatarData(t.data_termi),
+          'Horário': hora || '-',
+          'Status': rotuloStatus[t.status] || t.status,
+          'Prioridade': (prioridade || 'p4').toUpperCase(),
+          'Tags': tagsStr,
+          'Recorrência': recStr,
+          'Etapas': etapasStr,
+        };
       });
 
-      // \uFEFF adiciona o Byte Order Mark (BOM) UTF-8 para o Excel abrir com acentuação correta
-      const conteudoCsv = '\uFEFF' + [cabecalho.map(escapar).join(';'), ...linhas].join('\r\n');
-      const blob = new Blob([conteudoCsv], { type: 'text/csv;charset=utf-8;' });
-      const url = URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      link.href = url;
-      link.setAttribute('download', `tarefas_${new Date().toISOString().split('T')[0]}.csv`);
-      document.body.appendChild(link);
-      link.click();
-      setTimeout(() => {
-        if (link.parentNode) {
-          link.parentNode.removeChild(link);
-        }
-        URL.revokeObjectURL(url);
-      }, 300);
+      // Cria a aba da planilha a partir dos objetos JSON
+      const ws = XLSX.utils.json_to_sheet(dadosPlanilha);
+
+      // Calcula automaticamente a largura ideal de cada coluna (em caracteres + margem de segurança)
+      // Isso impede 100% que datas virem "########" ou que títulos fiquem cortados no Excel
+      const chaves = Object.keys(dadosPlanilha[0] || {});
+      ws['!cols'] = chaves.map((chave) => {
+        const maiorTexto = dadosPlanilha.reduce((max, linha) => {
+          const valorStr = String(linha[chave] || '');
+          return Math.max(max, valorStr.length);
+        }, chave.length);
+        return { wch: Math.max(maiorTexto + 6, 16) };
+      });
+
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, 'Minhas Tarefas');
+      XLSX.writeFile(wb, `tarefas_${new Date().toISOString().split('T')[0]}.xlsx`);
     } catch (e) {
-      console.error('Erro ao exportar CSV:', e);
-      alert(`Falha ao exportar CSV: ${e.message}`);
+      console.error('Erro ao exportar planilha Excel:', e);
+      alert(`Falha ao exportar Excel: ${e.message}`);
     }
   };
 
@@ -960,8 +952,8 @@ export function ListaTarefas({ usuario, aoDeslogar, aoAbrirConta }) {
                       <FileSpreadsheet className="w-4 h-4" />
                     </div>
                     <div>
-                      <div className="font-bold">Planilha Excel (CSV)</div>
-                      <div className={`text-[10px] ${ehDark ? 'text-purple-300/50' : 'text-gray-400'}`}>Arquivo formatado para Excel</div>
+                      <div className="font-bold">Planilha Excel (.XLSX)</div>
+                      <div className={`text-[10px] ${ehDark ? 'text-purple-300/50' : 'text-gray-400'}`}>Colunas ajustadas automaticamente</div>
                     </div>
                   </button>
 
