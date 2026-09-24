@@ -847,7 +847,7 @@ export function ListaTarefas({ usuario, aoDeslogar, aoAbrirConta }) {
     }
   };
 
-  // Exportar PDF
+  // Exportar PDF Executivo (A4 Paisagem com Banner, Cards de KPI, Barra de Progresso e Cores por Status/Prioridade)
   const exportarPdf = (listaParaExportar) => {
     setMenuExportarAberto(false);
     if (!listaParaExportar || listaParaExportar.length === 0) {
@@ -856,46 +856,190 @@ export function ListaTarefas({ usuario, aoDeslogar, aoAbrirConta }) {
     }
 
     try {
-      const doc = new jsPDF();
-      doc.setFontSize(18);
-      doc.setTextColor(88, 28, 135);
-      doc.text('Relatório de Tarefas', 14, 20);
+      const doc = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
+      const pageWidth = doc.internal.pageSize.getWidth();
+      const pageHeight = doc.internal.pageSize.getHeight();
 
-      doc.setFontSize(10);
-      doc.setTextColor(100);
-      const dataHoje = new Date().toLocaleDateString('pt-BR');
-      doc.text(`Usuário: ${usuario?.nome || 'Usuário'} | Gerado em: ${dataHoje}`, 14, 28);
-      doc.text(`Total de tarefas: ${listaParaExportar.length} | Produtividade: ${porcentagem}%`, 14, 34);
+      // 1. Banner Superior Roxo Escuro (#4C1D95 -> RGB 76, 29, 149)
+      doc.setFillColor(76, 29, 149);
+      doc.rect(0, 0, pageWidth, 24, 'F');
 
-      const head = [['Título', 'Início', 'Término', 'Status', 'Prioridade', 'Tags']];
-      const body = listaParaExportar.map((t) => {
-        const { tituloLimpo, prioridade, hora, tags } = parseTarefaNome(t.nome);
+      // Linha de destaque Violeta Neon abaixo do banner
+      doc.setFillColor(168, 85, 247);
+      doc.rect(0, 24, pageWidth, 1.5, 'F');
+
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(15);
+      doc.setTextColor(255, 255, 255);
+      doc.text('RELATÓRIO EXECUTIVO DE TAREFAS — ORGANIZADOR PRO', 14, 11);
+
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(9);
+      doc.setTextColor(233, 213, 255);
+      const dataHoraAgora = new Date().toLocaleString('pt-BR');
+      doc.text(`Usuário: ${usuario?.nome || 'Usuário'}   |   Emitido em: ${dataHoraAgora}`, 14, 18.5);
+
+      // 2. Cálculos para os 4 Cards de KPI da lista exportada
+      const qtdTotal = listaParaExportar.length;
+      const qtdConcluidas = listaParaExportar.filter((t) => t.status === 'concluido').length;
+      const qtdAndamento = listaParaExportar.filter((t) => t.status === 'em_andamento').length;
+      const qtdPendentes = listaParaExportar.filter((t) => t.status === 'pendente').length;
+      const taxaLista = qtdTotal > 0 ? Math.round((qtdConcluidas / qtdTotal) * 100) : 0;
+
+      const kpis = [
+        { titulo: 'TOTAL LISTADO', valor: `${qtdTotal} tarefas`, bg: [243, 232, 255], borda: [192, 132, 252], txt: [88, 28, 135] },
+        { titulo: 'CONCLUÍDAS', valor: `${qtdConcluidas} (${taxaLista}%)`, bg: [209, 250, 229], borda: [52, 211, 153], txt: [6, 95, 70] },
+        { titulo: 'EM ANDAMENTO', valor: `${qtdAndamento} tarefas`, bg: [237, 233, 254], borda: [167, 139, 250], txt: [91, 33, 182] },
+        { titulo: 'PENDENTES', valor: `${qtdPendentes} tarefas`, bg: [254, 243, 199], borda: [251, 191, 36], txt: [146, 64, 14] },
+      ];
+
+      const margemX = 14;
+      const gapCard = 5;
+      const larguraCard = (pageWidth - margemX * 2 - gapCard * 3) / 4;
+      const yCards = 30;
+
+      kpis.forEach((kpi, i) => {
+        const x = margemX + i * (larguraCard + gapCard);
+        doc.setFillColor(...kpi.bg);
+        doc.setDrawColor(...kpi.borda);
+        doc.setLineWidth(0.4);
+        doc.roundedRect(x, yCards, larguraCard, 15, 2.5, 2.5, 'FD');
+
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(7.5);
+        doc.setTextColor(...kpi.txt);
+        doc.text(kpi.titulo, x + 4, yCards + 5.5);
+
+        doc.setFontSize(11);
+        doc.text(kpi.valor, x + 4, yCards + 12);
+      });
+
+      // 3. Barra Visual de Progresso no PDF
+      const yBarra = 49;
+      const larguraTotalBarra = pageWidth - margemX * 2;
+      doc.setFillColor(229, 231, 235);
+      doc.roundedRect(margemX, yBarra, larguraTotalBarra, 3, 1.5, 1.5, 'F');
+      if (taxaLista > 0) {
+        doc.setFillColor(16, 185, 129);
+        doc.roundedRect(margemX, yBarra, (larguraTotalBarra * taxaLista) / 100, 3, 1.5, 1.5, 'F');
+      }
+
+      // 4. Tabela Estilizada com Cores Semânticas por Célula
+      const rotuloPrioPdf = {
+        p1: 'P1 - Urgente',
+        p2: 'P2 - Alta',
+        p3: 'P3 - Média',
+        p4: 'P4 - Normal',
+      };
+
+      const head = [['#', 'Título da Tarefa', 'Início', 'Prazo / Hora', 'Status', 'Prioridade', 'Tags', 'Etapas', 'Notas / Links']];
+      const body = listaParaExportar.map((t, idx) => {
+        const { tituloLimpo, prioridade, hora, tags, subtarefas, notas } = parseTarefaNome(t.nome);
+        const prog = calcularProgressoSubtarefas(subtarefas);
+        const etapasTxt = subtarefas.length > 0 ? `${prog.feitas}/${prog.total} (${prog.porcentagem}%)` : '-';
+        const prioKey = (prioridade || 'p4').toLowerCase();
+
         return [
+          String(idx + 1),
           tituloLimpo || 'Sem título',
           formatarData(t.data_come),
           formatarData(t.data_termi) + (hora ? ` às ${hora}` : ''),
           rotuloStatus[t.status] || t.status,
-          (prioridade || 'P4').toUpperCase(),
-          (tags || []).map((tg) => `#${tg}`).join(' '),
+          rotuloPrioPdf[prioKey] || prioKey.toUpperCase(),
+          (tags && tags.length > 0) ? tags.map((tg) => `#${tg}`).join(' ') : '-',
+          etapasTxt,
+          notas ? notas.replace(/\s+/g, ' ').trim() : '-',
         ];
       });
 
       const autoTableFunc = typeof autoTable === 'function' ? autoTable : (autoTable?.default || doc.autoTable);
       if (typeof autoTableFunc === 'function') {
         autoTableFunc(doc, {
-          startY: 40,
+          startY: 55,
           head,
           body,
-          headStyles: { 
-            fillColor: [126, 34, 206],
+          theme: 'grid',
+          headStyles: {
+            fillColor: [109, 40, 217],
             textColor: [255, 255, 255],
-            fontStyle: 'bold'
+            fontStyle: 'bold',
+            fontSize: 8.5,
+            halign: 'center',
+            cellPadding: 3,
           },
           alternateRowStyles: {
-            fillColor: [248, 245, 255]
+            fillColor: [248, 245, 255],
           },
-          theme: 'striped',
-          styles: { fontSize: 8, cellPadding: 2.5 },
+          styles: {
+            fontSize: 8,
+            cellPadding: 2.5,
+            textColor: [31, 41, 55],
+            lineColor: [229, 231, 235],
+            lineWidth: 0.2,
+            valign: 'middle',
+          },
+          columnStyles: {
+            0: { halign: 'center', cellWidth: 10 },
+            1: { fontStyle: 'bold', cellWidth: 62 },
+            2: { halign: 'center', cellWidth: 22 },
+            3: { halign: 'center', cellWidth: 32 },
+            4: { halign: 'center', fontStyle: 'bold', cellWidth: 28 },
+            5: { halign: 'center', fontStyle: 'bold', cellWidth: 26 },
+            6: { textColor: [109, 40, 217], fontStyle: 'bold', cellWidth: 32 },
+            7: { halign: 'center', cellWidth: 22 },
+            8: { cellWidth: 'auto' },
+          },
+          didParseCell: (data) => {
+            if (data.section === 'body') {
+              // Coluna Status (index 4)
+              if (data.column.index === 4) {
+                const val = data.cell.raw;
+                if (val === 'Concluído') {
+                  data.cell.styles.fillColor = [209, 250, 229];
+                  data.cell.styles.textColor = [6, 95, 70];
+                } else if (val === 'Em andamento') {
+                  data.cell.styles.fillColor = [237, 233, 254];
+                  data.cell.styles.textColor = [91, 33, 182];
+                } else {
+                  data.cell.styles.fillColor = [254, 243, 199];
+                  data.cell.styles.textColor = [146, 64, 14];
+                }
+              }
+              // Coluna Prioridade (index 5)
+              if (data.column.index === 5) {
+                const val = String(data.cell.raw || '');
+                if (val.startsWith('P1')) {
+                  data.cell.styles.fillColor = [254, 226, 226];
+                  data.cell.styles.textColor = [153, 27, 27];
+                } else if (val.startsWith('P2')) {
+                  data.cell.styles.fillColor = [255, 237, 213];
+                  data.cell.styles.textColor = [154, 52, 18];
+                } else if (val.startsWith('P3')) {
+                  data.cell.styles.fillColor = [219, 234, 254];
+                  data.cell.styles.textColor = [30, 64, 175];
+                } else {
+                  data.cell.styles.textColor = [107, 114, 128];
+                  data.cell.styles.fontStyle = 'normal';
+                }
+              }
+            }
+          },
+          didDrawPage: (data) => {
+            // Rodapé em todas as páginas
+            doc.setFont('helvetica', 'normal');
+            doc.setFontSize(8);
+            doc.setTextColor(150);
+            doc.text(
+              'Organizador de Tarefas Pro — Relatório Automático de Produtividade',
+              margemX,
+              pageHeight - 6
+            );
+            doc.text(
+              `Página ${data.pageNumber}`,
+              pageWidth - margemX - 18,
+              pageHeight - 6
+            );
+          },
         });
       }
 
