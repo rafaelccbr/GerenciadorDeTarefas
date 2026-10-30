@@ -2286,7 +2286,7 @@ export function ListaTarefas({ usuario, aoDeslogar, aoAbrirConta }) {
 
                               {/* Coluna: Data de Término com Horário e Alerta Inteligente */}
                               <td className={`py-4 px-4 whitespace-nowrap text-center sm:text-left ${ehDark ? 'text-(--muted)' : 'text-(--muted)'}`}>
-                                <div className="inline-flex items-center gap-2">
+                                <div className="task-deadline">
                                   <span className="flex items-center gap-1.5 font-medium">
                                     {formatarData(tarefa.data_termi)}
                                     {hora && (

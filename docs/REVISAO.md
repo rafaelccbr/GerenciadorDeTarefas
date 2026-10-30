@@ -99,3 +99,9 @@ Validação no navegador com contas locais temporárias: 320, 360, 390, 600, 768
 Inspeção do layout fluido: login e painel, nos dois temas, passaram com 0 falhas e 0 avisos em 1440, 768, 390 e 320 px, mantendo apenas as exceções de paleta solicitadas pelo usuário. Revisão visual interna: design 8,2; usabilidade 8,8; identidade 8,5. O teste de responsividade também confirmou que os nomes Tabela e Quadro ficam em uma linha, inclusive em 320 px.
 
 Layout fluido publicado no Cloudflare na versão 782e2339-ddab-4348-9a80-bcbaa83876e8. O CSS entregue pela URL pública corresponde ao build final e inclui os tokens fluidos e a grade adaptativa. A página e a API responderam 200; a consulta de tarefas sem sessão respondeu 401. Lint e build passaram. Segredos, backups e capturas continuam fora do Git.
+
+## Status sem quebra na tabela
+
+A imagem enviada pelo usuário revelou que a quebra genérica de palavras dos controles permitia dividir Concluído dentro do botão. Os status agora preservam uma linha e sua largura intrínseca. A coluna de título recebe o espaço restante, enquanto datas, status e ações reservam a largura de seu conteúdo. Alertas de prazo aparecem abaixo da data e do horário, evitando disputar a mesma linha.
+
+O cenário foi reproduzido com uma tarefa concluída às 23:59 e outra pendente às 20:30, com prazo em 09/10/2026. Verificação nos dois temas em 320, 390, 768, 1024, 1100, 1280, 1440 e 1920 px, com fonte raiz de 16 e 20 px: todos os status em uma linha, sem transbordamento da tabela ou da página. Capturas de 1024 e 1440 px foram revisadas. ESLint passou. As tarefas usadas são temporárias e locais.
