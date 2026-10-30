@@ -8,6 +8,8 @@ A interface usa a direção **Editorial greeting** da Taste Skill: tipografia In
 
 Os botões usam pares de cores de fundo e texto próprios de cada tema. Os atalhos aparecem junto às ações: **N** para nova tarefa, **/** para buscar, **Enter** para adicionar, **Ctrl/⌘ + Enter** para salvar no formulário de tarefa e **Esc** para fechar o diálogo ou limpar a busca. Os atalhos de criar e buscar respeitam campos em edição; a navegação por Tab permanece dentro do diálogo aberto.
 
+O painel usa margens e espaçamentos fluidos, cartões com colunas ajustadas ao espaço disponível e Kanban adaptado à largura do painel. Em tablets, a busca ocupa uma linha própria; em celulares estreitos, ações e campos se reorganizam mantendo os atalhos visíveis. Títulos e categorias longos quebram linha sem alargar a página.
+
 ## Arquitetura
 
 ```mermaid

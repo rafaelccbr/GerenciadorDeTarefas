@@ -1192,7 +1192,7 @@ export function ListaTarefas({ usuario, aoDeslogar, aoAbrirConta }) {
     return (
       <div className="flex flex-col gap-1.5 min-w-0 w-full">
         <div className="flex items-center gap-2 flex-wrap">
-          <span className={`break-words transition-colors duration-200 ${
+          <span className={`task-title transition-colors duration-200 ${
             concluida
               ? ehDark ? 'line-through text-(--muted)' : 'line-through text-(--muted)'
               : ehDark ? 'text-(--ink) font-semibold' : 'text-(--ink) font-medium'
@@ -1444,7 +1444,7 @@ export function ListaTarefas({ usuario, aoDeslogar, aoAbrirConta }) {
             </button>
 
             {/* Menu de Exportação (CSV e PDF) */}
-            <div className="relative" ref={exportarRef}>
+            <div className="export-action relative" ref={exportarRef}>
               <button
                 type="button"
                 onClick={() => setMenuExportarAberto(!menuExportarAberto)}
@@ -1461,7 +1461,7 @@ export function ListaTarefas({ usuario, aoDeslogar, aoAbrirConta }) {
               </button>
 
               {menuExportarAberto && (
-                <div className={`absolute left-0 top-full mt-2.5 w-60 rounded-2xl p-2  border  z-50  ${
+                <div className={`export-menu absolute left-0 top-full mt-2.5 w-60 rounded-2xl p-2  border  z-50  ${
                   ehDark
                     ? 'bg-(--surface) border-(--border) text-(--ink)  ring-1 ring-white/10'
                     : 'bg-(--surface) border-(--border) text-(--ink)  ring-1 ring-black/5'
@@ -1575,8 +1575,6 @@ export function ListaTarefas({ usuario, aoDeslogar, aoAbrirConta }) {
             )}
           </div>
 
-        </div>
-
         <details className="mobile-tools">
           <summary>Mais opções</summary>
           <div className="mobile-tools-menu">
@@ -1587,6 +1585,7 @@ export function ListaTarefas({ usuario, aoDeslogar, aoAbrirConta }) {
             <button className="ui-button" type="button" onClick={aoDeslogar}>Sair</button>
           </div>
         </details>
+        </div>
         <header className="workspace-heading">
           <div>
             <h1>{usuario?.nome ? 'Sua rotina, ' + usuario.nome.split(' ')[0] + '.' : 'Sua rotina.'}</h1>
@@ -1612,7 +1611,11 @@ export function ListaTarefas({ usuario, aoDeslogar, aoAbrirConta }) {
             <Plus className="w-4 h-4" aria-hidden="true" />
             <label htmlFor="quick-add" className="sr-only">Adicionar tarefa com linguagem natural</label>
             <input id="quick-add" value={quickAddTexto} onChange={(e) => setQuickAddTexto(e.target.value)} placeholder="Nova tarefa…" disabled={criandoQuick} />
-            <button type="submit" className={"ui-button ui-primary " + ("primary-button")} disabled={criandoQuick || !quickAddTexto.trim()} aria-keyshortcuts="Enter">{criandoQuick ? 'Salvando…' : 'Adicionar'} <Tecla>Enter</Tecla></button>
+            <button type="submit" className="ui-button ui-primary primary-button" disabled={criandoQuick || !quickAddTexto.trim()} aria-keyshortcuts="Enter" aria-label={criandoQuick ? 'Salvando tarefa' : 'Adicionar tarefa'} aria-busy={criandoQuick}>
+              <Plus className="quick-add-icon" aria-hidden="true" />
+              <span className="quick-add-label">{criandoQuick ? 'Salvando…' : 'Adicionar'}</span>
+              <Tecla>Enter</Tecla>
+            </button>
           </form>
 
           {/* Estado de Carregando */}
@@ -1646,10 +1649,10 @@ export function ListaTarefas({ usuario, aoDeslogar, aoAbrirConta }) {
                 <div><span className="progress-value num">{porcentagem}%</span><div className="progress-track" role="progressbar" aria-label="Tarefas concluídas" aria-valuemin={0} aria-valuemax={100} aria-valuenow={porcentagem}><div style={{ width: porcentagem + '%' }} /></div></div>
               </div>
               {/* 3. Barra de Busca e Ordenação */}
-              <div className="task-filters w-full flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3 mb-4">
+              <div className="task-filters w-full mb-4">
 
                 {/* Campo de Pesquisa em Tempo Real */}
-                <div className="relative flex-1 max-w-md">
+                <div className="task-search relative min-w-0">
                   <Search className={`absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 pointer-events-none ${
                     ehDark ? 'text-(--muted)' : 'text-(--muted)'
                   }`} />
@@ -1692,6 +1695,7 @@ export function ListaTarefas({ usuario, aoDeslogar, aoAbrirConta }) {
                   <div className="flex items-center gap-1.5">
                     <ArrowUpDown className={`w-3.5 h-3.5 ${ehDark ? 'text-(--muted)' : 'text-(--muted)'}`} />
                     <select
+                      aria-label="Ordenar tarefas"
                       value={ordenacao}
                       onChange={(e) => trocarOrdenacao(e.target.value)}
                       className={`px-3 py-1.5 rounded-full text-[13px] font-semibold border transition-colors cursor-pointer focus:outline-none ${
@@ -1700,11 +1704,11 @@ export function ListaTarefas({ usuario, aoDeslogar, aoAbrirConta }) {
                           : 'bg-(--surface) hover:bg-(--surface-muted) border-(--border) text-(--muted) '
                       }`}
                     >
-                      <option value="padrao">Ordem: Padrão</option>
-                      <option value="prioridade">Ordem: Prioridade (P1 &rarr; P4)</option>
-                      <option value="prazo">Ordem: Prazo mais urgente</option>
-                      <option value="alfabetica">Ordem: Alfabética (A-Z)</option>
-                      <option value="recentes">Ordem: Mais recentes</option>
+                      <option value="padrao">Padrão</option>
+                      <option value="prioridade">Prioridade (P1 &rarr; P4)</option>
+                      <option value="prazo">Prazo mais urgente</option>
+                      <option value="alfabetica">Alfabética (A-Z)</option>
+                      <option value="recentes">Mais recentes</option>
                     </select>
                   </div>
 
@@ -1816,7 +1820,7 @@ export function ListaTarefas({ usuario, aoDeslogar, aoAbrirConta }) {
                 /* ========================================================================= */
                 /* 6. MODO QUADRO KANBAN (3 COLUNAS COM DRAG & DROP)                         */
                 /* ========================================================================= */
-                <div className="w-full grid grid-cols-1 lg:grid-cols-3 gap-5 items-start ">
+                <div className="kanban-board w-full grid gap-5 items-start">
                   {colunasKanban.map((coluna) => {
                     const tarefasDaColuna = aplicarOrdenacao(
                       filtrarPorAba(tarefas)
@@ -2101,7 +2105,7 @@ export function ListaTarefas({ usuario, aoDeslogar, aoAbrirConta }) {
                           style={{ animationDelay: `${index * 50}ms` }}
                         >
                           {/* Topo do Card */}
-                          <div className="flex items-start justify-between gap-2.5">
+                          <div className="task-card-heading flex items-start justify-between gap-2.5">
                             <div className="flex items-start gap-2.5 flex-1 min-w-0">
                               <button aria-pressed={concluida}
                                 type="button"

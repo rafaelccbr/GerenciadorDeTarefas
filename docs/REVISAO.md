@@ -2,7 +2,7 @@
 
 ## Direção visual
 
-Taste Skill: **Editorial greeting**, seed **1523839329**, sem novos sorteios. Instrument Sans em pesos 400, 500 e 600; coluna central de 1100 px; superfícies opacas; paleta violeta original restaurada por solicitação do usuário; temas Violeta e Noturno.
+Taste Skill: **Editorial greeting**, seed **1523839329**, sem novos sorteios. Instrument Sans em pesos 400, 500 e 600; painel central de até 1280 px e login de até 1100 px; superfícies opacas; paleta violeta original restaurada por solicitação do usuário; temas Violeta e Noturno.
 
 A pergunta principal do painel é: **quais tarefas precisam da minha atenção hoje?** O nome do usuário, o total real de pendências de hoje e o compositor de tarefas dão identidade ao produto. A interação principal é registrar uma tarefa em linguagem natural e acompanhar sua conclusão no mesmo espaço. Contagens vêm das tarefas; o progresso geral está identificado como geral, mesmo ao filtrar a lista.
 
@@ -83,4 +83,19 @@ Resultado final: login e painel nos dois temas, em 1440, 768 e 390 px, passaram 
 
 A revisão das imagens encontrou e corrigiu um problema adicional no celular: o seletor amplo .workspace > div anulava position: fixed dos modais e do Pomodoro. Ele agora posiciona apenas .workspace-content. A conferência foi reforçada para exigir posição fixa e limites dentro da viewport, incluindo tarefas, estatísticas e Pomodoro nos dois temas; as novas capturas móveis foram revisadas.
 
-Publicação final da revisão de controles: versão 728209be-2235-40f2-9643-8d6411f7ac45 em https://organizador-de-tarefas.rafaelmikilin.workers.dev. O CSS remoto corresponde ao build local final; paleta, teclas e seletor móvel corrigido foram confirmados nos assets publicados. A página e a API responderam 200 e a consulta de tarefas sem sessão respondeu 401. Esta publicação foi feita pelo terminal; não houve commit/push nem ativação da integração automática com GitHub nesta revisão.
+Publicação final da revisão de controles: versão 728209be-2235-40f2-9643-8d6411f7ac45 em https://organizador-de-tarefas.rafaelmikilin.workers.dev. O CSS remoto corresponde ao build local final; paleta, teclas e seletor móvel corrigido foram confirmados nos assets publicados. A página e a API responderam 200 e a consulta de tarefas sem sessão respondeu 401. A publicação inicial foi feita pelo terminal. A migração e a revisão de controles foram posteriormente enviadas à branch master no commit 0643f49. A conexão automática entre GitHub e Cloudflare não foi ativada pelo agente.
+
+## Layout fluido
+
+O painel agora usa uma largura máxima de 1280 px, com margens e espaçamentos definidos por clamp(). No limite máximo, a grade comporta doze colunas de 92 px e onze intervalos de 16 px. O login mantém 1100 px para leitura confortável. As cores e a direção visual foram preservadas.
+
+Cartões usam auto-fit/minmax com mínimo legível; o Kanban considera a largura interna do painel por container query. A busca ganha uma linha inteira em tablets. Em celulares de 320 px, o compositor mantém o campo de texto, o botão de adicionar e Enter na mesma linha; o alternador Tabela/Quadro preserva os nomes. Ações dos cartões se reorganizam para caber sem ocultar rótulos. Campos móveis usam 16 px.
+
+O menu móvel foi ancorado na barra de ações, eliminando a coordenada fixa de 60 px. A exportação se posiciona dentro da largura da barra no celular. Títulos sem espaços e categorias extensas quebram linha; os dados originais permanecem completos.
+
+Validação no navegador com contas locais temporárias: 320, 360, 390, 600, 768, 900, 1024, 1280, 1440 e 1920 px, nos dois temas, com títulos e categorias longos. Verificados limites da página, do painel, dos controles e dos menus; Kanban em quatro larguras; formulário em 320 px. A simulação de reflow de 200% usou viewport CSS de 720 × 450 com escala de dispositivo 2, equivalente ao espaço de uma janela de 1440 × 900 ampliada. As capturas estão em .taste-skill/fluid/ e os relatórios de inspeção em fluid-painel-* e fluid-login-*.
+
+
+Inspeção do layout fluido: login e painel, nos dois temas, passaram com 0 falhas e 0 avisos em 1440, 768, 390 e 320 px, mantendo apenas as exceções de paleta solicitadas pelo usuário. Revisão visual interna: design 8,2; usabilidade 8,8; identidade 8,5. O teste de responsividade também confirmou que os nomes Tabela e Quadro ficam em uma linha, inclusive em 320 px.
+
+Layout fluido publicado no Cloudflare na versão 782e2339-ddab-4348-9a80-bcbaa83876e8. O CSS entregue pela URL pública corresponde ao build final e inclui os tokens fluidos e a grade adaptativa. A página e a API responderam 200; a consulta de tarefas sem sessão respondeu 401. Lint e build passaram. Segredos, backups e capturas continuam fora do Git.
