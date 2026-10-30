@@ -1,0 +1,11 @@
+# Copie para .dev.vars na raiz. Nunca versionar o arquivo real.
+BETTER_AUTH_SECRET=substitua-por-um-segredo-aleatorio-de-32-caracteres-ou-mais
+APP_URL=http://localhost:8787
+# Só funciona em localhost. Permite testar cadastro sem enviar e-mails.
+DEV_AUTH_EMAILS=true
+# Google OAuth: use o callback http://localhost:8787/api/auth/callback/google.
+# GOOGLE_CLIENT_ID=
+# GOOGLE_CLIENT_SECRET=
+# Produção: configure com wrangler secret put, além de APP_URL com o domínio real.
+# BREVO_API_KEY=
+# MAIL_FROM=

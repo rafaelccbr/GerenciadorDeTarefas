@@ -1,37 +1,32 @@
-import { useState, useEffect, useCallback } from 'react';
-import { obterSessao, salvarSessao, limparSessao, acordarServidorApi } from './services/api.js';
-import { ThemeProvider, useTheme } from './context/ThemeContext.jsx';
+import { useState, useEffect, useCallback, lazy, Suspense } from 'react';
+import { obterSessao, salvarSessao, limparSessao, sessaoAtualApi, logoutApi } from './services/api.js';
+import { ThemeProvider } from './context/ThemeContext.jsx';
 import { SeletorTema } from './components/SeletorTema.jsx';
+const ModalRedefinirSenha = lazy(() => import('./components/ModalRedefinirSenha.jsx').then(m => ({ default: m.ModalRedefinirSenha })));
 import { Login } from './components/Login.jsx';
-import { Cadastro } from './components/Cadastro.jsx';
-import { ListaTarefas } from './components/ListaTarefas.jsx';
-import { ModalSucesso } from './components/ModalSucesso.jsx';
-import { ModalTermos } from './components/ModalTermos.jsx';
-import { ModalRecuperarSenha } from './components/ModalRecuperarSenha.jsx';
-import { ModalGerenciarConta } from './components/ModalGerenciarConta.jsx';
+const Cadastro = lazy(() => import('./components/Cadastro.jsx').then(m => ({ default: m.Cadastro })));
+const ListaTarefas = lazy(() => import('./components/ListaTarefas.jsx').then(m => ({ default: m.ListaTarefas })));
+const ModalSucesso = lazy(() => import('./components/ModalSucesso.jsx').then(m => ({ default: m.ModalSucesso })));
+const ModalTermos = lazy(() => import('./components/ModalTermos.jsx').then(m => ({ default: m.ModalTermos })));
+const ModalRecuperarSenha = lazy(() => import('./components/ModalRecuperarSenha.jsx').then(m => ({ default: m.ModalRecuperarSenha })));
+const ModalGerenciarConta = lazy(() => import('./components/ModalGerenciarConta.jsx').then(m => ({ default: m.ModalGerenciarConta })));
 
 /**
  * ============================================================================
  * COMPONENTE CONTEÚDO (APP CONTEÚDO)
  * ============================================================================
  * Gerencia o estado global de navegação e autenticação:
- * 
+ *
  * Telas (estado `telaAtual`):
  * - 'login': Renderiza o componente Login (Login.png)
  * - 'cadastro': Renderiza o componente Cadastro (Cadastro.png)
  * - 'tarefas': Renderiza o Dashboard com a tabela (Lista de Tarefas.png)
- * 
+ *
  * Modais:
  * - `modalSucessoAberto`: Exibe o Modal de Sucesso com o e-mail (Autenticação.png)
  * - `modalTermosAberto`: Exibe os Termos de Uso (Termos de uso.png)
  */
 function AppConteudo() {
-  const { tema } = useTheme();
-  // Dispara um ping silencioso ao carregar o app para acordar o backend no Render (elimina espera do cold start)
-  useEffect(() => {
-    acordarServidorApi();
-  }, []);
-
   // Inicialização preguiçosa (lazy state) para restaurar a sessão sem re-render desnecessário
   const [usuario, setUsuario] = useState(() => {
     const sessao = obterSessao();
@@ -65,50 +60,17 @@ function AppConteudo() {
   const [modalContaAberto, setModalContaAberto] = useState(false);
   const [abaContaInicial, setAbaContaInicial] = useState('perfil');
 
-  // Trata retornos de e-mail do Supabase (Confirmação de Conta ou Redefinição de Senha via #access_token)
+  const [tokenRecuperacao, setTokenRecuperacao] = useState(() => new URLSearchParams(window.location.search).get('token'));
   useEffect(() => {
-    if (typeof window !== 'undefined' && window.location.hash) {
-      const hash = window.location.hash.substring(1);
-      const params = new URLSearchParams(hash);
-      const accessToken = params.get('access_token');
-      const type = params.get('type');
-
-      if (accessToken) {
-        try {
-          // Decodifica o payload JWT para obter id, nome e e-mail
-          const base64Url = accessToken.split('.')[1];
-          const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
-          const jsonPayload = decodeURIComponent(
-            atob(base64)
-              .split('')
-              .map((c) => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2))
-              .join('')
-          );
-          const payload = JSON.parse(jsonPayload);
-          const usuarioToken = {
-            id: payload.sub,
-            email: payload.email,
-            nome: payload.user_metadata?.nome || payload.email?.split('@')[0] || 'Usuário'
-          };
-
-          salvarSessao(accessToken, usuarioToken);
-          setUsuario(usuarioToken);
-
-          if (type === 'recovery') {
-            setAbaContaInicial('senha');
-            setModalContaAberto(true);
-            setTelaAtual('tarefas');
-          } else {
-            setTelaAtual('tarefas');
-          }
-        } catch (err) {
-          console.error('Erro ao processar token de autenticação da URL:', err);
-        }
-
-        // Limpa o hash da URL para não expor o token na barra de endereços
-        window.history.replaceState(null, '', window.location.pathname);
-      }
-    }
+    let ativo = true;
+    sessaoAtualApi().then(dados => {
+      if (!ativo) return;
+      if (dados) { salvarSessao('cookie', dados); setUsuario(dados); setTelaAtual('tarefas'); }
+      else { limparSessao(); setUsuario(null); setTelaAtual('login'); }
+    }).catch(() => { /* Um erro de rede será apresentado ao carregar as tarefas ou ao entrar. */ });
+    const expirar = () => { limparSessao(); setUsuario(null); setTelaAtual('login'); };
+    window.addEventListener('sessao-expirada', expirar);
+    return () => { ativo = false; window.removeEventListener('sessao-expirada', expirar); };
   }, []);
 
   // Handler executado quando o usuário realiza login com sucesso
@@ -132,7 +94,9 @@ function AppConteudo() {
   };
 
   // Handler para encerrar a sessão (Logout)
-  const handleDeslogar = () => {
+  const handleDeslogar = async () => {
+    try { await logoutApi(); }
+    catch { window.alert('Não foi possível encerrar a sessão. Confira a conexão e tente novamente.'); return; }
     limparSessao();
     setUsuario(null);
     setTelaAtual('login');
@@ -157,20 +121,10 @@ function AppConteudo() {
   };
 
   return (
-    <main className="w-full min-h-screen isolate selection:bg-purple-400 selection:text-purple-950 font-sans relative overflow-x-hidden">
-      
-      {/* Background vivo com respiração 100% acelerada pela GPU (sem repintura, sem faixas) */}
-      <div className="fixed inset-0 -z-10 pointer-events-none overflow-hidden" aria-hidden="true">
-        {/* Camada base sólida do tema que garante cobertura total em qualquer circunstância */}
-        <div className={`absolute inset-0 transition-colors duration-500 ${tema === 'dark' ? 'bg-[#07050a]' : 'bg-[#270237]'}`} />
-        
-        {/* Camada viva dos gradientes que respira suavemente via transform/opacity na GPU */}
-        <div className={`absolute -inset-6 transition-colors duration-500 animate-breathe ${tema === 'dark' ? 'bg-theme-dark' : 'bg-theme-violeta'}`} />
-      </div>
-
+    <main className="app-root">
       {/* Seletor de Tema discreto no canto superior direito nas telas de login e cadastro */}
       {(telaAtual === 'login' || telaAtual === 'cadastro') && (
-        <div className="fixed top-3 right-3 sm:top-5 sm:right-5 z-50 animate-slide-up">
+        <div className="auth-theme">
           <SeletorTema />
         </div>
       )}
@@ -208,6 +162,7 @@ function AppConteudo() {
         )}
       </div>
 
+      {tokenRecuperacao && <ModalRedefinirSenha token={tokenRecuperacao} aoFechar={() => { setTokenRecuperacao(null); window.history.replaceState(null, '', window.location.pathname); }} />}
       {/* MODAL: SUCESSO DE CADASTRO (Autenticação.png) */}
       {modalSucessoAberto && (
         <ModalSucesso
@@ -259,10 +214,11 @@ function AppConteudo() {
 function App() {
   return (
     <ThemeProvider>
+      <Suspense fallback={<div className="p-8 text-(--muted)" role="status">Carregando seu espaço…</div>}>
       <AppConteudo />
+      </Suspense>
     </ThemeProvider>
   );
 }
 
 export default App;
-

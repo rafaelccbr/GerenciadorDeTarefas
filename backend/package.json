@@ -1,22 +1,31 @@
 {
   "name": "backend",
   "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
+  "description": "API Cloudflare Workers + D1 com Better Auth",
+  "main": "src/worker.js",
   "scripts": {
-    "dev": "node --watch src/server.js",
-    "start": "node src/server.js",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "dev": "wrangler dev --cwd .. --port 8787",
+    "deploy": "wrangler deploy --cwd ..",
+    "deploy:check": "wrangler deploy --cwd .. --dry-run",
+    "db:local": "wrangler d1 migrations apply organizador-tarefas --cwd .. --local",
+    "db:remote": "wrangler d1 migrations apply organizador-tarefas --cwd .. --remote",
+    "test": "node --test src/tests/*.test.js",
+    "backup:supabase": "node scripts/export-supabase.mjs",
+    "cf": "node scripts/cloudflare.mjs"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "type": "module",
   "dependencies": {
-    "@fastify/cors": "^11.3.0",
-    "@supabase/supabase-js": "^2.114.0",
-    "dotenv": "^17.4.2",
-    "express": "^5.2.1",
-    "fastify": "^5.12.1"
+    "@better-auth/drizzle-adapter": "^1.7.14",
+    "better-auth": "^1.7.14",
+    "drizzle-orm": "^0.45.4"
+  },
+  "devDependencies": {
+    "wrangler": "^4.156.0"
+  },
+  "engines": {
+    "node": ">=22.12"
   }
 }

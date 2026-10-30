@@ -1,56 +1,59 @@
-import { useTheme } from '../context/ThemeContext.jsx';
+import { Tecla } from './Tecla.jsx';
+import { useDialogShortcuts } from '../hooks/useDialogShortcuts.js';
+import { useTheme } from '../context/theme.js';
 
 /**
  * ============================================================================
  * MODAL DE SUCESSO DE CADASTRO
  * ============================================================================
  * Baseado no design do Figma: 'Autenticação.png'
- * 
+ *
  * Exibido logo após a criação bem-sucedida de uma conta, informando ao
  * usuário que as instruções/confirmação foram enviadas para o seu e-mail.
  */
 export function ModalSucesso({ email, aoFechar }) {
+  const dialogRef = useDialogShortcuts(aoFechar);
   const { tema } = useTheme();
   const ehDark = tema === 'dark';
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/65 backdrop-blur-md p-4">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/65  p-4">
       {/* Card do Modal com Glassmorphism Translúcido e Borda com Brilho */}
-      <div className={`relative w-full max-w-lg backdrop-blur-2xl rounded-3xl p-8 sm:p-10 text-center text-white transition-all duration-500 animate-fade-in ${
+      <div ref={dialogRef} role="dialog" aria-modal="true" className={`dialog-surface bg-(--surface) relative w-full max-w-lg  rounded-3xl p-8 sm:p-10 text-center text-(--ink) transition-colors duration-500  ${
         ehDark
-          ? 'bg-gradient-to-b from-white/[0.08] via-[#140b20]/95 to-[#0a0610]/95 border border-white/15 shadow-[0_25px_60px_-15px_rgba(0,0,0,0.9),0_0_40px_rgba(168,85,247,0.14),inset_0_1px_1px_rgba(255,255,255,0.15)]'
-          : 'bg-gradient-to-b from-white/[0.14] via-[#2f0440]/65 to-[#1c0228]/85 border border-white/25 shadow-[0_25px_60px_-15px_rgba(0,0,0,0.7),0_0_45px_rgba(168,85,247,0.2),inset_0_1px_1px_rgba(255,255,255,0.3)]'
+          ? '    border border-(--border) '
+          : '    border border-(--border) '
       }`}>
-        
+
         {/* Título Principal */}
-        <h2 className="text-2xl sm:text-3xl font-bold mb-4 text-white drop-shadow-sm">
+        <h2 className="text-2xl sm:text-2xl font-bold mb-4 text-(--ink) ">
           Sua conta foi criada com sucesso!
         </h2>
 
         {/* Mensagem Explicativa */}
-        <p className="text-base sm:text-lg text-purple-100 mb-2">
+        <p className="text-base sm:text-lg text-(--ink) mb-2">
           Foi enviado um link para verificação no e-mail:
         </p>
 
         {/* E-mail cadastrado em destaque */}
-        <div className="p-3 bg-white/10 border border-white/15 rounded-2xl my-4 max-w-md mx-auto">
-          <p className="text-base sm:text-lg font-semibold text-yellow-300 break-all">
+        <div className="p-3 bg-(--surface) border border-(--border) rounded-2xl my-4 max-w-md mx-auto">
+          <p className="text-base sm:text-lg font-semibold text-(--accent) break-all">
             {email || 'seu e-mail registrado'}
           </p>
         </div>
 
         {/* Alerta de Caixa de Spam */}
-        <p className="text-sm text-purple-200/80 mb-8">
+        <p className="text-sm text-(--ink) mb-8">
           (Verifique também a caixa de spam caso não tenha recebido)
         </p>
 
         {/* Botão de Conclusão / Ir para o Login (Opção 3: Cristal Translúcido) */}
-        <button
+        <button aria-keyshortcuts="Escape"
           onClick={aoFechar}
-          className="w-full sm:w-auto px-10 py-3.5 bg-white/15 hover:bg-white/25 active:scale-95 text-white font-semibold rounded-full shadow-[0_8px_25px_rgba(0,0,0,0.35),inset_0_1px_1px_rgba(255,255,255,0.4),0_0_20px_rgba(255,255,255,0.15)] hover:shadow-[0_12px_30px_rgba(0,0,0,0.45),inset_0_1px_2px_rgba(255,255,255,0.6),0_0_30px_rgba(168,85,247,0.35)] backdrop-blur-md border border-white/35 hover:border-white/55 transition-all duration-300 cursor-pointer"
+          className={"ui-button " + ("w-full sm:w-auto px-10 py-3.5 bg-(--surface) hover:bg-(--surface) active:scale-95 text-(--ink) font-semibold rounded-full    border border-(--border) hover:border-(--border) transition-colors duration-300 cursor-pointer")}
         >
           Entendido, ir para Login
-        </button>
+         <Tecla>Esc</Tecla></button>
 
       </div>
     </div>

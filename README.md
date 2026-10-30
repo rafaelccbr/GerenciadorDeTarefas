@@ -1,184 +1,148 @@
-<div align="center">
+﻿# Organizador de Tarefas Pro
 
-# 📋 Organizador de Tarefas Pro
+[Acessar a aplicação](https://organizador-de-tarefas.rafaelmikilin.workers.dev)
 
-### *Plataforma Full Stack de Produtividade, Gestão de Rotina, Kanban e Foco Pomodoro com estética Liquid Glass*
+Organizador pessoal de estudos, trabalho e rotina, com tarefas, Kanban e Pomodoro. React 19 + Vite + Tailwind CSS 4 no frontend; Cloudflare Workers + D1 + Better Auth na API.
 
-[![React](https://img.shields.io/badge/React_19-20232A?style=for-the-badge&logo=react&logoColor=61DAFB)](https://react.dev/)
-[![Vite](https://img.shields.io/badge/Vite-646CFF?style=for-the-badge&logo=vite&logoColor=white)](https://vitejs.dev/)
-[![Tailwind CSS](https://img.shields.io/badge/Tailwind_v4-38B2AC?style=for-the-badge&logo=tailwind-css&logoColor=white)](https://tailwindcss.com/)
-[![Fastify](https://img.shields.io/badge/Fastify-000000?style=for-the-badge&logo=fastify&logoColor=white)](https://www.fastify.io/)
-[![Node.js](https://img.shields.io/badge/Node.js-339933?style=for-the-badge&logo=nodedotjs&logoColor=white)](https://nodejs.org/)
-[![Supabase](https://img.shields.io/badge/Supabase-3ECF8E?style=for-the-badge&logo=supabase&logoColor=white)](https://supabase.com/)
-[![Vercel](https://img.shields.io/badge/Vercel-000000?style=for-the-badge&logo=vercel&logoColor=white)](https://vercel.com/)
-[![Render](https://img.shields.io/badge/Render-46E3B7?style=for-the-badge&logo=render&logoColor=white)](https://render.com/)
-[![License MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=for-the-badge)](LICENSE)
+A interface usa a direção **Editorial greeting** da Taste Skill: tipografia Instrument Sans, superfícies opacas e a paleta original adaptada em dois temas: Violeta e Noturno, com destaque lilás nas ações e no progresso. A aplicação mantém os recursos existentes de prioridades, tags, subtarefas, recorrência, notas, busca, exportação Excel/PDF e alertas.
 
-<br />
+Os botões usam pares de cores de fundo e texto próprios de cada tema. Os atalhos aparecem junto às ações: **N** para nova tarefa, **/** para buscar, **Enter** para adicionar, **Ctrl/⌘ + Enter** para salvar no formulário de tarefa e **Esc** para fechar o diálogo ou limpar a busca. Os atalhos de criar e buscar respeitam campos em edição; a navegação por Tab permanece dentro do diálogo aberto.
 
-### 🚀 [Acesse a Demonstração Online](https://gerenciador-de-tarefas-flame.vercel.app/)
-
-</div>
-
----
-
-## 📖 Sobre o Projeto
-
-O **Organizador de Tarefas Pro** é uma aplicação web Full Stack inspirada em ferramentas modernas de alta produtividade (como **Todoist**, **TickTick** e **Notion**), desenvolvida para oferecer um controle completo de estudos, trabalho e rotina pessoal.
-
-A interface combina dois temas com estética **Glassmorphism / Liquid Glass** (**Tema Violeta** e **Tema Dark Midnight Amethyst**), unindo desempenho instantâneo (**Optimistic UI — 0ms**), atalhos globais de teclado, gamificação e ferramentas avançadas de foco.
-
----
-
-## ✨ Funcionalidades Principais
-
-### ⚡ Produtividade & Gestão Inteligente (Estilo Todoist)
-- **⚡ Quick Add com Linguagem Natural (NLP)**:
-  - Crie tarefas completas em uma única linha digitando comandos inteligentes:
-  - Exemplo: `Estudar Cálculo amanhã @15:00 #Faculdade p1` → extrai automaticamente o título, define a data para amanhã, agenda o horário `15:00`, aplica a categoria `#Faculdade` e define a prioridade como **Urgente (P1)**.
-  - Reconhece palavras-chave como `hoje`, `amanhã`, `segunda`, `terça`, `quarta`, `quinta`, `sexta`, `sábado` e `domingo`.
-- **🚩 Sistema de Prioridades (`P1` a `P4`) & Categorias (`#Tags`)**:
-  - Bandeiras coloridas de prioridade (`P1 Urgente`, `P2 Alta`, `P3 Média`, `P4 Normal`).
-  - Pílulas de categorias (`#Faculdade`, `#Trabalho`, `#Pessoal`, `#Saúde`, `#Urgente` ou tags personalizadas) com filtro instantâneo ao clicar.
-- **☑️ Subtarefas (Checklist Interativo)**:
-  - Adicione etapas dentro de cada tarefa, marque-as diretamente na listagem ou no Kanban e acompanhe a barra de progresso percentual (`X de Y etapas concluídas`).
-- **🔁 Tarefas Recorrentes (Rotinas Automáticas)**:
-  - Configure repetições **Diárias**, **Semanais** ou **Mensais**. Ao concluir uma tarefa recorrente, o sistema agenda automaticamente a próxima ocorrência com o checklist reiniciado.
-- **📝 Notas de Apoio & Pílulas de Links Clicáveis**:
-  - Adicione observações ou cole URLs (`https://meet.google.com/...`, `https://github.com/...`). O sistema converte links automaticamente em botões clicáveis com o domínio formatado diretamente no card da tarefa.
-
----
-
-### 🍅 Foco, Visualizações & Analytics Pro
-- **🍅 Timer Pomodoro Flutuante Integrado**:
-  - Inicie sessões de foco vinculadas a qualquer tarefa com os modos **Foco (25 min)**, **Pausa Curta (5 min)** e **Pausa Longa (15 min)**.
-  - Possui modo compacto (minimizado em pílula), contador de ciclos (`🍅`), botão `+5m`, alerta sonoro via Web Audio API e botão rápido para concluir a tarefa.
-- **🖱️ Quadro Kanban com Drag & Drop (Arrastar e Soltar)**:
-  - Alterne com 1 clique entre o **Modo Tabela/Lista** e o **Quadro Kanban** de 3 colunas (`Pendente`, `Em andamento`, `Concluído`).
-  - Arraste e solte cartões livremente entre as colunas com destaque visual em tempo real e atualização otimista.
-- **📊 Painel de Estatísticas e Gráficos (Dashboard Analytics)**:
-  - Modal analítico com KPIs gerais (*Total*, *Taxa de Conclusão*, *Foco de Hoje*, *Atrasadas*), barra segmentada de proporção por status, distribuição por nível de prioridade (`P1`–`P4`) e desempenho detalhado por categoria (`#Tag`).
-- **📄 Exportação Profissional para Excel (`.XLSX`) e PDF**:
-  - **Planilha Excel Nativa (`SheetJS / xlsx`)**: exporta todas as colunas (Título, Início, Término, Horário, Status, Prioridade, Tags, Recorrência, Etapas e Notas) com **largura de coluna calculada automaticamente** para evitar textos cortados ou `########`.
-  - **Relatório em PDF (`jsPDF` + `autoTable`)**: gera documento pronto para impressão com cabeçalho personalizado e resumo de produtividade.
-- **🔔 Notificações Nativas do Navegador & Alerta Sonoro**:
-  - Monitoramento inteligente que envia uma notificação na área de trabalho (`Notification API`) acompanhada de alerta sonoro suave (Web Audio API) quando uma tarefa agendada com horário (`@HH:mm`) está prestes a vencer.
-- **🎯 Gamificação & Atalhos de Teclado**:
-  - Explosão de confetes (`canvas-confetti`) ao concluir tarefas e celebração especial ao atingir **100% de produtividade**.
-  - Atalhos globais: pressione `N` para criar nova tarefa, `/` para focar na busca e `ESC` para fechar modais ou limpar filtros.
-
----
-
-### 🔐 Segurança, Temas & Gerenciamento de Conta
-- **🌗 Seletor de Tema Dual (Violeta Claro & Midnight Amethyst Dark)**:
-  - Alternância instantânea com persistência no navegador (`localStorage`).
-- **🔐 Autenticação Completa & Segura**:
-  - Cadastro com validação de senha forte em tempo real, login JWT, recuperação de senha com código OTP de 6 dígitos (fluxo com privacidade de e-mail via API HTTPS Brevo/Nodemailer) e proteção Row Level Security (RLS) no Supabase.
-- **⚙️ Minha Conta**:
-  - Edição de nome e e-mail, redefinição de senha e exclusão de conta com confirmação de segurança (`EXCLUIR`).
-
----
-
-## 🏗️ Arquitetura do Sistema
+## Arquitetura
 
 ```mermaid
-flowchart TD
-    subgraph Cliente ["🌐 Frontend (Vercel)"]
-        UI["React 19 + Vite"]
-        TW["Tailwind CSS v4 (Dual Theme Glassmorphism)"]
-        Pro["Kanban Drag&Drop / Pomodoro / Analytics / XLSX & PDF"]
-    end
-
-    subgraph Servidor ["🚀 Backend (Render)"]
-        API["Fastify Server"]
-        AuthMid["Middleware JWT & Auth"]
-        Mailer["Serviço de E-mail OTP (Brevo / Nodemailer)"]
-        Routes["Rotas (/auth, /tarefas)"]
-    end
-
-    subgraph Nuvem ["☁️ Supabase Cloud"]
-        SupaAuth["Supabase Auth (JWT & Senhas)"]
-        Postgres[("PostgreSQL Database (RLS)")]
-    end
-
-    UI -->|Requisições HTTP / Bearer Token| API
-    UI --> Pro
-    API --> AuthMid
-    AuthMid --> Routes
-    Routes --> Mailer
-    Routes -->|Supabase SDK| SupaAuth
-    Routes -->|Queries Parametrizadas| Postgres
+flowchart LR
+    Browser[React no navegador] -->|Assets| Worker[Cloudflare Worker]
+    Browser -->|/api + cookie HttpOnly| Worker
+    Worker --> Auth[Better Auth]
+    Worker --> DB[(Cloudflare D1)]
+    Auth --> DB
+    Auth --> Google[Google OAuth]
+    Auth -.-> Mail[E-mail opcional via Brevo]
 ```
 
----
+Frontend e API compartilham a origem. Não há dependência de Render, Vercel ou Supabase no runtime novo. O script de backup usa o Supabase antigo apenas para exportação de leitura.
 
-## 🚀 Como Executar o Projeto Localmente
+A entrada principal é pelo Google. Depois do primeiro acesso, **Minha conta → Senha** permite criar uma senha própria para a mesma conta, sem duplicar tarefas. Alterar uma senha já criada exige a senha atual. Uma sessão recente e autenticada é necessária para criar a primeira senha.
 
-### Pré-requisitos
-- [Node.js](https://nodejs.org/) (versão 18 ou superior)
-- Gerenciador de pacotes `npm`
+As sessões ficam em cookies HttpOnly, SameSite=Lax e Secure em HTTPS. O navegador guarda apenas um cache do perfil, sem token de autenticação no localStorage. Todas as consultas de tarefas usam o ID da sessão; alterações em IDs pertencentes a outra conta retornam 404. Exclusão de conta remove tarefas e sessões por chave estrangeira.
 
-### 1. Clonar o Repositório
-```bash
-git clone https://github.com/rafaelccbr/GerenciadorDeTarefas.git
-cd GerenciadorDeTarefas
+## Executar localmente
+
+Requer Node.js 22.12+ e npm. No PowerShell que bloqueia `npm.ps1`, use `npm.cmd` e `npx.cmd`.
+
+```sh
+npm --prefix frontend ci
+npm --prefix backend ci
 ```
 
-### 2. Configurar o Banco de Dados (Supabase) e Iniciar o Backend
+Copie `.dev.vars.example` para `.dev.vars` **na raiz**, gere um segredo e substitua o valor de exemplo:
 
-1. Crie um arquivo `.env` dentro da pasta `backend/` baseado no `.env.example`:
+```sh
+node -e "console.log(require('node:crypto').randomBytes(48).toString('hex'))"
+npm run db:local
+npm run dev
+```
+
+Abra **http://localhost:8787**. O Wrangler constrói o frontend e serve a aplicação e a API com D1 local; mudanças em `frontend/src` e `backend/src` recompilam a aplicação.
+
+`DEV_AUTH_EMAILS=true` dispensa a confirmação de e-mail **somente em localhost**. Nesse ambiente, cadastre uma conta e entre diretamente. A recuperação por e-mail requer um provedor configurado; o modo local não envia mensagens nem simula entrega. O banco local fica em `.wrangler/`, separado do banco remoto.
+
+Para usar o Vite com atualização instantânea, deixe o Worker em execução e rode em outro terminal:
+
+```sh
+npm --prefix frontend run dev
+```
+
+Abra http://localhost:5173. O proxy de `/api` encaminha as chamadas ao Worker local. `VITE_API_URL=/api` é o padrão; segredos nunca devem ser definidos em variáveis `VITE_`.
+
+## Migrar suas tarefas do Supabase
+
+**Não apague o projeto antigo antes de conferir o backup e a importação em produção.** A migração não transporta a senha nem sessões antigas; crie sua conta no novo aplicativo, de preferência com o mesmo e-mail.
+
+O arquivo antigo `backend/.env` pode ser mantido localmente para o backup:
+
 ```env
 SUPABASE_URL=https://seu-projeto.supabase.co
-SUPABASE_ANON_KEY=sua-anon-key
-SUPABASE_SERVICE_ROLE_KEY=sua-service-role-key
-PORT=3000
+SUPABASE_SERVICE_ROLE_KEY=sua-chave-administrativa
+SUPABASE_USER_EMAIL=seu-email-de-login
+# Alternativa para identificar a conta:
+# SUPABASE_USER_ID=uuid-da-sua-conta
 ```
 
-2. No painel do seu Supabase, acesse o **SQL Editor** e execute o comando abaixo para criar a tabela de tarefas com segurança RLS:
-```sql
--- 1. Cria o tipo de status
-CREATE TYPE status_tipo AS ENUM ('pendente', 'em_andamento', 'concluido');
-
--- 2. Cria a tabela de tarefas vinculada aos usuários autenticados
-CREATE TABLE tarefas (
-    id BIGINT GENERATED BY DEFAULT AS IDENTITY PRIMARY KEY,
-    created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL,
-    nome TEXT NOT NULL,
-    data_come DATE NOT NULL,
-    data_termi DATE NOT NULL,
-    status status_tipo DEFAULT 'pendente'::status_tipo NOT NULL,
-    user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE NOT NULL
-);
-
--- 3. Habilita a proteção Row Level Security (RLS)
-ALTER TABLE tarefas ENABLE ROW LEVEL SECURITY;
-
--- 4. Cria a política de isolamento por usuário
-CREATE POLICY "Usuários gerenciam suas próprias tarefas"
-ON tarefas FOR ALL
-USING (auth.uid() = user_id)
-WITH CHECK (auth.uid() = user_id);
+```sh
+npm --prefix backend run backup:supabase
 ```
 
-3. Instale as dependências e inicie o servidor:
-```bash
-cd backend
-npm install
-npm run dev
+O script consulta somente as tarefas da conta selecionada, com paginação. Salva um JSON em `backups/`, ignorado pelo Git. Se houver mais de uma conta e não houver e-mail ou ID, ele interrompe a exportação.
+
+Na aplicação nova, entre na sua conta e abra **Exportar → Importar backup JSON**. O importador preserva título bruto, notas, subtarefas, recorrência, datas, status e data de criação. A propriedade das tarefas passa para a sessão atual, sem confiar em um `user_id` recebido do navegador. Reenviar o mesmo backup não duplica tarefas. O arquivo pode ter até 2 MB, processado em lotes de até 500 tarefas. Se houver interrupção, reenvie o backup; os lotes já concluídos são reconhecidos.
+
+**Salvar backup JSON** exporta todas as tarefas da conta, inclusive as ocultas por um filtro. Excel e PDF continuam exportando a visualização filtrada. Guarde o JSON para restauração; as planilhas são relatórios.
+
+## Publicar no Cloudflare
+
+A configuração está em `wrangler.jsonc`. O banco `organizador-tarefas` já foi criado na conta configurada e as duas migrações já foram aplicadas. O ID real está vinculado ao binding `DB`. O aplicativo está publicado em https://organizador-de-tarefas.rafaelmikilin.workers.dev. Os passos de criação abaixo servem para instalar em outra conta; não recrie o banco existente.
+
+1. Autentique e crie o banco no plano Free:
+
+```sh
+npm run cloudflare -- login
+npm run cloudflare -- d1 create organizador-tarefas
 ```
-> O servidor Fastify iniciará em `http://localhost:3000`.
 
-### 3. Configurar e Iniciar o Frontend
-Em um novo terminal:
-```bash
-cd frontend
-npm install
-npm run dev
+2. Copie o `database_id` retornado para `wrangler.jsonc` e aplique as migrações:
+
+```sh
+npm run db:remote
 ```
-> A aplicação React + Vite estará disponível em `http://localhost:5173`.
 
----
+3. Configure os segredos, sem colocá-los em arquivos versionados:
 
-## 📄 Licença
+```sh
+npm run cloudflare -- secret put BETTER_AUTH_SECRET
+npm run cloudflare -- secret put APP_URL
+```
 
-Este projeto está sob a licença [MIT](LICENSE).
+`APP_URL` é a origem pública exata do aplicativo. Use um segredo aleatório com pelo menos 32 caracteres. Não configure `DEV_AUTH_EMAILS` em produção.
+
+4. Valide e publique:
+
+```sh
+npm run check
+npm run deploy
+```
+
+O build do frontend é executado automaticamente pelo Wrangler. Assets são servidos pelo Cloudflare; `/api/*` chega ao Worker e caminhos de navegação usam o fallback de SPA. Um domínio próprio é opcional.
+
+Entre com Google na URL pública, importe o JSON e confira contagem, prazos, notas e checklist. Só depois desative as hospedagens antigas. O código não ativa assinatura paga nem altera o Supabase remoto.
+
+### Plano gratuito e limites
+
+Em 30/10/2026, a documentação informa 100 mil requisições de Worker por dia e 10 ms de CPU por requisição no Free. O D1 Free inclui 5 milhões de linhas lidas/dia, 100 mil escritas/dia e 5 GB no total. São limites de uso, não garantia de gratuidade ilimitada. Assets estáticos têm tratamento separado das requisições dinâmicas.
+
+Autenticação com senha é a parte mais exigente em CPU. Esta configuração usa a implementação nativa de `scrypt` disponibilizada pelas versões instaladas do Better Auth para `workerd`, com `nodejs_compat`. **O teste local não certifica o limite de CPU do Free em produção**: verifique cadastro e login na conta real antes de desligar o sistema antigo. Não reduza a segurança da senha para contornar limites; se necessário, avalie login por provedor externo, como Google, antes de optar por plano pago.
+
+O acesso por Google e a criação de senha após esse acesso dispensam serviço de e-mails. Cadastro direto por e-mail e recuperação de senha por mensagem dependem de um serviço de envio. O Brevo é configurado separadamente e sujeito à cota/plano da sua conta; Cloudflare Workers não inclui esse envio automaticamente.
+
+Fontes: [Workers e preços](https://developers.cloudflare.com/workers/platform/pricing/), [D1 e preços](https://developers.cloudflare.com/d1/platform/pricing/), [SPA no Workers](https://developers.cloudflare.com/workers/static-assets/routing/single-page-application/), [Better Auth](https://better-auth.com/docs/reference/security).
+
+## Validação
+
+```sh
+npm run check
+npm --prefix backend run deploy:check
+```
+
+Os testes unitários validam datas, status e campos de tarefa. Para rodar também a integração com cadastro, cookies, CRUD, isolamento de duas contas, importação repetida e exclusão em cascata, inicie o Worker local e rode:
+
+```powershell
+$env:TEST_BASE_URL='http://localhost:8787'
+npm --prefix backend test
+```
+
+O teste de integração recusa URLs remotas, cria contas temporárias locais e as exclui ao terminar. A inspeção visual da Taste Skill gera seus relatórios e imagens em `.taste-skill/`, ignorado pelo Git.
+
+## Licença
+
+[MIT](LICENSE).

@@ -11,7 +11,8 @@ export default defineConfig({
   server: {
     host: true, // Expõe o frontend na rede local (ex: http://192.168.0.7:5173)
     port: 5173,
+    proxy: {
+      '/api': { target: 'http://127.0.0.1:8787', changeOrigin: true },
+    },
   },
 })
-
-

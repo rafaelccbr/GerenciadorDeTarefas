@@ -1,0 +1,16 @@
+{
+  "name": "organizador-de-tarefas",
+  "private": true,
+  "scripts": {
+    "dev": "npm --prefix backend run dev",
+    "build": "npm --prefix frontend run build",
+    "check": "npm --prefix frontend run lint && npm --prefix backend test && npm run build",
+    "deploy": "npm --prefix backend run deploy",
+    "db:local": "npm --prefix backend run db:local",
+    "db:remote": "npm --prefix backend run db:remote",
+    "cloudflare": "npm --prefix backend run cf --"
+  },
+  "engines": {
+    "node": ">=22.12"
+  }
+}

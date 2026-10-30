@@ -1,4 +1,4 @@
 /**
- * Ponto de entrada do backend: importa e inicia o servidor Fastify configurado em src/server.js.
+ * Ponto de entrada do backend para o runtime Cloudflare Workers.
  */
-import './src/server.js';
+export { default } from './src/worker.js';

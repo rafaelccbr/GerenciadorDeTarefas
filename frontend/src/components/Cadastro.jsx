@@ -1,6 +1,7 @@
+import { Tecla } from './Tecla.jsx';
 import { useState } from 'react';
 import { ChevronLeft, Eye, EyeOff } from 'lucide-react';
-import { useTheme } from '../context/ThemeContext.jsx';
+import { useTheme } from '../context/theme.js';
 import { cadastroApi } from '../services/api.js';
 
 /**
@@ -22,7 +23,6 @@ export function Cadastro({ aoVoltarParaLogin, aoAbrirTermos, aoCadastroSucesso }
   const [aceitouTermos, setAceitouTermos] = useState(false);
   const [carregando, setCarregando] = useState(false);
   const [erro, setErro] = useState('');
-  const [senhaFocada, setSenhaFocada] = useState(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -79,14 +79,14 @@ export function Cadastro({ aoVoltarParaLogin, aoAbrirTermos, aoCadastroSucesso }
   };
 
   return (
-    <div className="min-h-screen min-h-dvh w-full flex flex-col items-center justify-center px-4 py-6 sm:py-10 text-white transition-colors duration-500">
-      
+    <div className="min-h-screen min-h-dvh w-full flex flex-col items-center justify-center px-4 py-6 sm:py-10 text-(--ink) transition-colors duration-500">
+
       {/* Botão Voltar Adaptativo */}
       <div className="w-full max-w-xl flex justify-start mb-2 sm:mb-4">
         <button
           type="button"
           onClick={aoVoltarParaLogin}
-          className="flex items-center gap-1.5 text-white/90 hover:text-white font-semibold text-sm sm:text-base transition-all cursor-pointer active:scale-95 bg-white/10 hover:bg-white/20 backdrop-blur-sm px-3.5 sm:px-4 py-1.5 sm:py-2 rounded-full border border-white/15 shadow-sm"
+          className={"ui-button " + ("flex items-center gap-1.5 text-(--ink) hover:text-(--ink) font-semibold text-sm sm:text-base transition-colors cursor-pointer active:scale-95 bg-(--surface) hover:bg-(--surface)  px-3.5 sm:px-4 py-1.5 sm:py-2 rounded-full border border-(--border) ")}
         >
           <ChevronLeft className="w-4 h-4 sm:w-5 sm:h-5" />
           Voltar
@@ -94,90 +94,88 @@ export function Cadastro({ aoVoltarParaLogin, aoAbrirTermos, aoCadastroSucesso }
       </div>
 
       {/* Card Estilizado de Cadastro com Glassmorphism Translúcido e Borda com Brilho */}
-      <div className={`w-full max-w-xl backdrop-blur-2xl rounded-2xl sm:rounded-3xl p-5 sm:p-10 flex flex-col items-center text-center transition-all duration-500 my-auto ${
+      <div className={`bg-(--surface) w-full max-w-xl  rounded-2xl sm:rounded-3xl p-5 sm:p-10 flex flex-col items-center text-center transition-colors duration-500 my-auto ${
         ehDark
-          ? 'bg-gradient-to-b from-white/[0.08] via-[#140b20]/90 to-[#0a0610]/95 border border-white/15 shadow-[0_25px_60px_-15px_rgba(0,0,0,0.9),0_0_40px_rgba(168,85,247,0.14),inset_0_1px_1px_rgba(255,255,255,0.15)]'
-          : 'bg-gradient-to-b from-white/[0.13] via-[#2f0440]/60 to-[#1c0228]/80 border border-white/25 shadow-[0_25px_60px_-15px_rgba(0,0,0,0.65),0_0_45px_rgba(168,85,247,0.18),inset_0_1px_1px_rgba(255,255,255,0.3)]'
+          ? '    border border-(--border) '
+          : '    border border-(--border) '
       }`}>
-        
+
         {/* Título Principal */}
-        <h1 className="text-3xl sm:text-5xl font-bold mb-2 tracking-wide text-white drop-shadow-sm animate-slide-up">
+        <h1 className="text-2xl text-2xl font-bold mb-2  text-(--ink)  ">
           Crie sua conta
         </h1>
 
         {/* Subtítulo */}
-        <p className={`text-sm sm:text-lg mb-6 sm:mb-8 font-normal animate-slide-up animate-delay-75 ${ehDark ? 'text-purple-200/80' : 'text-purple-200/90'}`}>
+        <p className={`text-sm sm:text-lg mb-6 sm:mb-8 font-normal   ${ehDark ? 'text-(--ink)' : 'text-(--ink)'}`}>
           Preencha os dados abaixo para criar sua conta
         </p>
 
         {/* Alerta de Erro */}
         {erro && (
-          <div className="w-full mb-6 p-3 bg-red-500/20 border border-red-500/50 text-red-200 text-sm rounded-2xl animate-fade-in text-left">
+          <div className="w-full mb-6 p-3 bg-red-500/20 border border-red-500/50 text-red-200 text-sm rounded-2xl  text-left">
             {erro}
           </div>
         )}
 
         {/* Formulário de Cadastro */}
         <form onSubmit={handleSubmit} className="w-full space-y-5 text-left">
-          
+
           {/* Campo: Nome Completo */}
-          <div className="animate-slide-up animate-delay-150">
-            <label className={`block text-sm sm:text-base font-semibold mb-1.5 ${ehDark ? 'text-purple-200' : 'text-purple-100'}`}>
+          <div className=" ">
+            <label htmlFor="cadastro-nome" className={`block text-sm sm:text-base font-semibold mb-1.5 ${ehDark ? 'text-(--ink)' : 'text-(--ink)'}`}>
               Nome Completo
             </label>
             <input
               type="text"
-              value={nome}
+              id="cadastro-nome" autoComplete="name" value={nome}
               onChange={(e) => setNome(e.target.value)}
               placeholder="Digite seu nome completo"
-              className={`w-full px-5 py-3 rounded-full focus:outline-none focus:ring-4 transition-all duration-200 font-medium border shadow-md focus:scale-[1.01] ${
+              className={`w-full px-5 py-3 rounded-full focus:outline-none focus:ring-4 transition-colors duration-200 font-medium border  focus:scale-[1.01] ${
                 ehDark
-                  ? 'bg-white/10 hover:bg-white/[0.14] focus:bg-white/[0.16] text-white placeholder-purple-200/50 border-white/20 focus:border-purple-400 focus:ring-purple-400/50'
-                  : 'bg-[#d9d9d9]/95 hover:bg-white focus:bg-white text-gray-900 placeholder-gray-500 border-white/30 focus:border-purple-400 focus:ring-purple-400/50'
+                  ? 'bg-(--surface) hover:bg-(--surface) focus:bg-(--surface) text-(--ink) placeholder-(--muted) border-(--border) focus:border-(--border) focus:ring-(--accent)'
+                  : 'bg-(--surface) hover:bg-(--surface) focus:bg-(--surface) text-(--ink) placeholder-gray-500 border-(--border) focus:border-(--border) focus:ring-(--accent)'
               }`}
               required
             />
           </div>
 
           {/* Campo: E-mail */}
-          <div className="animate-slide-up animate-delay-225">
-            <label className={`block text-sm sm:text-base font-semibold mb-1.5 ${ehDark ? 'text-purple-200' : 'text-purple-100'}`}>
+          <div className=" ">
+            <label htmlFor="cadastro-email" className={`block text-sm sm:text-base font-semibold mb-1.5 ${ehDark ? 'text-(--ink)' : 'text-(--ink)'}`}>
               E-mail
             </label>
             <input
               type="email"
-              value={email}
+              id="cadastro-email" autoComplete="email" value={email}
               onChange={(e) => setEmail(e.target.value)}
               placeholder="seuemail@exemplo.com"
-              className={`w-full px-5 py-3 rounded-full focus:outline-none focus:ring-4 transition-all duration-200 font-medium border shadow-md focus:scale-[1.01] ${
+              className={`w-full px-5 py-3 rounded-full focus:outline-none focus:ring-4 transition-colors duration-200 font-medium border  focus:scale-[1.01] ${
                 ehDark
-                  ? 'bg-white/10 hover:bg-white/[0.14] focus:bg-white/[0.16] text-white placeholder-purple-200/50 border-white/20 focus:border-purple-400 focus:ring-purple-400/50'
-                  : 'bg-[#d9d9d9]/95 hover:bg-white focus:bg-white text-gray-900 placeholder-gray-500 border-white/30 focus:border-purple-400 focus:ring-purple-400/50'
+                  ? 'bg-(--surface) hover:bg-(--surface) focus:bg-(--surface) text-(--ink) placeholder-(--muted) border-(--border) focus:border-(--border) focus:ring-(--accent)'
+                  : 'bg-(--surface) hover:bg-(--surface) focus:bg-(--surface) text-(--ink) placeholder-gray-500 border-(--border) focus:border-(--border) focus:ring-(--accent)'
               }`}
               required
             />
           </div>
 
           {/* Linha com Senha e Confirmar Senha lado a lado */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 animate-slide-up animate-delay-300">
-            
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4  ">
+
             {/* Campo: Senha */}
             <div>
-              <label className={`block text-sm sm:text-base font-semibold mb-1.5 ${ehDark ? 'text-purple-200' : 'text-purple-100'}`}>
+              <label htmlFor="cadastro-senha" className={`block text-sm sm:text-base font-semibold mb-1.5 ${ehDark ? 'text-(--ink)' : 'text-(--ink)'}`}>
                 Senha
               </label>
               <div className="relative flex items-center">
                 <input
                   type={mostrarSenha ? 'text' : 'password'}
-                  value={senha}
+                  aria-describedby="cadastro-requisitos" maxLength={128} id="cadastro-senha" autoComplete="new-password" value={senha}
                   onChange={(e) => setSenha(e.target.value)}
-                  onFocus={() => setSenhaFocada(true)}
-                  onBlur={() => setSenhaFocada(false)}
                   placeholder="••••••••"
-                  className={`w-full pl-5 pr-12 py-3 rounded-full focus:outline-none focus:ring-4 transition-all font-medium border shadow-md ${
+                  className={`w-full pl-5 pr-12 py-3 rounded-full focus:outline-none focus:ring-4 transition-colors font-medium border  ${
                     ehDark
-                      ? 'bg-white/10 hover:bg-white/[0.14] focus:bg-white/[0.16] text-white placeholder-purple-200/50 border-white/20 focus:border-purple-400 focus:ring-purple-400/50'
-                      : 'bg-[#d9d9d9]/95 hover:bg-white focus:bg-white text-gray-900 placeholder-gray-500 border-white/30 focus:border-purple-400 focus:ring-purple-400/50'
+                      ? 'bg-(--surface) hover:bg-(--surface) focus:bg-(--surface) text-(--ink) placeholder-(--muted) border-(--border) focus:border-(--border) focus:ring-(--accent)'
+                      : 'bg-(--surface) hover:bg-(--surface) focus:bg-(--surface) text-(--ink) placeholder-gray-500 border-(--border) focus:border-(--border) focus:ring-(--accent)'
                   }`}
                   required
                 />
@@ -185,11 +183,11 @@ export function Cadastro({ aoVoltarParaLogin, aoAbrirTermos, aoCadastroSucesso }
                   type="button"
                   onMouseDown={(e) => e.preventDefault()}
                   onClick={() => setMostrarSenha(!mostrarSenha)}
-                  className={`absolute right-3.5 p-1 rounded-full transition-colors cursor-pointer focus:outline-none ${
+                  className={"ui-button " + (`absolute right-3.5 p-1 rounded-full transition-colors cursor-pointer focus:outline-none ${
                     ehDark
-                      ? 'text-purple-200/70 hover:text-white hover:bg-white/10'
-                      : 'text-gray-500 hover:text-gray-900 hover:bg-gray-300/50'
-                  }`}
+                      ? 'text-(--ink) hover:text-(--ink) hover:bg-(--surface)'
+                      : 'text-(--muted) hover:text-(--ink) hover:bg-(--surface-muted)'
+                  }`)}
                   title={mostrarSenha ? 'Ocultar senha' : 'Ver senha'}
                   aria-label={mostrarSenha ? 'Ocultar senha' : 'Ver senha'}
                 >
@@ -200,19 +198,19 @@ export function Cadastro({ aoVoltarParaLogin, aoAbrirTermos, aoCadastroSucesso }
 
             {/* Campo: Confirmar Senha */}
             <div>
-              <label className={`block text-sm sm:text-base font-semibold mb-1.5 ${ehDark ? 'text-purple-200' : 'text-purple-100'}`}>
+              <label htmlFor="cadastro-confirmar" className={`block text-sm sm:text-base font-semibold mb-1.5 ${ehDark ? 'text-(--ink)' : 'text-(--ink)'}`}>
                 Confirmar senha
               </label>
               <div className="relative flex items-center">
                 <input
                   type={mostrarConfirmarSenha ? 'text' : 'password'}
-                  value={confirmarSenha}
+                  id="cadastro-confirmar" autoComplete="new-password" value={confirmarSenha}
                   onChange={(e) => setConfirmarSenha(e.target.value)}
                   placeholder="••••••••"
-                  className={`w-full pl-5 pr-12 py-3 rounded-full focus:outline-none focus:ring-4 transition-all font-medium border shadow-md ${
+                  className={`w-full pl-5 pr-12 py-3 rounded-full focus:outline-none focus:ring-4 transition-colors font-medium border  ${
                     ehDark
-                      ? 'bg-white/10 hover:bg-white/[0.14] focus:bg-white/[0.16] text-white placeholder-purple-200/50 border-white/20 focus:border-purple-400 focus:ring-purple-400/50'
-                      : 'bg-[#d9d9d9]/95 hover:bg-white focus:bg-white text-gray-900 placeholder-gray-500 border-white/30 focus:border-purple-400 focus:ring-purple-400/50'
+                      ? 'bg-(--surface) hover:bg-(--surface) focus:bg-(--surface) text-(--ink) placeholder-(--muted) border-(--border) focus:border-(--border) focus:ring-(--accent)'
+                      : 'bg-(--surface) hover:bg-(--surface) focus:bg-(--surface) text-(--ink) placeholder-gray-500 border-(--border) focus:border-(--border) focus:ring-(--accent)'
                   }`}
                   required
                 />
@@ -220,11 +218,11 @@ export function Cadastro({ aoVoltarParaLogin, aoAbrirTermos, aoCadastroSucesso }
                   type="button"
                   onMouseDown={(e) => e.preventDefault()}
                   onClick={() => setMostrarConfirmarSenha(!mostrarConfirmarSenha)}
-                  className={`absolute right-3.5 p-1 rounded-full transition-colors cursor-pointer focus:outline-none ${
+                  className={"ui-button " + (`absolute right-3.5 p-1 rounded-full transition-colors cursor-pointer focus:outline-none ${
                     ehDark
-                      ? 'text-purple-200/70 hover:text-white hover:bg-white/10'
-                      : 'text-gray-500 hover:text-gray-900 hover:bg-gray-300/50'
-                  }`}
+                      ? 'text-(--ink) hover:text-(--ink) hover:bg-(--surface)'
+                      : 'text-(--muted) hover:text-(--ink) hover:bg-(--surface-muted)'
+                  }`)}
                   title={mostrarConfirmarSenha ? 'Ocultar senha' : 'Ver senha'}
                   aria-label={mostrarConfirmarSenha ? 'Ocultar senha' : 'Ver senha'}
                 >
@@ -236,43 +234,43 @@ export function Cadastro({ aoVoltarParaLogin, aoAbrirTermos, aoCadastroSucesso }
           </div>
 
           {/* Indicadores Visuais de Requisitos da Senha - Aparece apenas quando a caixa da senha for clicada/focada */}
-          {senhaFocada && (
-            <div className={`text-xs space-y-1.5 border rounded-2xl p-3 text-left transition-all animate-fade-in shadow-inner ${
-              ehDark ? 'bg-black/40 border-white/15 text-purple-200/80' : 'bg-white/5 border-white/10 text-purple-200/80'
+          {(
+            <div className={`text-xs space-y-1.5 border rounded-2xl p-3 text-left transition-colors   ${
+              ehDark ? 'bg-black/40 border-(--border) text-(--ink)' : 'bg-(--surface) border-(--border) text-(--ink)'
             }`}>
-              <p className={`font-semibold text-xs mb-1 ${ehDark ? 'text-purple-200' : 'text-purple-100'}`}>Requisitos de segurança:</p>
+              <p id="cadastro-requisitos" className={`font-semibold text-xs mb-1 ${ehDark ? 'text-(--ink)' : 'text-(--ink)'}`}>Requisitos de segurança:</p>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                <span className={`flex items-center gap-1.5 ${senha.length >= 8 ? 'text-green-400 font-semibold' : 'text-purple-300/70'}`}>
-                  {senha.length >= 8 ? '✓' : '○'} Mínimo 8 caracteres
+                <span className={`flex items-center gap-1.5 ${senha.length >= 8 ? 'text-(--accent) font-semibold' : 'text-(--muted)'}`}>
+                  {senha.length >= 8 ? '' : '○'} Mínimo 8 caracteres
                 </span>
-                <span className={`flex items-center gap-1.5 ${/[A-Z]/.test(senha) ? 'text-green-400 font-semibold' : 'text-purple-300/70'}`}>
-                  {/[A-Z]/.test(senha) ? '✓' : '○'} 1 Letra maiúscula
+                <span className={`flex items-center gap-1.5 ${/[A-Z]/.test(senha) ? 'text-(--accent) font-semibold' : 'text-(--muted)'}`}>
+                  {/[A-Z]/.test(senha) ? '' : '○'} 1 Letra maiúscula
                 </span>
-                <span className={`flex items-center gap-1.5 ${/[0-9]/.test(senha) ? 'text-green-400 font-semibold' : 'text-purple-300/70'}`}>
-                  {/[0-9]/.test(senha) ? '✓' : '○'} 1 Número
+                <span className={`flex items-center gap-1.5 ${/[0-9]/.test(senha) ? 'text-(--accent) font-semibold' : 'text-(--muted)'}`}>
+                  {/[0-9]/.test(senha) ? '' : '○'} 1 Número
                 </span>
-                <span className={`flex items-center gap-1.5 ${/[!@#$%^&*()_+\-=[\]{}|;:,.<>?~`\\/'"]/.test(senha) ? 'text-green-400 font-semibold' : 'text-purple-300/70'}`}>
-                  {/[!@#$%^&*()_+\-=[\]{}|;:,.<>?~`\\/'"]/.test(senha) ? '✓' : '○'} 1 Caractere especial
+                <span className={`flex items-center gap-1.5 ${/[!@#$%^&*()_+\-=[\]{}|;:,.<>?~`\\/'"]/.test(senha) ? 'text-(--accent) font-semibold' : 'text-(--muted)'}`}>
+                  {/[!@#$%^&*()_+\-=[\]{}|;:,.<>?~`\\/'"]/.test(senha) ? '' : '○'} 1 Caractere especial
                 </span>
               </div>
             </div>
           )}
 
           {/* Checkbox Termos de Uso */}
-          <div className="flex items-center gap-3 pt-2 animate-slide-up animate-delay-375">
+          <div className="flex items-center gap-3 pt-2  ">
             <input
               type="checkbox"
               id="termos"
               checked={aceitouTermos}
               onChange={(e) => setAceitouTermos(e.target.checked)}
-              className="w-5 h-5 accent-purple-600 rounded cursor-pointer"
+              className="w-5 h-5 accent-(--accent) rounded cursor-pointer"
             />
-            <label htmlFor="termos" className={`text-xs sm:text-sm select-none cursor-pointer ${ehDark ? 'text-purple-200' : 'text-purple-100'}`}>
+            <label htmlFor="termos" className={`text-xs sm:text-sm select-none cursor-pointer ${ehDark ? 'text-(--ink)' : 'text-(--ink)'}`}>
               Li e concordo com os{' '}
               <button
                 type="button"
                 onClick={() => aoAbrirTermos?.(() => setAceitouTermos(true))}
-                className="text-yellow-400 hover:text-yellow-300 font-semibold underline cursor-pointer"
+                className={"ui-button " + ("text-(--accent) hover:text-(--accent) font-semibold underline cursor-pointer")}
               >
                 Termos de Uso
               </button>{' '}
@@ -280,7 +278,7 @@ export function Cadastro({ aoVoltarParaLogin, aoAbrirTermos, aoCadastroSucesso }
               <button
                 type="button"
                 onClick={() => aoAbrirTermos?.(() => setAceitouTermos(true))}
-                className="text-yellow-400 hover:text-yellow-300 font-semibold underline cursor-pointer"
+                className={"ui-button " + ("text-(--accent) hover:text-(--accent) font-semibold underline cursor-pointer")}
               >
                 Política de Privacidade
               </button>
@@ -288,26 +286,26 @@ export function Cadastro({ aoVoltarParaLogin, aoAbrirTermos, aoCadastroSucesso }
           </div>
 
           {/* Botão Criar Conta com Shimmer */}
-          <div className="flex justify-center pt-4 animate-slide-up animate-delay-450">
+          <div className="flex justify-center pt-4  ">
             <button
               type="submit"
               disabled={carregando}
-              className="hover-shimmer px-14 py-3.5 bg-white/15 hover:bg-white/25 active:scale-95 text-white text-lg font-semibold rounded-full shadow-[0_8px_25px_rgba(0,0,0,0.35),inset_0_1px_1px_rgba(255,255,255,0.4),0_0_20px_rgba(255,255,255,0.15)] hover:shadow-[0_12px_30px_rgba(0,0,0,0.45),inset_0_1px_2px_rgba(255,255,255,0.6),0_0_30px_rgba(168,85,247,0.35)] backdrop-blur-md border border-white/35 hover:border-white/55 transition-all duration-300 cursor-pointer disabled:opacity-50"
+              className={"ui-button ui-primary " + ("primary-button w-full")}
             >
               {carregando ? 'Criando conta...' : 'Criar Conta'}
-            </button>
+             <Tecla>Enter</Tecla></button>
           </div>
 
         </form>
 
         {/* Rodapé: Link para Login */}
-        <div className="mt-8 pt-6 border-t border-white/15 w-full animate-slide-up animate-delay-450">
-          <p className={`text-sm sm:text-base font-medium ${ehDark ? 'text-purple-200' : 'text-purple-100'}`}>
+        <div className="mt-8 pt-6 border-t border-(--border) w-full  ">
+          <p className={`text-sm sm:text-base font-medium ${ehDark ? 'text-(--ink)' : 'text-(--ink)'}`}>
             Já tem uma conta?{' '}
             <button
               type="button"
               onClick={aoVoltarParaLogin}
-              className="text-[#e2583e] hover:text-[#ff7043] font-bold hover:underline cursor-pointer transition-colors"
+              className={"ui-button " + ("text-(--accent) hover:text-(--accent) font-bold hover:underline cursor-pointer transition-colors")}
             >
               Faça Login
             </button>

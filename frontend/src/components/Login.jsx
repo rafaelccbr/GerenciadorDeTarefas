@@ -1,171 +1,87 @@
-import { useState } from 'react';
-import { Eye, EyeOff } from 'lucide-react';
-import { useTheme } from '../context/ThemeContext.jsx';
-import { loginApi, salvarSessao } from '../services/api.js';
+import { Tecla } from './Tecla.jsx';
+import { useState, useEffect } from 'react';
+import { Eye, EyeOff, ListChecks, Timer, Columns3, ArrowRight } from 'lucide-react';
+import { loginApi, salvarSessao, configuracaoLoginApi, loginGoogleApi } from '../services/api.js';
+import { Marca } from './Marca.jsx';
 
-/**
- * ============================================================================
- * TELA DE LOGIN
- * ============================================================================
- * Baseado no design do Figma: 'Login.png'
- * Suporta Tema Violeta e Tema Dark (Midnight Amethyst).
- */
 export function Login({ aoIrParaCadastro, aoLogarComSucesso, aoEsqueceuSenha }) {
-  const { tema } = useTheme();
-  const ehDark = tema === 'dark';
   const [email, setEmail] = useState('');
   const [senha, setSenha] = useState('');
   const [mostrarSenha, setMostrarSenha] = useState(false);
   const [carregando, setCarregando] = useState(false);
   const [erro, setErro] = useState('');
+  const [configuracao, setConfiguracao] = useState(null);
+  useEffect(() => {
+    let ativo = true;
+    configuracaoLoginApi().then(config => { if (ativo) setConfiguracao(config); }).catch(() => { if (ativo) setErro('Não foi possível verificar as opções de acesso. Atualize a página para tentar novamente.'); });
+    return () => { ativo = false; };
+  }, []);
+  const entrarComGoogle = async () => {
+    setErro(''); setCarregando(true);
+    try { await loginGoogleApi(); }
+    catch (error) { setErro(error.message); setCarregando(false); }
+  };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+  const handleSubmit = async (event) => {
+    event.preventDefault();
     setErro('');
-
-    if (!email || !senha) {
-      setErro('Por favor, preencha o e-mail e a senha.');
-      return;
-    }
-
+    setCarregando(true);
     try {
-      setCarregando(true);
-      // Chama o endpoint de login no backend Fastify
-      const resposta = await loginApi(email, senha);
-
-      // Salva o token JWT e os dados do usuário no localStorage
+      const resposta = await loginApi(email.trim(), senha);
       salvarSessao(resposta.token, resposta.usuario);
-
-      // Notifica o componente pai (App.jsx) que o login foi bem-sucedido
       aoLogarComSucesso(resposta.usuario);
     } catch (err) {
-      setErro(err.message || 'Falha ao autenticar. Verifique suas credenciais.');
+      setErro(err.message || 'Não foi possível entrar. Tente novamente.');
     } finally {
       setCarregando(false);
     }
   };
 
   return (
-    <div className="min-h-screen min-h-dvh w-full flex flex-col items-center justify-center px-4 py-6 sm:py-10 text-white transition-colors duration-500">
-      {/* Card Estilizado de Login com Glassmorphism Translúcido e Borda com Brilho */}
-      <div className={`w-full max-w-md backdrop-blur-2xl rounded-2xl sm:rounded-3xl p-6 sm:p-10 flex flex-col items-center text-center transition-all duration-500 my-auto ${
-        ehDark
-          ? 'bg-gradient-to-b from-white/[0.08] via-[#140b20]/90 to-[#0a0610]/95 border border-white/15 shadow-[0_25px_60px_-15px_rgba(0,0,0,0.9),0_0_40px_rgba(168,85,247,0.14),inset_0_1px_1px_rgba(255,255,255,0.15)]'
-          : 'bg-gradient-to-b from-white/[0.13] via-[#2f0440]/60 to-[#1c0228]/80 border border-white/25 shadow-[0_25px_60px_-15px_rgba(0,0,0,0.65),0_0_45px_rgba(168,85,247,0.18),inset_0_1px_1px_rgba(255,255,255,0.3)]'
-      }`}>
-        
-        {/* Título Principal — entrada delay 0 */}
-        <h1 className="text-3xl sm:text-5xl font-bold mb-2 tracking-wide text-white drop-shadow-sm animate-slide-up">
-          Login
-        </h1>
-
-        {/* Subtítulo de Boas-vindas — entrada delay 75ms */}
-        <p className={`text-sm sm:text-lg mb-6 sm:mb-8 font-normal animate-slide-up animate-delay-75 ${ehDark ? 'text-purple-200/80' : 'text-purple-200/90'}`}>
-          Seja Bem Vindo de Volta!
-        </p>
-
-        {/* Mensagem de Erro */}
-        {erro && (
-          <div className="w-full mb-6 p-3 bg-red-500/20 border border-red-500/50 text-red-200 text-sm rounded-2xl animate-slide-up">
-            {erro}
+    <div className="auth-shell">
+      <header><Marca /></header>
+      <div className="auth-layout">
+        <section className="auth-story" aria-labelledby="rotina-title">
+          <h2 id="rotina-title">Menos na cabeça.<br />Mais no seu dia.</h2>
+          <p>Suas tarefas, seus prazos e um tempo para focar. Organize a rotina no seu ritmo.</p>
+          <div className="routine-strip">
+            <h3>Da ideia ao feito.</h3>
+            <div className="routine-step"><ListChecks size={16} /><span>Organize o próximo passo</span><span>Tarefas</span></div>
+            <div className="routine-step"><Columns3 size={16} /><span>Veja o trabalho avançar</span><span>Kanban</span></div>
+            <div className="routine-step"><Timer size={16} /><span>Uma coisa de cada vez</span><span>Pomodoro</span></div>
           </div>
-        )}
-
-        {/* Formulário de Login */}
-        <form onSubmit={handleSubmit} className="w-full flex flex-col items-center space-y-5">
-          
-          {/* Campo: E-mail — entrada delay 150ms */}
-          <div className="w-full flex flex-col items-center animate-slide-up animate-delay-150">
-            <label className={`text-base sm:text-lg font-medium mb-2 ${ehDark ? 'text-purple-200' : 'text-purple-100'}`}>
-              E-mail
-            </label>
-            <input
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="seuemail@exemplo.com"
-              className={`w-full max-w-sm px-5 py-3 rounded-full text-center focus:outline-none focus:ring-4 transition-all duration-200 font-medium border shadow-md focus:scale-[1.01] ${
-                ehDark
-                  ? 'bg-white/10 hover:bg-white/[0.14] focus:bg-white/[0.16] text-white placeholder-purple-200/50 border-white/20 focus:border-purple-400 focus:ring-purple-400/50'
-                  : 'bg-[#d9d9d9]/95 hover:bg-white focus:bg-white text-gray-900 placeholder-gray-500 border-white/30 focus:border-purple-400 focus:ring-purple-400/50'
-              }`}
-              required
-            />
-          </div>
-
-          {/* Campo: Senha — entrada delay 225ms */}
-          <div className="w-full flex flex-col items-center animate-slide-up animate-delay-225">
-            <label className={`text-base sm:text-lg font-medium mb-2 ${ehDark ? 'text-purple-200' : 'text-purple-100'}`}>
-              Senha
-            </label>
-            <div className="relative w-full max-w-sm flex items-center">
-              <input
-                type={mostrarSenha ? 'text' : 'password'}
-                value={senha}
-                onChange={(e) => setSenha(e.target.value)}
-                placeholder="••••••••"
-                className={`w-full px-12 py-3 rounded-full text-center focus:outline-none focus:ring-4 transition-all duration-200 font-medium border shadow-md focus:scale-[1.01] ${
-                  ehDark
-                    ? 'bg-white/10 hover:bg-white/[0.14] focus:bg-white/[0.16] text-white placeholder-purple-200/50 border-white/20 focus:border-purple-400 focus:ring-purple-400/50'
-                    : 'bg-[#d9d9d9]/95 hover:bg-white focus:bg-white text-gray-900 placeholder-gray-500 border-white/30 focus:border-purple-400 focus:ring-purple-400/50'
-                }`}
-                required
-              />
-              <button
-                type="button"
-                onMouseDown={(e) => e.preventDefault()}
-                onClick={() => setMostrarSenha(!mostrarSenha)}
-                className={`absolute right-3.5 p-1 rounded-full transition-colors cursor-pointer focus:outline-none ${
-                  ehDark
-                    ? 'text-purple-200/70 hover:text-white hover:bg-white/10'
-                    : 'text-gray-500 hover:text-gray-900 hover:bg-gray-300/50'
-                }`}
-                title={mostrarSenha ? 'Ocultar senha' : 'Ver senha'}
-                aria-label={mostrarSenha ? 'Ocultar senha' : 'Ver senha'}
-              >
-                {mostrarSenha ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
-              </button>
-            </div>
-            {/* Link Esqueceu a Senha */}
-            <div className="w-full max-w-sm flex justify-end mt-2 pr-1">
-              <button
-                type="button"
-                onClick={aoEsqueceuSenha}
-                className="text-xs sm:text-sm text-purple-200/90 hover:text-white hover:underline cursor-pointer transition-colors"
-              >
-                Esqueceu a senha?
-              </button>
-            </div>
-          </div>
-
-          {/* Botão Entrar com Shimmer — entrada delay 300ms */}
-          <div className="pt-3 w-full flex justify-center animate-slide-up animate-delay-300">
-            <button
-              type="submit"
-              disabled={carregando}
-              className="hover-shimmer px-14 py-3.5 bg-white/15 hover:bg-white/25 active:scale-95 text-white text-lg font-semibold rounded-full shadow-[0_8px_25px_rgba(0,0,0,0.35),inset_0_1px_1px_rgba(255,255,255,0.4),0_0_20px_rgba(255,255,255,0.15)] hover:shadow-[0_12px_30px_rgba(0,0,0,0.45),inset_0_1px_2px_rgba(255,255,255,0.6),0_0_30px_rgba(168,85,247,0.35)] backdrop-blur-md border border-white/35 hover:border-white/55 transition-all duration-300 cursor-pointer disabled:opacity-50"
-            >
-              {carregando ? 'Entrando...' : 'Entrar'}
+        </section>
+        <section className="auth-form" aria-labelledby="login-title">
+          <h1 id="login-title">Entre no seu espaço</h1>
+          <p>Retome de onde parou.</p>
+          {erro && <div className="form-error" role="alert">{erro}</div>}
+          {configuracao?.google && <>
+            <button type="button" className={"ui-button " + ("google-button")} onClick={entrarComGoogle} disabled={carregando}>
+              <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M21.6 12.23c0-.71-.06-1.39-.18-2.05H12v3.88h5.38a4.6 4.6 0 0 1-2 3.02v2.5h3.23c1.89-1.74 2.99-4.3 2.99-7.35ZM12 22c2.7 0 4.96-.9 6.61-2.42l-3.23-2.5c-.9.6-2.05.96-3.38.96-2.6 0-4.8-1.76-5.59-4.12H3.07v2.59A10 10 0 0 0 12 22ZM6.41 13.92A6 6 0 0 1 6.1 12c0-.67.11-1.32.31-1.92V7.49H3.07A10 10 0 0 0 2 12c0 1.61.38 3.14 1.07 4.51l3.34-2.59ZM12 5.96c1.47 0 2.79.5 3.82 1.5l2.86-2.87A9.6 9.6 0 0 0 12 2a10 10 0 0 0-8.93 5.49l3.34 2.59C7.2 7.72 9.4 5.96 12 5.96Z" /></svg>
+              {carregando ? 'Conectando…' : 'Continuar com Google'}
             </button>
-          </div>
-
-        </form>
-
-        {/* Rodapé: Link para Cadastro com divisor suave — entrada delay 375ms */}
-        <div className="mt-8 pt-6 border-t border-white/15 w-full animate-slide-up animate-delay-375">
-          <p className="text-sm sm:text-base text-purple-100 font-medium">
-            Tem uma conta?{' '}
-            <button
-              type="button"
-              onClick={aoIrParaCadastro}
-              className="text-[#e2583e] hover:text-[#ff7043] font-bold hover:underline cursor-pointer transition-colors"
-            >
-              Crie uma Agora
-            </button>
-          </p>
-        </div>
-
+            <p className="login-divider">Ou use sua senha do Organizador</p>
+          </>}
+          <form onSubmit={handleSubmit} aria-busy={carregando}>
+            <div className="field">
+              <label htmlFor="login-email">E-mail</label>
+              <input id="login-email" type="email" autoComplete="username" value={email} onChange={e => setEmail(e.target.value)} placeholder="voce@exemplo.com" required disabled={carregando} />
+            </div>
+            <div className="field">
+              <label htmlFor="login-password">Senha</label>
+              <div className="password-field">
+                <input id="login-password" type={mostrarSenha ? 'text' : 'password'} autoComplete="current-password" value={senha} onChange={e => setSenha(e.target.value)} required disabled={carregando} />
+                <button className={"ui-button " + ("password-toggle")} type="button" onClick={() => setMostrarSenha(!mostrarSenha)} aria-label={mostrarSenha ? 'Ocultar senha' : 'Mostrar senha'} aria-pressed={mostrarSenha}>{mostrarSenha ? <EyeOff size={18} /> : <Eye size={18} />}</button>
+              </div>
+            </div>
+            {configuracao?.recuperacaoEmail && <button type="button" className={"ui-button " + ("forgot-password")} onClick={aoEsqueceuSenha}>Esqueceu a senha?</button>}
+            {configuracao?.google && !configuracao.recuperacaoEmail && <p className="text-[13px] text-(--muted)">Esqueceu sua senha? Você pode continuar com o Google.</p>}
+            <button type="submit" className={"ui-button ui-primary " + ("primary-button")} disabled={carregando}>{carregando ? 'Entrando…' : 'Entrar'}{!carregando && <ArrowRight size={16} />} <Tecla>Enter</Tecla></button>
+          </form>
+          {configuracao?.cadastroEmail ? <div className="auth-register">Primeira vez aqui? <button type="button" className={"ui-button " + ("text-button")} onClick={aoIrParaCadastro}>Criar conta</button></div> : configuracao?.google ? <p className="auth-register">No primeiro acesso com Google, sua conta é criada. Depois, você pode configurar uma senha em Minha conta.</p> : null}
+        </section>
       </div>
+      <footer className="auth-footer"><span>Organizador de Tarefas Pro</span><span>Planeje. Faça. Respire.</span></footer>
     </div>
   );
 }

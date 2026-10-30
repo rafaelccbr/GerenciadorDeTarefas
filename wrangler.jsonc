@@ -1,0 +1,22 @@
+{
+  "$schema": "./backend/node_modules/wrangler/config-schema.json",
+  "name": "organizador-de-tarefas",
+  "account_id": "83e982ab26f9875efd6ed34d263dddec",
+  "main": "backend/src/worker.js",
+  "compatibility_date": "2026-10-29",
+  "compatibility_flags": ["nodejs_compat"],
+  "assets": {
+    "directory": "./frontend/dist",
+    "binding": "ASSETS",
+    "not_found_handling": "single-page-application",
+    "run_worker_first": ["/api", "/api/*"]
+  },
+  "d1_databases": [{
+    "binding": "DB",
+    "database_name": "organizador-tarefas",
+    "database_id": "264eaf9f-04c0-4c6e-b5a3-f824fd651200",
+    "migrations_dir": "backend/migrations"
+  }],
+  "build": { "command": "npm --prefix frontend run build", "cwd": ".", "watch_dir": ["frontend/src", "backend/src"] },
+  "observability": { "enabled": true }
+}

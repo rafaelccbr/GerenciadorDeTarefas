@@ -304,7 +304,7 @@ export function calcularProximaData(dataAtualStr, regra) {
 export function parseQuickAdd(textoLivre = '') {
   let texto = (textoLivre || '').trim();
   const hoje = new Date();
-  
+
   const formatarDataIso = (d) => {
     const yyyy = d.getFullYear();
     const mm = String(d.getMonth() + 1).padStart(2, '0');
@@ -346,7 +346,6 @@ export function parseQuickAdd(textoLivre = '') {
   }
 
   // 4. Reconhecimento de datas em Português
-  const lower = texto.toLowerCase();
 
   // Amanhã
   if (/\b(amanhã|amanha)\b/i.test(texto)) {
@@ -416,7 +415,7 @@ export function verificarPrazoInteligente(dataTerminoStr, status, horaStr = '') 
   if (!dataTerminoStr || status === 'concluido') return null;
 
   const [ano, mes, dia] = dataTerminoStr.split('T')[0].split('-').map(Number);
-  
+
   let hora = 23;
   let minuto = 59;
   let segundo = 59;
@@ -452,42 +451,6 @@ export function verificarPrazoInteligente(dataTerminoStr, status, horaStr = '') 
 /**
  * Retorna classes de estilo para tags de forma determinística por hash de texto.
  */
-export function obterCorTag(tag, ehDark) {
-  const cores = [
-    {
-      dark: 'bg-purple-500/20 text-purple-300 border-purple-500/40',
-      claro: 'bg-purple-100 text-purple-800 border-purple-200',
-    },
-    {
-      dark: 'bg-blue-500/20 text-blue-300 border-blue-500/40',
-      claro: 'bg-blue-100 text-blue-800 border-blue-200',
-    },
-    {
-      dark: 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40',
-      claro: 'bg-emerald-100 text-emerald-800 border-emerald-200',
-    },
-    {
-      dark: 'bg-amber-500/20 text-amber-300 border-amber-500/40',
-      claro: 'bg-amber-100 text-amber-800 border-amber-200',
-    },
-    {
-      dark: 'bg-rose-500/20 text-rose-300 border-rose-500/40',
-      claro: 'bg-rose-100 text-rose-800 border-rose-200',
-    },
-    {
-      dark: 'bg-cyan-500/20 text-cyan-300 border-cyan-500/40',
-      claro: 'bg-cyan-100 text-cyan-800 border-cyan-200',
-    },
-    {
-      dark: 'bg-indigo-500/20 text-indigo-300 border-indigo-500/40',
-      claro: 'bg-indigo-100 text-indigo-800 border-indigo-200',
-    },
-  ];
-
-  let hash = 0;
-  for (let i = 0; i < tag.length; i++) {
-    hash = tag.charCodeAt(i) + ((hash << 5) - hash);
-  }
-  const index = Math.abs(hash) % cores.length;
-  return ehDark ? cores[index].dark : cores[index].claro;
+export function obterCorTag() {
+  return 'bg-(--surface-muted) text-(--muted) border-(--border)';
 }

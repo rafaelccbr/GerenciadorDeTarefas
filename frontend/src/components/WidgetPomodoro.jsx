@@ -1,12 +1,12 @@
 import { useState, useEffect } from 'react';
 import { Play, Pause, RotateCcw, X, Check, Minimize2, Maximize2, Flame, Coffee } from 'lucide-react';
-import { useTheme } from '../context/ThemeContext.jsx';
+import { useTheme } from '../context/theme.js';
 import { parseTarefaNome, tocarSomAlerta } from '../utils/tarefaParser.js';
 
 const MODOS_POMODORO = {
-  foco: { id: 'foco', label: '🍅 Foco (25m)', segundos: 25 * 60, cor: 'from-rose-500 to-purple-600' },
-  curta: { id: 'curta', label: '☕ Pausa (5m)', segundos: 5 * 60, cor: 'from-emerald-500 to-teal-600' },
-  longa: { id: 'longa', label: '🌴 Descanso (15m)', segundos: 15 * 60, cor: 'from-blue-500 to-indigo-600' },
+  foco: { id: 'foco', label: ' Foco (25m)', segundos: 25 * 60, cor: ' ' },
+  curta: { id: 'curta', label: ' Pausa (5m)', segundos: 5 * 60, cor: ' ' },
+  longa: { id: 'longa', label: ' Descanso (15m)', segundos: 15 * 60, cor: ' ' },
 };
 
 export function WidgetPomodoro({ tarefaAtiva, aoFechar, aoConcluirTarefa }) {
@@ -43,7 +43,7 @@ export function WidgetPomodoro({ tarefaAtiva, aoFechar, aoConcluirTarefa }) {
 
           if ('Notification' in window && Notification.permission === 'granted') {
             new Notification(
-              modo === 'foco' ? '🍅 Ciclo Pomodoro Concluído!' : '☕ Pausa Finalizada!',
+              modo === 'foco' ? ' Ciclo Pomodoro Concluído!' : ' Pausa Finalizada!',
               {
                 body: modo === 'foco'
                   ? `Excelente foco em "${tituloLimpo}"! Hora de fazer uma pausa.`
@@ -68,14 +68,14 @@ export function WidgetPomodoro({ tarefaAtiva, aoFechar, aoConcluirTarefa }) {
   if (minimizado) {
     return (
       <div
-        className={`fixed bottom-4 right-4 z-50 flex items-center gap-3 px-4 py-2.5 rounded-full border backdrop-blur-2xl shadow-2xl animate-fade-in ${
+        className={`fixed bottom-4 right-4 z-50 flex items-center gap-3 px-4 py-2.5 rounded-full border    ${
           ehDark
-            ? 'bg-[#160c24]/95 border-purple-500/40 text-white shadow-[0_10px_30px_rgba(0,0,0,0.85)]'
-            : 'bg-white/95 border-purple-300 text-gray-900 shadow-[0_10px_30px_rgba(0,0,0,0.25)]'
+            ? 'bg-(--surface) border-(--border) text-(--ink) '
+            : 'bg-(--surface) border-(--border) text-(--ink) '
         }`}
       >
-        <Flame className={`w-4 h-4 ${rodando ? 'text-rose-500 animate-pulse' : 'text-purple-400'}`} />
-        <span className="font-mono font-extrabold text-sm tracking-wider">
+        <Flame className={`w-4 h-4 ${rodando ? 'text-rose-500 ' : 'text-(--muted)'}`} />
+        <span className="tabular-nums font-extrabold text-sm ">
           {minutos}:{segundos}
         </span>
         <span className="text-xs font-medium max-w-[120px] truncate opacity-80">
@@ -84,7 +84,7 @@ export function WidgetPomodoro({ tarefaAtiva, aoFechar, aoConcluirTarefa }) {
         <button
           type="button"
           onClick={() => setRodando(!rodando)}
-          className="p-1.5 rounded-full bg-purple-600 hover:bg-purple-500 text-white cursor-pointer transition-all"
+          className={"ui-button ui-primary " + ("p-1.5 rounded-full bg-(--surface-muted) hover:bg-(--surface-muted) text-(--ink) cursor-pointer transition-colors")}
           title={rodando ? 'Pausar' : 'Continuar'}
         >
           {rodando ? <Pause className="w-3 h-3" /> : <Play className="w-3 h-3" />}
@@ -92,7 +92,7 @@ export function WidgetPomodoro({ tarefaAtiva, aoFechar, aoConcluirTarefa }) {
         <button
           type="button"
           onClick={() => setMinimizado(false)}
-          className="p-1 rounded-full hover:bg-purple-500/20 cursor-pointer"
+          className={"ui-button ui-icon " + ("p-1 rounded-full hover:bg-(--surface-muted) cursor-pointer")}
           title="Expandir Pomodoro"
         >
           <Maximize2 className="w-3.5 h-3.5" />
@@ -103,20 +103,20 @@ export function WidgetPomodoro({ tarefaAtiva, aoFechar, aoConcluirTarefa }) {
 
   return (
     <div
-      className={`fixed bottom-4 right-4 sm:bottom-6 sm:right-6 z-50 w-80 sm:w-88 rounded-3xl border backdrop-blur-2xl overflow-hidden shadow-2xl animate-slide-up transition-all ${
+      className={`fixed bottom-4 right-4 sm:bottom-6 sm:right-6 z-50 w-80 sm:w-88 rounded-3xl border  overflow-hidden   transition-colors ${
         ehDark
-          ? 'bg-[#140b22]/95 border-purple-500/40 text-purple-100 shadow-[0_25px_60px_rgba(0,0,0,0.9),0_0_35px_rgba(168,85,247,0.25)]'
-          : 'bg-white/95 border-purple-200 text-gray-800 shadow-[0_20px_50px_rgba(0,0,0,0.3)]'
+          ? 'bg-(--surface) border-(--border) text-(--ink) '
+          : 'bg-(--surface) border-(--border) text-(--ink) '
       }`}
     >
       {/* Cabeçalho Gradiente */}
-      <div className={`px-4 py-3 bg-gradient-to-r ${MODOS_POMODORO[modo].cor} text-white flex items-center justify-between`}>
+      <div className={`px-4 py-3  ${MODOS_POMODORO[modo].cor} text-(--ink) flex items-center justify-between`}>
         <div className="flex items-center gap-2">
-          {modo === 'foco' ? <Flame className="w-4 h-4 animate-pulse" /> : <Coffee className="w-4 h-4" />}
-          <span className="text-xs font-extrabold uppercase tracking-wider">Modo Foco Pomodoro</span>
+          {modo === 'foco' ? <Flame className="w-4 h-4 " /> : <Coffee className="w-4 h-4" />}
+          <span className="text-xs font-extrabold  ">Modo Foco Pomodoro</span>
           {ciclos > 0 && (
-            <span className="px-2 py-0.2 bg-black/25 rounded-full text-[10px] font-bold">
-              {ciclos} 🍅
+            <span className="px-2 py-0.2 bg-black/25 rounded-full text-xs font-bold">
+              {ciclos}
             </span>
           )}
         </div>
@@ -124,7 +124,7 @@ export function WidgetPomodoro({ tarefaAtiva, aoFechar, aoConcluirTarefa }) {
           <button
             type="button"
             onClick={() => setMinimizado(true)}
-            className="p-1 rounded-lg hover:bg-white/20 transition-colors cursor-pointer"
+            className={"ui-button ui-icon " + ("p-1 rounded-lg hover:bg-(--surface) transition-colors cursor-pointer")}
             title="Minimizar"
           >
             <Minimize2 className="w-3.5 h-3.5" />
@@ -132,7 +132,7 @@ export function WidgetPomodoro({ tarefaAtiva, aoFechar, aoConcluirTarefa }) {
           <button
             type="button"
             onClick={aoFechar}
-            className="p-1 rounded-lg hover:bg-white/20 transition-colors cursor-pointer"
+            className={"ui-button ui-icon " + ("p-1 rounded-lg hover:bg-(--surface) transition-colors cursor-pointer")}
             title="Fechar Pomodoro"
           >
             <X className="w-4 h-4" />
@@ -144,16 +144,16 @@ export function WidgetPomodoro({ tarefaAtiva, aoFechar, aoConcluirTarefa }) {
       <div className="p-4 space-y-3.5">
         {/* Tarefa em Foco */}
         <div className={`px-3 py-2 rounded-xl border text-xs flex items-center justify-between gap-2 ${
-          ehDark ? 'bg-white/5 border-white/10' : 'bg-purple-50/60 border-purple-100'
+          ehDark ? 'bg-(--surface) border-(--border)' : 'bg-(--surface-muted) border-(--border)'
         }`}>
           <div className="truncate font-semibold" title={tituloLimpo}>
-            🎯 {tituloLimpo}
+             {tituloLimpo}
           </div>
           {tarefaAtiva && tarefaAtiva.status !== 'concluido' && (
             <button
               type="button"
               onClick={() => aoConcluirTarefa(tarefaAtiva)}
-              className="shrink-0 inline-flex items-center gap-1 px-2 py-1 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-[10px] font-bold cursor-pointer active:scale-95 transition-all"
+              className={"ui-button ui-success " + ("shrink-0 inline-flex items-center gap-1 px-2 py-1 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-(--ink) text-xs font-bold cursor-pointer active:scale-95 transition-colors")}
               title="Concluir esta tarefa agora"
             >
               <Check className="w-3 h-3" />
@@ -165,19 +165,19 @@ export function WidgetPomodoro({ tarefaAtiva, aoFechar, aoConcluirTarefa }) {
         {/* Seletor de Modos */}
         <div className="grid grid-cols-3 gap-1.5">
           {Object.values(MODOS_POMODORO).map((m) => (
-            <button
+            <button aria-pressed={modo === m.id}
               key={m.id}
               type="button"
               onClick={() => trocarModo(m.id)}
-              className={`py-1.5 px-2 rounded-xl text-[11px] font-bold transition-all cursor-pointer border ${
+              className={"ui-button " + (`py-1.5 px-2 rounded-xl text-[11px] font-bold transition-colors cursor-pointer border ${
                 modo === m.id
                   ? ehDark
-                    ? 'bg-purple-500/30 text-white border-purple-400/50'
-                    : 'bg-purple-600 text-white border-purple-600 shadow-sm'
+                    ? 'bg-(--surface-muted) text-(--ink) border-(--border)'
+                    : 'bg-(--surface-muted) text-(--ink) border-(--border) '
                   : ehDark
-                  ? 'bg-white/5 hover:bg-white/10 text-purple-200/70 border-white/10'
-                  : 'bg-gray-100 hover:bg-gray-200 text-gray-600 border-gray-200'
-              }`}
+                  ? 'bg-(--surface) hover:bg-(--surface) text-(--ink) border-(--border)'
+                  : 'bg-(--surface-muted) hover:bg-(--surface-muted) text-(--muted) border-(--border)'
+              }`)}
             >
               {m.label}
             </button>
@@ -186,12 +186,12 @@ export function WidgetPomodoro({ tarefaAtiva, aoFechar, aoConcluirTarefa }) {
 
         {/* Display do Cronômetro */}
         <div className="text-center py-2">
-          <div className={`text-5xl font-mono font-black tracking-tight ${ehDark ? 'text-white' : 'text-gray-900'}`}>
+          <div className={`text-5xl tabular-nums font-black tracking-tight ${ehDark ? 'text-(--ink)' : 'text-(--ink)'}`}>
             {minutos}:{segundos}
           </div>
-          <div className={`w-full h-1.5 rounded-full overflow-hidden mt-3 ${ehDark ? 'bg-white/10' : 'bg-gray-200'}`}>
+          <div className={`w-full h-1.5 rounded-full overflow-hidden mt-3 ${ehDark ? 'bg-(--surface)' : 'bg-(--surface-muted)'}`}>
             <div
-              className={`h-full transition-all duration-500 bg-gradient-to-r ${MODOS_POMODORO[modo].cor}`}
+              className={`h-full transition-colors duration-500  ${MODOS_POMODORO[modo].cor}`}
               style={{ width: `${progresso}%` }}
             />
           </div>
@@ -202,7 +202,7 @@ export function WidgetPomodoro({ tarefaAtiva, aoFechar, aoConcluirTarefa }) {
           <button
             type="button"
             onClick={() => setRodando(!rodando)}
-            className={`flex-1 py-2.5 px-4 rounded-2xl font-bold text-xs text-white flex items-center justify-center gap-1.5 shadow-lg cursor-pointer active:scale-95 transition-all bg-gradient-to-r ${MODOS_POMODORO[modo].cor}`}
+            className={"ui-button ui-primary " + (`flex-1 py-2.5 px-4 rounded-2xl font-bold text-xs text-(--ink) flex items-center justify-center gap-1.5  cursor-pointer active:scale-95 transition-colors  ${MODOS_POMODORO[modo].cor}`)}
           >
             {rodando ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4" />}
             <span>{rodando ? 'Pausar' : 'Iniciar'}</span>
@@ -211,9 +211,9 @@ export function WidgetPomodoro({ tarefaAtiva, aoFechar, aoConcluirTarefa }) {
           <button
             type="button"
             onClick={() => setSegundosRestantes((s) => s + 5 * 60)}
-            className={`px-3 py-2.5 rounded-2xl font-bold text-xs border cursor-pointer active:scale-95 transition-all ${
-              ehDark ? 'bg-white/5 hover:bg-white/10 border-white/15 text-purple-200' : 'bg-gray-100 hover:bg-gray-200 border-gray-200 text-gray-700'
-            }`}
+            className={"ui-button " + (`px-3 py-2.5 rounded-2xl font-bold text-xs border cursor-pointer active:scale-95 transition-colors ${
+              ehDark ? 'bg-(--surface) hover:bg-(--surface) border-(--border) text-(--ink)' : 'bg-(--surface-muted) hover:bg-(--surface-muted) border-(--border) text-(--muted)'
+            }`)}
             title="Adicionar +5 minutos"
           >
             +5m
@@ -225,9 +225,9 @@ export function WidgetPomodoro({ tarefaAtiva, aoFechar, aoConcluirTarefa }) {
               setRodando(false);
               setSegundosRestantes(MODOS_POMODORO[modo].segundos);
             }}
-            className={`p-2.5 rounded-2xl border cursor-pointer active:scale-95 transition-all ${
-              ehDark ? 'bg-white/5 hover:bg-white/10 border-white/15 text-purple-200' : 'bg-gray-100 hover:bg-gray-200 border-gray-200 text-gray-700'
-            }`}
+            className={"ui-button ui-icon ui-primary " + (`p-2.5 rounded-2xl border cursor-pointer active:scale-95 transition-colors ${
+              ehDark ? 'bg-(--surface) hover:bg-(--surface) border-(--border) text-(--ink)' : 'bg-(--surface-muted) hover:bg-(--surface-muted) border-(--border) text-(--muted)'
+            }`)}
             title="Reiniciar cronômetro"
           >
             <RotateCcw className="w-4 h-4" />

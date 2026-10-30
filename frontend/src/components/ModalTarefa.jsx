@@ -1,14 +1,17 @@
+import { Tecla } from './Tecla.jsx';
+import { useDialogShortcuts } from '../hooks/useDialogShortcuts.js';
 import { useState } from 'react';
+import { dataLocalIso } from '../utils/datas.js';
 import { Flag, Tag, Plus, X, Clock, Repeat, ListChecks, CheckSquare, Square, Trash2, FileText, Link2 } from 'lucide-react';
-import { useTheme } from '../context/ThemeContext.jsx';
-import { 
-  parseTarefaNome, 
-  montarTarefaNome, 
-  PRIORIDADES, 
-  TAGS_SUGERIDAS, 
+import { useTheme } from '../context/theme.js';
+import {
+  parseTarefaNome,
+  montarTarefaNome,
+  PRIORIDADES,
+  TAGS_SUGERIDAS,
   RECORRENCIA_OPCOES,
   calcularProgressoSubtarefas,
-  obterCorTag 
+  obterCorTag
 } from '../utils/tarefaParser.js';
 
 /**
@@ -19,14 +22,15 @@ import {
  * - Prioridades P1 a P4 Todoist
  * - Tags e Categorias customizadas e sugeridas
  * - Horário de conclusão com alerta preciso de minutos
- * - ☑️ Etapas / Subtarefas (Mini-Checklist dinâmico com progresso)
- * - 🔁 Recorrência (Diária, Semanal, Mensal)
- * - 📝 Notas e Links Rápidos clicáveis
+ * -  Etapas / Subtarefas (Mini-Checklist dinâmico com progresso)
+ * -  Recorrência (Diária, Semanal, Mensal)
+ * -  Notas e Links Rápidos clicáveis
  */
 export function ModalTarefa({ tarefaParaEditar, statusInicial, aoSalvar, aoFechar }) {
+  const dialogRef = useDialogShortcuts(aoFechar);
   const { tema } = useTheme();
   const ehDark = tema === 'dark';
-  const hoje = new Date().toISOString().split('T')[0];
+  const hoje = dataLocalIso();
 
   // Extrai título limpo, prioridade, horário, tags, subtarefas, recorrência e notas se for edição
   const parsed = parseTarefaNome(tarefaParaEditar?.nome || '');
@@ -35,7 +39,7 @@ export function ModalTarefa({ tarefaParaEditar, statusInicial, aoSalvar, aoFecha
   const [hora, setHora] = useState(parsed.hora || '');
   const [tags, setTags] = useState(parsed.tags || []);
   const [inputCustomTag, setInputCustomTag] = useState('');
-  
+
   // Subtarefas / Etapas
   const [subtarefas, setSubtarefas] = useState(parsed.subtarefas || []);
   const [novaEtapaTexto, setNovaEtapaTexto] = useState('');
@@ -144,28 +148,34 @@ export function ModalTarefa({ tarefaParaEditar, statusInicial, aoSalvar, aoFecha
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-md p-3 sm:p-4">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60  p-3 sm:p-4">
       {/* Container do Modal com Transparência e Rolagem Segura */}
-      <div className={`relative w-full max-w-xl backdrop-blur-2xl rounded-3xl overflow-hidden animate-fade-in max-h-[92dvh] flex flex-col transition-all duration-500 ${
+      <div ref={dialogRef} role="dialog" aria-modal="true" className={`dialog-surface bg-(--surface) relative w-full max-w-xl  rounded-3xl overflow-hidden  max-h-[92dvh] flex flex-col transition-colors duration-500 ${
         ehDark
-          ? 'bg-gradient-to-b from-[#180e25]/95 via-[#10091a]/95 to-[#09050e]/98 border border-purple-500/25 text-purple-100 shadow-[0_25px_60px_-15px_rgba(0,0,0,0.9),0_0_35px_rgba(168,85,247,0.12)]'
-          : 'bg-white/95 border border-white/60 text-gray-800 shadow-[0_20px_60px_rgba(0,0,0,0.5)]'
+          ? '    border border-(--border) text-(--ink) '
+          : 'bg-(--surface) border border-(--border) text-(--ink) '
       }`}>
-        
+
         {/* Cabeçalho */}
-        <div className={`py-3.5 sm:py-4 px-6 text-center shadow-md shrink-0 ${
-          ehDark 
-            ? 'bg-gradient-to-r from-[#2a0e44] via-[#3d1264] to-[#2a0e44] border-b border-purple-500/30' 
-            : 'bg-gradient-to-r from-purple-800 via-[#3b075e] to-purple-900'
+        <div className={`py-3.5 sm:py-4 px-6 text-center  shrink-0 ${
+          ehDark
+            ? '    border-b border-(--border)'
+            : '   '
         }`}>
-          <h2 className="text-lg sm:text-2xl font-bold text-white tracking-wide drop-shadow-sm">
+          <h2 className="text-lg sm:text-2xl font-bold text-(--ink)  ">
             {tarefaParaEditar ? 'Editar Tarefa' : 'Cadastro de Tarefa'}
           </h2>
         </div>
 
         {/* Corpo do Formulário */}
-        <form onSubmit={handleSubmit} className="p-5 sm:p-7 space-y-4 sm:space-y-5 overflow-y-auto">
-          
+        <form onSubmit={handleSubmit} onKeyDownCapture={(event) => {
+          if (event.key === 'Enter' && (event.ctrlKey || event.metaKey) && !event.isComposing) {
+            event.preventDefault();
+            event.stopPropagation();
+            if (!salvando) event.currentTarget.requestSubmit();
+          }
+        }} className="p-5 sm:p-7 space-y-4 sm:space-y-5 overflow-y-auto">
+
           {/* Mensagem de Erro */}
           {erro && (
             <div className={`p-3 text-xs sm:text-sm rounded-xl ${
@@ -180,7 +190,7 @@ export function ModalTarefa({ tarefaParaEditar, statusInicial, aoSalvar, aoFecha
           {/* Campo: Título da Tarefa */}
           <div>
             <label className={`block text-xs sm:text-sm font-bold mb-1.5 ${
-              ehDark ? 'text-purple-200' : 'text-gray-900'
+              ehDark ? 'text-(--ink)' : 'text-(--ink)'
             }`}>
               Título
             </label>
@@ -189,10 +199,10 @@ export function ModalTarefa({ tarefaParaEditar, statusInicial, aoSalvar, aoFecha
               value={nome}
               onChange={(e) => setNome(e.target.value)}
               placeholder="Ex: Estudar Cálculo para prova"
-              className={`w-full px-4 py-2.5 rounded-2xl focus:outline-none focus:ring-4 transition-all text-sm shadow-sm ${
+              className={`w-full px-4 py-2.5 rounded-2xl focus:outline-none focus:ring-4 transition-colors text-sm  ${
                 ehDark
-                  ? 'bg-white/10 hover:bg-white/[0.14] focus:bg-white/[0.16] border border-white/20 text-white placeholder-purple-200/50 focus:ring-purple-400/40 focus:border-purple-400'
-                  : 'bg-white border border-purple-300/60 text-gray-800 placeholder-gray-400 focus:ring-purple-400/40 focus:border-purple-500'
+                  ? 'bg-(--surface) hover:bg-(--surface) focus:bg-(--surface) border border-(--border) text-(--ink) placeholder-(--muted) focus:ring-(--accent) focus:border-(--border)'
+                  : 'bg-(--surface) border border-(--border) text-(--ink) placeholder-gray-400 focus:ring-(--accent) focus:border-(--border)'
               }`}
               required
             />
@@ -201,26 +211,26 @@ export function ModalTarefa({ tarefaParaEditar, statusInicial, aoSalvar, aoFecha
           {/* Seletor de Prioridade (P1 a P4 Todoist) */}
           <div>
             <label className={`flex items-center gap-1.5 text-xs sm:text-sm font-bold mb-1.5 ${
-              ehDark ? 'text-purple-200' : 'text-gray-900'
+              ehDark ? 'text-(--ink)' : 'text-(--ink)'
             }`}>
-              <Flag className="w-3.5 h-3.5 text-purple-400" />
+              <Flag className="w-3.5 h-3.5 text-(--muted)" />
               Prioridade
             </label>
             <div className="grid grid-cols-4 gap-2">
               {Object.values(PRIORIDADES).map((p) => {
                 const ativo = prioridade === p.id;
                 return (
-                  <button
+                  <button aria-pressed={prioridade === p.id}
                     key={p.id}
                     type="button"
                     onClick={() => setPrioridade(p.id)}
-                    className={`flex items-center justify-center gap-1.5 py-1.5 px-2 rounded-xl text-xs font-bold transition-all cursor-pointer border active:scale-95 ${
+                    className={"ui-button " + (`flex items-center justify-center gap-1.5 py-1.5 px-2 rounded-xl text-xs font-bold transition-colors cursor-pointer border active:scale-95 ${
                       ativo
-                        ? ehDark ? `${p.corDark} shadow-md` : `${p.corClaro} shadow-sm font-extrabold ring-2 ring-purple-400/40`
+                        ? ehDark ? `${p.corDark} ` : `${p.corClaro}  font-extrabold ring-2 ring-(--accent)`
                         : ehDark
-                        ? 'bg-white/5 hover:bg-white/10 text-purple-200/60 border-white/10'
-                        : 'bg-gray-50 hover:bg-gray-100 text-gray-600 border-gray-200'
-                    }`}
+                        ? 'bg-(--surface) hover:bg-(--surface) text-(--ink) border-(--border)'
+                        : 'bg-(--surface-muted) hover:bg-(--surface-muted) text-(--muted) border-(--border)'
+                    }`)}
                   >
                     <Flag className={`w-3 h-3 ${p.iconeCor}`} />
                     <span>{p.rotulo}</span>
@@ -233,9 +243,9 @@ export function ModalTarefa({ tarefaParaEditar, statusInicial, aoSalvar, aoFecha
           {/* Seletor de Tags / Categorias */}
           <div>
             <label className={`flex items-center gap-1.5 text-xs sm:text-sm font-bold mb-1.5 ${
-              ehDark ? 'text-purple-200' : 'text-gray-900'
+              ehDark ? 'text-(--ink)' : 'text-(--ink)'
             }`}>
-              <Tag className="w-3.5 h-3.5 text-purple-400" />
+              <Tag className="w-3.5 h-3.5 text-(--muted)" />
               Tags / Categorias
             </label>
 
@@ -251,7 +261,7 @@ export function ModalTarefa({ tarefaParaEditar, statusInicial, aoSalvar, aoFecha
                     <button
                       type="button"
                       onClick={() => removerTag(tag)}
-                      className="hover:opacity-75 cursor-pointer ml-0.5"
+                      className={"ui-button ui-icon ui-danger " + ("hover:opacity-75 cursor-pointer ml-0.5")}
                       title={`Remover tag #${tag}`}
                     >
                       <X className="w-3 h-3" />
@@ -274,43 +284,44 @@ export function ModalTarefa({ tarefaParaEditar, statusInicial, aoSalvar, aoFecha
                   }
                 }}
                 placeholder="Digitar nova tag e pressionar Enter..."
-                className={`flex-1 px-3.5 py-1.5 rounded-xl text-xs font-medium border transition-all focus:outline-none focus:ring-2 ${
+                className={`flex-1 px-3.5 py-1.5 rounded-xl text-xs font-medium border transition-colors focus:outline-none focus:ring-2 ${
                   ehDark
-                    ? 'bg-white/10 hover:bg-white/[0.14] text-white placeholder-purple-200/40 border-white/15 focus:border-purple-400 focus:ring-purple-400/30'
-                    : 'bg-white hover:bg-gray-50 text-gray-800 placeholder-gray-400 border-gray-200 focus:border-purple-400 focus:ring-purple-400/30'
+                    ? 'bg-(--surface) hover:bg-(--surface) text-(--ink) placeholder-(--muted) border-(--border) focus:border-(--border) focus:ring-(--accent)'
+                    : 'bg-(--surface) hover:bg-(--surface-muted) text-(--ink) placeholder-gray-400 border-(--border) focus:border-(--border) focus:ring-(--accent)'
                 }`}
               />
               <button
                 type="button"
                 onClick={() => adicionarTag()}
-                className={`p-1.5 rounded-xl border transition-all cursor-pointer active:scale-95 ${
-                  ehDark 
-                    ? 'bg-purple-500/20 hover:bg-purple-500/35 border-purple-500/30 text-purple-200' 
-                    : 'bg-purple-50 hover:bg-purple-100 border-purple-200 text-purple-700'
-                }`}
+                className={"ui-button " + (`p-1.5 rounded-xl border transition-colors cursor-pointer active:scale-95 ${
+                  ehDark
+                    ? 'bg-(--surface-muted) hover:bg-(--surface-muted) border-(--border) text-(--ink)'
+                    : 'bg-(--surface-muted) hover:bg-(--surface-muted) border-(--border) text-(--muted)'
+                }`)}
                 title="Adicionar tag"
               >
                 <Plus className="w-4 h-4" />
+                <Tecla>Enter</Tecla>
               </button>
             </div>
 
             {/* Sugestões rápidas de Tags */}
             <div className="flex flex-wrap gap-1 items-center">
-              <span className={`text-[11px] mr-1 ${ehDark ? 'text-purple-300/60' : 'text-gray-400'}`}>
+              <span className={`text-[11px] mr-1 ${ehDark ? 'text-(--muted)' : 'text-(--muted)'}`}>
                 Sugeridas:
               </span>
               {TAGS_SUGERIDAS.map((sugestao) => {
                 const selecionada = tags.includes(sugestao);
                 return (
-                  <button
+                  <button aria-pressed={tags.includes(sugestao)}
                     key={sugestao}
                     type="button"
                     onClick={() => alternarTagSugerida(sugestao)}
-                    className={`px-2 py-0.5 rounded-md text-[11px] font-medium transition-all cursor-pointer border ${
+                    className={"ui-button " + (`px-2 py-0.5 rounded-md text-[11px] font-medium transition-colors cursor-pointer border ${
                       selecionada
-                        ? ehDark ? 'bg-purple-500/40 text-white border-purple-400/60' : 'bg-purple-600 text-white border-purple-700'
-                        : ehDark ? 'bg-white/5 hover:bg-white/10 text-purple-200/60 border-white/10' : 'bg-gray-100 hover:bg-gray-200 text-gray-600 border-gray-200'
-                    }`}
+                        ? ehDark ? 'bg-(--surface-muted) text-(--ink) border-(--border)' : 'bg-(--surface-muted) text-(--ink) border-(--border)'
+                        : ehDark ? 'bg-(--surface) hover:bg-(--surface) text-(--ink) border-(--border)' : 'bg-(--surface-muted) hover:bg-(--surface-muted) text-(--muted) border-(--border)'
+                    }`)}
                   >
                     #{sugestao}
                   </button>
@@ -322,21 +333,21 @@ export function ModalTarefa({ tarefaParaEditar, statusInicial, aoSalvar, aoFecha
 
           {/* NOVA SEÇÃO: Subtarefas / Mini-Checklist */}
           <div className={`p-3.5 rounded-2xl border ${
-            ehDark ? 'bg-white/[0.03] border-white/10' : 'bg-purple-50/40 border-purple-100'
+            ehDark ? 'bg-(--surface) border-(--border)' : 'bg-(--surface-muted) border-(--border)'
           }`}>
             <div className="flex items-center justify-between mb-2">
               <label className={`flex items-center gap-1.5 text-xs sm:text-sm font-bold ${
-                ehDark ? 'text-purple-200' : 'text-gray-900'
+                ehDark ? 'text-(--ink)' : 'text-(--ink)'
               }`}>
-                <ListChecks className="w-4 h-4 text-purple-400" />
+                <ListChecks className="w-4 h-4 text-(--muted)" />
                 Etapas (Checklist)
               </label>
 
               {subtarefas.length > 0 && (
                 <span className={`text-[11px] font-semibold ${
-                  progressoSubtarefas.porcentagem === 100 
-                    ? 'text-emerald-400' 
-                    : ehDark ? 'text-purple-300/70' : 'text-gray-500'
+                  progressoSubtarefas.porcentagem === 100
+                    ? 'text-(--accent)'
+                    : ehDark ? 'text-(--muted)' : 'text-(--muted)'
                 }`}>
                   {progressoSubtarefas.feitas}/{progressoSubtarefas.total} concluídas ({progressoSubtarefas.porcentagem}%)
                 </span>
@@ -345,12 +356,12 @@ export function ModalTarefa({ tarefaParaEditar, statusInicial, aoSalvar, aoFecha
 
             {/* Barra de progresso das subtarefas */}
             {subtarefas.length > 0 && (
-              <div className={`w-full h-1.5 rounded-full overflow-hidden mb-3 ${ehDark ? 'bg-white/10' : 'bg-gray-200'}`}>
-                <div 
-                  className={`h-full rounded-full transition-all duration-300 ${
-                    progressoSubtarefas.porcentagem === 100 
-                      ? 'bg-emerald-400' 
-                      : 'bg-purple-500'
+              <div className={`w-full h-1.5 rounded-full overflow-hidden mb-3 ${ehDark ? 'bg-(--surface)' : 'bg-(--surface-muted)'}`}>
+                <div
+                  className={`h-full rounded-full transition-colors duration-300 ${
+                    progressoSubtarefas.porcentagem === 100
+                      ? 'bg-emerald-400'
+                      : 'bg-(--surface-muted)'
                   }`}
                   style={{ width: `${progressoSubtarefas.porcentagem}%` }}
                 />
@@ -360,21 +371,21 @@ export function ModalTarefa({ tarefaParaEditar, statusInicial, aoSalvar, aoFecha
             {/* Lista de etapas cadastradas */}
             <div className="space-y-1.5 max-h-40 overflow-y-auto mb-2.5">
               {subtarefas.map((etapa, idx) => (
-                <div 
-                  key={idx} 
-                  className={`flex items-center gap-2 p-1.5 rounded-xl border text-xs transition-all ${
-                    ehDark ? 'bg-white/5 border-white/10' : 'bg-white border-gray-200'
+                <div
+                  key={idx}
+                  className={`flex items-center gap-2 p-1.5 rounded-xl border text-xs transition-colors ${
+                    ehDark ? 'bg-(--surface) border-(--border)' : 'bg-(--surface) border-(--border)'
                   }`}
                 >
                   <button
                     type="button"
                     onClick={() => alternarSubtarefa(idx)}
-                    className="cursor-pointer text-purple-400 hover:scale-110 transition-transform shrink-0"
+                    className={"ui-button " + ("cursor-pointer text-(--muted) hover:scale-110 transition-transform shrink-0")}
                   >
                     {etapa.feito ? (
-                      <CheckSquare className="w-4 h-4 text-emerald-400" />
+                      <CheckSquare className="w-4 h-4 text-(--accent)" />
                     ) : (
-                      <Square className="w-4 h-4 text-gray-400" />
+                      <Square className="w-4 h-4 text-(--muted)" />
                     )}
                   </button>
 
@@ -383,16 +394,16 @@ export function ModalTarefa({ tarefaParaEditar, statusInicial, aoSalvar, aoFecha
                     value={etapa.texto}
                     onChange={(e) => atualizarTextoSubtarefa(idx, e.target.value)}
                     className={`flex-1 bg-transparent focus:outline-none text-xs ${
-                      etapa.feito 
-                        ? ehDark ? 'line-through text-purple-300/40' : 'line-through text-gray-400'
-                        : ehDark ? 'text-white' : 'text-gray-800'
+                      etapa.feito
+                        ? ehDark ? 'line-through text-(--muted)' : 'line-through text-(--muted)'
+                        : ehDark ? 'text-(--ink)' : 'text-(--ink)'
                     }`}
                   />
 
                   <button
                     type="button"
                     onClick={() => removerSubtarefa(idx)}
-                    className="p-1 hover:text-rose-400 text-gray-400 transition-colors cursor-pointer shrink-0"
+                    className={"ui-button ui-icon ui-danger " + ("p-1 hover:text-rose-400 text-(--muted) transition-colors cursor-pointer shrink-0")}
                     title="Remover etapa"
                   >
                     <Trash2 className="w-3.5 h-3.5" />
@@ -414,23 +425,23 @@ export function ModalTarefa({ tarefaParaEditar, statusInicial, aoSalvar, aoFecha
                   }
                 }}
                 placeholder="Adicionar nova etapa e pressionar Enter..."
-                className={`flex-1 px-3 py-1.5 rounded-xl text-xs font-medium border transition-all focus:outline-none focus:ring-2 ${
+                className={`flex-1 px-3 py-1.5 rounded-xl text-xs font-medium border transition-colors focus:outline-none focus:ring-2 ${
                   ehDark
-                    ? 'bg-white/10 text-white placeholder-purple-200/40 border-white/15 focus:border-purple-400 focus:ring-purple-400/30'
-                    : 'bg-white text-gray-800 placeholder-gray-400 border-gray-200 focus:border-purple-400 focus:ring-purple-400/30'
+                    ? 'bg-(--surface) text-(--ink) placeholder-(--muted) border-(--border) focus:border-(--border) focus:ring-(--accent)'
+                    : 'bg-(--surface) text-(--ink) placeholder-gray-400 border-(--border) focus:border-(--border) focus:ring-(--accent)'
                 }`}
               />
               <button
                 type="button"
                 onClick={adicionarSubtarefa}
-                className={`px-3 py-1.5 rounded-xl border text-xs font-semibold flex items-center gap-1 transition-all cursor-pointer active:scale-95 ${
-                  ehDark 
-                    ? 'bg-purple-500/20 hover:bg-purple-500/35 border-purple-500/30 text-purple-200' 
-                    : 'bg-purple-50 hover:bg-purple-100 border-purple-200 text-purple-700'
-                }`}
+                className={"ui-button " + (`px-3 py-1.5 rounded-xl border text-xs font-semibold flex items-center gap-1 transition-colors cursor-pointer active:scale-95 ${
+                  ehDark
+                    ? 'bg-(--surface-muted) hover:bg-(--surface-muted) border-(--border) text-(--ink)'
+                    : 'bg-(--surface-muted) hover:bg-(--surface-muted) border-(--border) text-(--muted)'
+                }`)}
               >
                 <Plus className="w-3.5 h-3.5" />
-                <span>Etapa</span>
+                <span>Etapa</span> <Tecla>Enter</Tecla>
               </button>
             </div>
           </div>
@@ -438,13 +449,13 @@ export function ModalTarefa({ tarefaParaEditar, statusInicial, aoSalvar, aoFecha
           {/* NOVA SEÇÃO: Notas / Descrição & Links Rápidos */}
           <div>
             <label className={`flex items-center justify-between text-xs sm:text-sm font-bold mb-1.5 ${
-              ehDark ? 'text-purple-200' : 'text-gray-900'
+              ehDark ? 'text-(--ink)' : 'text-(--ink)'
             }`}>
               <span className="flex items-center gap-1.5">
-                <FileText className="w-3.5 h-3.5 text-purple-400" />
+                <FileText className="w-3.5 h-3.5 text-(--muted)" />
                 Notas ou Links de Apoio
               </span>
-              <span className={`text-[10px] font-normal flex items-center gap-1 ${ehDark ? 'text-purple-300/60' : 'text-gray-400'}`}>
+              <span className={`text-xs font-normal flex items-center gap-1 ${ehDark ? 'text-(--muted)' : 'text-(--muted)'}`}>
                 <Link2 className="w-3 h-3" /> Links viram botões clicáveis
               </span>
             </label>
@@ -453,31 +464,31 @@ export function ModalTarefa({ tarefaParaEditar, statusInicial, aoSalvar, aoFecha
               value={notas}
               onChange={(e) => setNotas(e.target.value)}
               placeholder="Ex: Link do Google Docs https://docs.google.com/... ou anotações importantes sobre a tarefa"
-              className={`w-full px-3.5 py-2 rounded-2xl focus:outline-none focus:ring-4 transition-all text-xs sm:text-sm shadow-sm resize-none ${
+              className={`w-full px-3.5 py-2 rounded-2xl focus:outline-none focus:ring-4 transition-colors text-xs sm:text-sm  resize-none ${
                 ehDark
-                  ? 'bg-white/10 hover:bg-white/[0.14] focus:bg-white/[0.16] border border-white/20 text-white placeholder-purple-200/40 focus:ring-purple-400/40 focus:border-purple-400'
-                  : 'bg-white border border-purple-300/60 text-gray-800 placeholder-gray-400 focus:ring-purple-400/40 focus:border-purple-500'
+                  ? 'bg-(--surface) hover:bg-(--surface) focus:bg-(--surface) border border-(--border) text-(--ink) placeholder-(--muted) focus:ring-(--accent) focus:border-(--border)'
+                  : 'bg-(--surface) border border-(--border) text-(--ink) placeholder-gray-400 focus:ring-(--accent) focus:border-(--border)'
               }`}
             />
           </div>
 
           {/* Linha com Status, Início, Término, Horário e Recorrência */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 items-end">
-            
+
             {/* Campo: Status */}
             <div>
               <label className={`block text-xs sm:text-sm font-bold mb-1.5 ${
-                ehDark ? 'text-purple-200' : 'text-gray-900'
+                ehDark ? 'text-(--ink)' : 'text-(--ink)'
               }`}>
                 Status
               </label>
               <select
                 value={status}
                 onChange={(e) => setStatus(e.target.value)}
-                className={`w-full px-3 py-2 rounded-xl font-medium text-xs sm:text-sm focus:outline-none focus:ring-4 transition-all cursor-pointer ${
+                className={`w-full px-3 py-2 rounded-xl font-medium text-xs sm:text-sm focus:outline-none focus:ring-4 transition-colors cursor-pointer ${
                   ehDark
-                    ? 'bg-white/10 hover:bg-white/[0.14] border border-white/20 text-white focus:ring-purple-400/40 focus:border-purple-400 [&>option]:bg-[#140b20] [&>option]:text-white'
-                    : 'bg-gray-100 hover:bg-gray-200 border border-purple-300/50 text-gray-800 focus:ring-purple-400/30 focus:border-purple-400'
+                    ? 'bg-(--surface) hover:bg-(--surface) border border-(--border) text-(--ink) focus:ring-(--accent) focus:border-(--border) [&>option]:bg-(--surface) [&>option]:text-(--ink)'
+                    : 'bg-(--surface-muted) hover:bg-(--surface-muted) border border-(--border) text-(--ink) focus:ring-(--accent) focus:border-(--border)'
                 }`}
               >
                 <option value="pendente">Pendente</option>
@@ -489,7 +500,7 @@ export function ModalTarefa({ tarefaParaEditar, statusInicial, aoSalvar, aoFecha
             {/* Campo: Início */}
             <div>
               <label className={`block text-xs sm:text-sm font-bold mb-1.5 ${
-                ehDark ? 'text-purple-200' : 'text-gray-900'
+                ehDark ? 'text-(--ink)' : 'text-(--ink)'
               }`}>
                 Início
               </label>
@@ -497,10 +508,10 @@ export function ModalTarefa({ tarefaParaEditar, statusInicial, aoSalvar, aoFecha
                 type="date"
                 value={dataCome}
                 onChange={(e) => setDataCome(e.target.value)}
-                className={`w-full px-3 py-2 rounded-xl text-xs sm:text-sm focus:outline-none focus:ring-4 transition-all shadow-sm ${
+                className={`w-full px-3 py-2 rounded-xl text-xs sm:text-sm focus:outline-none focus:ring-4 transition-colors  ${
                   ehDark
-                    ? 'bg-white/10 hover:bg-white/[0.14] border border-white/20 text-white [color-scheme:dark] focus:ring-purple-400/40 focus:border-purple-400'
-                    : 'bg-white border border-purple-300/60 text-gray-800 focus:ring-purple-400/30 focus:border-purple-400'
+                    ? 'bg-(--surface) hover:bg-(--surface) border border-(--border) text-(--ink) [color-scheme:dark] focus:ring-(--accent) focus:border-(--border)'
+                    : 'bg-(--surface) border border-(--border) text-(--ink) focus:ring-(--accent) focus:border-(--border)'
                 }`}
                 required
               />
@@ -509,7 +520,7 @@ export function ModalTarefa({ tarefaParaEditar, statusInicial, aoSalvar, aoFecha
             {/* Campo: Término */}
             <div>
               <label className={`block text-xs sm:text-sm font-bold mb-1.5 ${
-                ehDark ? 'text-purple-200' : 'text-gray-900'
+                ehDark ? 'text-(--ink)' : 'text-(--ink)'
               }`}>
                 Término
               </label>
@@ -517,10 +528,10 @@ export function ModalTarefa({ tarefaParaEditar, statusInicial, aoSalvar, aoFecha
                 type="date"
                 value={dataTermi}
                 onChange={(e) => setDataTermi(e.target.value)}
-                className={`w-full px-3 py-2 rounded-xl text-xs sm:text-sm focus:outline-none focus:ring-4 transition-all shadow-sm ${
+                className={`w-full px-3 py-2 rounded-xl text-xs sm:text-sm focus:outline-none focus:ring-4 transition-colors  ${
                   ehDark
-                    ? 'bg-white/10 hover:bg-white/[0.14] border border-white/20 text-white [color-scheme:dark] focus:ring-purple-400/40 focus:border-purple-400'
-                    : 'bg-white border border-purple-300/60 text-gray-800 focus:ring-purple-400/30 focus:border-purple-400'
+                    ? 'bg-(--surface) hover:bg-(--surface) border border-(--border) text-(--ink) [color-scheme:dark] focus:ring-(--accent) focus:border-(--border)'
+                    : 'bg-(--surface) border border-(--border) text-(--ink) focus:ring-(--accent) focus:border-(--border)'
                 }`}
                 required
               />
@@ -530,18 +541,18 @@ export function ModalTarefa({ tarefaParaEditar, statusInicial, aoSalvar, aoFecha
             <div>
               <div className="flex items-center justify-between mb-1.5">
                 <label className={`flex items-center gap-1 text-xs sm:text-sm font-bold ${
-                  ehDark ? 'text-purple-200' : 'text-gray-900'
+                  ehDark ? 'text-(--ink)' : 'text-(--ink)'
                 }`}>
-                  <Clock className="w-3.5 h-3.5 text-purple-400" />
+                  <Clock className="w-3.5 h-3.5 text-(--muted)" />
                   Horário
                 </label>
                 {hora && (
                   <button
                     type="button"
                     onClick={() => setHora('')}
-                    className={`text-[10px] underline cursor-pointer ${
-                      ehDark ? 'text-purple-300/70 hover:text-white' : 'text-purple-600 hover:text-purple-800'
-                    }`}
+                    className={"ui-button " + (`text-xs underline cursor-pointer ${
+                      ehDark ? 'text-(--muted) hover:text-(--ink)' : 'text-(--muted) hover:text-(--muted)'
+                    }`)}
                   >
                     Limpar
                   </button>
@@ -551,10 +562,10 @@ export function ModalTarefa({ tarefaParaEditar, statusInicial, aoSalvar, aoFecha
                 type="time"
                 value={hora}
                 onChange={(e) => setHora(e.target.value)}
-                className={`w-full px-3 py-2 rounded-xl text-xs sm:text-sm focus:outline-none focus:ring-4 transition-all shadow-sm ${
+                className={`w-full px-3 py-2 rounded-xl text-xs sm:text-sm focus:outline-none focus:ring-4 transition-colors  ${
                   ehDark
-                    ? 'bg-white/10 hover:bg-white/[0.14] border border-white/20 text-white [color-scheme:dark] focus:ring-purple-400/40 focus:border-purple-400'
-                    : 'bg-white border border-purple-300/60 text-gray-800 focus:ring-purple-400/30 focus:border-purple-400'
+                    ? 'bg-(--surface) hover:bg-(--surface) border border-(--border) text-(--ink) [color-scheme:dark] focus:ring-(--accent) focus:border-(--border)'
+                    : 'bg-(--surface) border border-(--border) text-(--ink) focus:ring-(--accent) focus:border-(--border)'
                 }`}
               />
             </div>
@@ -562,18 +573,18 @@ export function ModalTarefa({ tarefaParaEditar, statusInicial, aoSalvar, aoFecha
             {/* Campo: Recorrência */}
             <div className="sm:col-span-2 lg:col-span-2">
               <label className={`flex items-center gap-1.5 text-xs sm:text-sm font-bold mb-1.5 ${
-                ehDark ? 'text-purple-200' : 'text-gray-900'
+                ehDark ? 'text-(--ink)' : 'text-(--ink)'
               }`}>
-                <Repeat className="w-3.5 h-3.5 text-purple-400" />
+                <Repeat className="w-3.5 h-3.5 text-(--muted)" />
                 Repetição / Rotina
               </label>
               <select
                 value={recorrencia}
                 onChange={(e) => setRecorrencia(e.target.value)}
-                className={`w-full px-3 py-2 rounded-xl font-medium text-xs sm:text-sm focus:outline-none focus:ring-4 transition-all cursor-pointer ${
+                className={`w-full px-3 py-2 rounded-xl font-medium text-xs sm:text-sm focus:outline-none focus:ring-4 transition-colors cursor-pointer ${
                   ehDark
-                    ? 'bg-white/10 hover:bg-white/[0.14] border border-white/20 text-white focus:ring-purple-400/40 focus:border-purple-400 [&>option]:bg-[#140b20] [&>option]:text-white'
-                    : 'bg-gray-100 hover:bg-gray-200 border border-purple-300/50 text-gray-800 focus:ring-purple-400/30 focus:border-purple-400'
+                    ? 'bg-(--surface) hover:bg-(--surface) border border-(--border) text-(--ink) focus:ring-(--accent) focus:border-(--border) [&>option]:bg-(--surface) [&>option]:text-(--ink)'
+                    : 'bg-(--surface-muted) hover:bg-(--surface-muted) border border-(--border) text-(--ink) focus:ring-(--accent) focus:border-(--border)'
                 }`}
               >
                 {RECORRENCIA_OPCOES.map((op) => (
@@ -587,26 +598,28 @@ export function ModalTarefa({ tarefaParaEditar, statusInicial, aoSalvar, aoFecha
           </div>
 
           {/* Botões de Ação */}
-          <div className="flex flex-col-reverse sm:flex-row justify-center items-center gap-3 sm:gap-4 pt-3 sm:pt-4">
-            
-            <button
+          <div className="task-form-actions flex flex-col-reverse sm:flex-row justify-center items-center gap-3 sm:gap-4">
+
+            <button aria-keyshortcuts="Escape"
               type="button"
               onClick={aoFechar}
-              className={`w-full sm:w-auto px-8 py-2.5 active:scale-95 font-bold rounded-full border shadow-sm transition-all cursor-pointer text-sm ${
+              className={"ui-button " + (`w-full sm:w-auto px-8 py-2.5 active:scale-95 font-bold rounded-full border  transition-colors cursor-pointer text-sm ${
                 ehDark
                   ? 'bg-rose-950/40 hover:bg-rose-900/60 text-rose-300 border-rose-800/50'
                   : 'bg-rose-50 hover:bg-rose-100 text-rose-700 hover:text-rose-800 border-rose-200/80'
-              }`}
+              }`)}
             >
               Cancelar
-            </button>
+             <Tecla>Esc</Tecla></button>
 
             <button
               type="submit"
               disabled={salvando}
-              className="w-full sm:w-auto px-8 py-2.5 bg-emerald-600 hover:bg-emerald-500 active:scale-95 text-white font-bold rounded-full shadow-[0_4px_15px_rgba(16,185,129,0.35)] hover:shadow-[0_6px_20px_rgba(16,185,129,0.5)] transition-all cursor-pointer disabled:opacity-50 text-sm"
+              aria-keyshortcuts="Control+Enter Meta+Enter"
+              className={"ui-button ui-primary " + ("primary-button w-full sm:w-auto px-8")}
             >
               {salvando ? 'Salvando...' : 'Salvar'}
+              <Tecla>Ctrl/⌘ Enter</Tecla>
             </button>
 
           </div>

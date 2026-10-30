@@ -1,23 +1,26 @@
-import { useState } from 'react';
+import { Tecla } from './Tecla.jsx';
+import { useDialogShortcuts } from '../hooks/useDialogShortcuts.js';
+import { useState, useEffect } from 'react';
 import { Sparkles, Moon, Eye, EyeOff } from 'lucide-react';
-import { useTheme } from '../context/ThemeContext.jsx';
-import { atualizarPerfilApi, excluirContaApi } from '../services/api.js';
+import { useTheme } from '../context/theme.js';
+import { atualizarPerfilApi, excluirContaApi, segurancaContaApi, configurarSenhaApi } from '../services/api.js';
 
 /**
  * ============================================================================
  * MODAL DE GERENCIAMENTO DE CONTA
  * ============================================================================
  * Permite ao usuário logado:
- * 1. Alterar seus dados pessoais (Nome e E-mail) e Tema (Violeta / Dark).
+ * 1. Alterar seus dados pessoais (Nome e E-mail) e Tema (Claro / Dark).
  * 2. Redefinir sua senha com validação de confirmação.
  * 3. Excluir permanentemente sua conta e todas as tarefas vinculadas.
- * 
+ *
  * Organizado em 3 abas didáticas:
  * - 'perfil': Dados cadastrais e preferências de tema
  * - 'senha': Alteração de senha
  * - 'excluir': Zona de perigo com dupla confirmação
  */
 export function ModalGerenciarConta({ usuario, aoAtualizarUsuario, aoExcluirConta, aoFechar, abaInicial = 'perfil' }) {
+  const dialogRef = useDialogShortcuts(aoFechar);
   const { tema, setTema } = useTheme();
   const ehDark = tema === 'dark';
   const [abaAtiva, setAbaAtiva] = useState(abaInicial); // 'perfil' | 'senha' | 'excluir'
@@ -28,6 +31,8 @@ export function ModalGerenciarConta({ usuario, aoAtualizarUsuario, aoExcluirCont
   const [salvandoPerfil, setSalvandoPerfil] = useState(false);
 
   // Estados da Aba: Senha
+  const [senhaAtual, setSenhaAtual] = useState('');
+  const [senhaExclusao, setSenhaExclusao] = useState('');
   const [novaSenha, setNovaSenha] = useState('');
   const [confirmarSenha, setConfirmarSenha] = useState('');
   const [mostrarNovaSenha, setMostrarNovaSenha] = useState(false);
@@ -43,6 +48,12 @@ export function ModalGerenciarConta({ usuario, aoAtualizarUsuario, aoExcluirCont
   // Mensagens de Feedback
   const [mensagemSucesso, setMensagemSucesso] = useState('');
   const [erro, setErro] = useState('');
+  const [seguranca, setSeguranca] = useState(null);
+  useEffect(() => {
+    let ativo = true;
+    segurancaContaApi().then(dados => { if (ativo) setSeguranca(dados); }).catch(() => { if (ativo) setErro('Não foi possível verificar as opções da conta. Feche e abra Minha conta para tentar novamente.'); });
+    return () => { ativo = false; };
+  }, []);
 
   // Limpa mensagens ao trocar de aba
   const trocarAba = (novaAba) => {
@@ -115,7 +126,10 @@ export function ModalGerenciarConta({ usuario, aoAtualizarUsuario, aoExcluirCont
 
     try {
       setSalvandoSenha(true);
-      await atualizarPerfilApi({ senha: novaSenha });
+      if (seguranca?.senhaConfigurada) await atualizarPerfilApi({ senha: novaSenha, senhaAtual });
+      else await configurarSenhaApi(novaSenha);
+      setSeguranca(prev => ({ ...prev, senhaConfigurada: true }));
+      setSenhaAtual('');
       setMensagemSucesso('Senha atualizada com sucesso!');
       setNovaSenha('');
       setConfirmarSenha('');
@@ -145,7 +159,7 @@ export function ModalGerenciarConta({ usuario, aoAtualizarUsuario, aoExcluirCont
 
     try {
       setExcluindo(true);
-      await excluirContaApi();
+      await excluirContaApi(senhaExclusao);
       aoExcluirConta();
     } catch (err) {
       setErro(err.message || 'Erro ao excluir a conta.');
@@ -154,67 +168,67 @@ export function ModalGerenciarConta({ usuario, aoAtualizarUsuario, aoExcluirCont
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/65 backdrop-blur-md p-3 sm:p-4">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/65  p-3 sm:p-4">
       {/* Card do Modal com Efeito Vidro Translúcido, Chanfro e Glow */}
-      <div className={`relative w-full max-w-lg backdrop-blur-2xl rounded-3xl p-5 sm:p-8 text-white animate-fade-in max-h-[90dvh] overflow-y-auto no-scrollbar transition-all duration-500 ${
+      <div ref={dialogRef} role="dialog" aria-modal="true" className={`dialog-surface bg-(--surface) relative w-full max-w-lg  rounded-3xl p-5 sm:p-8 text-(--ink)  max-h-[90dvh] overflow-y-auto no-scrollbar transition-colors duration-500 ${
         ehDark
-          ? 'bg-gradient-to-b from-white/[0.08] via-[#140b20]/95 to-[#0a0610]/95 border border-white/15 shadow-[0_25px_60px_-15px_rgba(0,0,0,0.95),0_0_40px_rgba(168,85,247,0.14),inset_0_1px_1px_rgba(255,255,255,0.15)]'
-          : 'bg-gradient-to-b from-white/[0.14] via-[#2f0440]/65 to-[#1c0228]/85 border border-white/25 shadow-[0_25px_60px_-15px_rgba(0,0,0,0.7),0_0_45px_rgba(168,85,247,0.2),inset_0_1px_1px_rgba(255,255,255,0.3)]'
+          ? '    border border-(--border) '
+          : '    border border-(--border) '
       }`}>
-        
+
         {/* Botão Fechar no Topo Direito */}
-        <button
+        <button aria-label="Fechar diálogo" aria-keyshortcuts="Escape"
           onClick={aoFechar}
           type="button"
-          className="absolute top-4 right-4 sm:top-5 sm:right-5 text-white/70 hover:text-white bg-white/10 hover:bg-white/20 rounded-full w-8 h-8 flex items-center justify-center transition-all cursor-pointer"
+          className={"ui-button dialog-close " + ("absolute top-4 right-4 sm:top-5 sm:right-5 text-(--ink) hover:text-(--ink) bg-(--surface) hover:bg-(--surface) rounded-full w-8 h-8 flex items-center justify-center transition-colors cursor-pointer")}
         >
-          ✕
-        </button>
+            <span>Fechar</span> <Tecla>Esc</Tecla>
+          </button>
 
         {/* Cabeçalho */}
         <div className="text-center mb-5 sm:mb-6 pr-6 pl-2">
-          <h2 className="text-xl sm:text-3xl font-bold tracking-wide text-white">
+          <h2 className="text-xl sm:text-2xl font-bold  text-(--ink)">
             Minha Conta
           </h2>
-          <p className="text-xs sm:text-sm text-purple-200/80 mt-1">
+          <p className="text-xs sm:text-sm text-(--ink) mt-1">
             Gerencie suas informações cadastrais e preferências de segurança
           </p>
         </div>
 
         {/* Seletor de Abas (Pílulas Responsivas) */}
-        <div className="flex justify-center gap-1 sm:gap-2 p-1 sm:p-1.5 bg-black/30 backdrop-blur-md rounded-full mb-5 sm:mb-6 border border-white/15">
-          <button
+        <div className="flex justify-center gap-1 sm:gap-2 p-1 sm:p-1.5 bg-black/30  rounded-full mb-5 sm:mb-6 border border-(--border)">
+          <button aria-pressed={abaAtiva === 'perfil'}
             type="button"
             onClick={() => trocarAba('perfil')}
-            className={`flex-1 py-1.5 sm:py-2 px-1.5 sm:px-3 text-[11px] sm:text-sm font-semibold rounded-full transition-all cursor-pointer ${
+            className={"ui-button " + (`flex-1 py-1.5 sm:py-2 px-1.5 sm:px-3 text-[11px] sm:text-sm font-semibold rounded-full transition-colors cursor-pointer ${
               abaAtiva === 'perfil'
-                ? 'bg-purple-600 text-white shadow-[0_0_15px_rgba(168,85,247,0.4)]'
-                : 'text-purple-200 hover:text-white hover:bg-white/10'
-            }`}
+                ? 'bg-(--surface-muted) text-(--ink) '
+                : 'text-(--ink) hover:text-(--ink) hover:bg-(--surface)'
+            }`)}
           >
             Perfil
           </button>
 
-          <button
+          <button aria-pressed={abaAtiva === 'senha'}
             type="button"
             onClick={() => trocarAba('senha')}
-            className={`flex-1 py-1.5 sm:py-2 px-1.5 sm:px-3 text-[11px] sm:text-sm font-semibold rounded-full transition-all cursor-pointer ${
+            className={"ui-button " + (`flex-1 py-1.5 sm:py-2 px-1.5 sm:px-3 text-[11px] sm:text-sm font-semibold rounded-full transition-colors cursor-pointer ${
               abaAtiva === 'senha'
-                ? 'bg-purple-600 text-white shadow-[0_0_15px_rgba(168,85,247,0.4)]'
-                : 'text-purple-200 hover:text-white hover:bg-white/10'
-            }`}
+                ? 'bg-(--surface-muted) text-(--ink) '
+                : 'text-(--ink) hover:text-(--ink) hover:bg-(--surface)'
+            }`)}
           >
             Senha
           </button>
 
-          <button
+          <button aria-pressed={abaAtiva === 'excluir'}
             type="button"
             onClick={() => trocarAba('excluir')}
-            className={`flex-1 py-1.5 sm:py-2 px-1.5 sm:px-3 text-[11px] sm:text-sm font-semibold rounded-full transition-all cursor-pointer ${
+            className={"ui-button ui-danger " + (`flex-1 py-1.5 sm:py-2 px-1.5 sm:px-3 text-[11px] sm:text-sm font-semibold rounded-full transition-colors cursor-pointer ${
               abaAtiva === 'excluir'
-                ? 'bg-red-500 text-white shadow-md'
+                ? 'bg-red-500 text-(--ink) '
                 : 'text-red-300 hover:text-red-200 hover:bg-red-500/20'
-            }`}
+            }`)}
           >
             Excluir Conta
           </button>
@@ -222,14 +236,14 @@ export function ModalGerenciarConta({ usuario, aoAtualizarUsuario, aoExcluirCont
 
         {/* Alerta de Sucesso */}
         {mensagemSucesso && (
-          <div className="mb-5 p-3 bg-green-500/20 border border-green-400/50 text-green-200 text-sm rounded-2xl animate-fade-in text-center font-medium">
-            ✓ {mensagemSucesso}
+          <div className="mb-5 p-3 bg-green-500/20 border border-green-400/50 text-(--accent) text-sm rounded-2xl  text-center font-medium">
+             {mensagemSucesso}
           </div>
         )}
 
         {/* Alerta de Erro */}
         {erro && (
-          <div className="mb-5 p-3 bg-red-500/25 border border-red-500/50 text-red-200 text-sm rounded-2xl animate-fade-in text-center">
+          <div className="mb-5 p-3 bg-red-500/25 border border-red-500/50 text-red-200 text-sm rounded-2xl  text-center">
             {erro}
           </div>
         )}
@@ -240,7 +254,7 @@ export function ModalGerenciarConta({ usuario, aoAtualizarUsuario, aoExcluirCont
         {abaAtiva === 'perfil' && (
           <form onSubmit={handleSalvarPerfil} className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-purple-200 mb-1.5 text-left pl-1">
+              <label className="block text-sm font-medium text-(--ink) mb-1.5 text-left pl-1">
                 Nome Completo
               </label>
               <input
@@ -248,84 +262,85 @@ export function ModalGerenciarConta({ usuario, aoAtualizarUsuario, aoExcluirCont
                 value={nome}
                 onChange={(e) => setNome(e.target.value)}
                 placeholder="Seu nome completo"
-                className={`w-full px-5 py-3 rounded-2xl text-left focus:outline-none focus:ring-4 transition-all font-medium border shadow-md ${
+                className={`w-full px-5 py-3 rounded-2xl text-left focus:outline-none focus:ring-4 transition-colors font-medium border  ${
                   ehDark
-                    ? 'bg-white/10 hover:bg-white/[0.14] focus:bg-white/[0.16] text-white placeholder-purple-200/50 border-white/20 focus:border-purple-400 focus:ring-purple-400/50'
-                    : 'bg-[#d9d9d9]/95 hover:bg-white focus:bg-white text-gray-900 placeholder-gray-500 border-white/30 focus:border-purple-400 focus:ring-purple-400/50'
+                    ? 'bg-(--surface) hover:bg-(--surface) focus:bg-(--surface) text-(--ink) placeholder-(--muted) border-(--border) focus:border-(--border) focus:ring-(--accent)'
+                    : 'bg-(--surface) hover:bg-(--surface) focus:bg-(--surface) text-(--ink) placeholder-gray-500 border-(--border) focus:border-(--border) focus:ring-(--accent)'
                 }`}
                 required
               />
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-purple-200 mb-1.5 text-left pl-1">
+              <label className="block text-sm font-medium text-(--ink) mb-1.5 text-left pl-1">
                 E-mail
               </label>
               <input
+                readOnly={!seguranca?.emailAlteravel}
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="seuemail@exemplo.com"
-                className={`w-full px-5 py-3 rounded-2xl text-left focus:outline-none focus:ring-4 transition-all font-medium border shadow-md ${
+                className={`w-full px-5 py-3 rounded-2xl text-left focus:outline-none focus:ring-4 transition-colors font-medium border  ${
                   ehDark
-                    ? 'bg-white/10 hover:bg-white/[0.14] focus:bg-white/[0.16] text-white placeholder-purple-200/50 border-white/20 focus:border-purple-400 focus:ring-purple-400/50'
-                    : 'bg-[#d9d9d9]/95 hover:bg-white focus:bg-white text-gray-900 placeholder-gray-500 border-white/30 focus:border-purple-400 focus:ring-purple-400/50'
+                    ? 'bg-(--surface) hover:bg-(--surface) focus:bg-(--surface) text-(--ink) placeholder-(--muted) border-(--border) focus:border-(--border) focus:ring-(--accent)'
+                    : 'bg-(--surface) hover:bg-(--surface) focus:bg-(--surface) text-(--ink) placeholder-gray-500 border-(--border) focus:border-(--border) focus:ring-(--accent)'
                 }`}
                 required
               />
-              <p className="text-xs text-purple-200/70 mt-1.5 text-left pl-1">
-                * Caso altere o e-mail, pode ser necessário confirmá-lo novamente pelo link enviado.
+              <p className="text-xs text-(--ink) mt-1.5 text-left pl-1">
+                {seguranca?.emailAlteravel ? 'Alterações de e-mail precisam ser confirmadas no novo endereço.' : 'O e-mail identifica sua conta de acesso.'}
               </p>
             </div>
 
             {/* Preferência de Tema */}
             <div className="pt-1 text-left">
-              <label className="block text-sm font-medium text-purple-200 mb-2 pl-1">
+              <label className="block text-sm font-medium text-(--ink) mb-2 pl-1">
                 Aparência da Interface
               </label>
               <div className="grid grid-cols-2 gap-2.5">
-                <button
+                <button aria-pressed={tema === 'light'}
                   type="button"
-                  onClick={() => setTema('violeta')}
-                  className={`flex items-center justify-center gap-2 p-3 rounded-2xl border transition-all cursor-pointer text-xs sm:text-sm font-semibold ${
-                    tema === 'violeta'
-                      ? 'bg-purple-600/60 border-purple-400 text-white shadow-[0_0_20px_rgba(168,85,247,0.4)]'
-                      : 'bg-white/5 border-white/15 text-purple-200/70 hover:bg-white/10 hover:text-white'
-                  }`}
+                  onClick={() => setTema('light')}
+                  className={"ui-button " + (`flex items-center justify-center gap-2 p-3 rounded-2xl border transition-colors cursor-pointer text-xs sm:text-sm font-semibold ${
+                    tema === 'light'
+                      ? 'bg-(--surface-muted) border-(--border) text-(--ink) '
+                      : 'bg-(--surface) border-(--border) text-(--ink) hover:bg-(--surface) hover:text-(--ink)'
+                  }`)}
                 >
-                  <Sparkles className="w-4 h-4 text-purple-300" />
+                  <Sparkles className="w-4 h-4 text-(--muted)" />
                   Tema Violeta
                 </button>
-                <button
+                <button aria-pressed={tema === 'dark'}
                   type="button"
                   onClick={() => setTema('dark')}
-                  className={`flex items-center justify-center gap-2 p-3 rounded-2xl border transition-all cursor-pointer text-xs sm:text-sm font-semibold ${
+                  className={"ui-button " + (`flex items-center justify-center gap-2 p-3 rounded-2xl border transition-colors cursor-pointer text-xs sm:text-sm font-semibold ${
                     tema === 'dark'
-                      ? 'bg-purple-950/70 border-purple-400 text-white shadow-[0_0_20px_rgba(168,85,247,0.35)]'
-                      : 'bg-white/5 border-white/15 text-purple-200/70 hover:bg-white/10 hover:text-white'
-                  }`}
+                      ? 'bg-(--surface-muted) border-(--border) text-(--ink) '
+                      : 'bg-(--surface) border-(--border) text-(--ink) hover:bg-(--surface) hover:text-(--ink)'
+                  }`)}
                 >
-                  <Moon className="w-4 h-4 text-purple-300" />
-                  Tema Dark
+                  <Moon className="w-4 h-4 text-(--muted)" />
+                  Tema Noturno
                 </button>
               </div>
             </div>
 
             <div className="pt-3 flex flex-col-reverse sm:flex-row justify-end gap-2.5 sm:gap-3">
-              <button
+              <button aria-keyshortcuts="Escape"
                 type="button"
                 onClick={aoFechar}
-                className="w-full sm:w-auto px-5 py-2.5 bg-white/10 hover:bg-white/20 text-purple-200 hover:text-white rounded-full transition-all cursor-pointer text-sm font-medium"
+                className={"ui-button " + ("w-full sm:w-auto px-5 py-2.5 bg-(--surface) hover:bg-(--surface) text-(--ink) hover:text-(--ink) rounded-full transition-colors cursor-pointer text-sm font-medium")}
               >
                 Cancelar
-              </button>
+               <Tecla>Esc</Tecla></button>
               <button
                 type="submit"
                 disabled={salvandoPerfil}
-                className="w-full sm:w-auto px-7 py-2.5 bg-white/15 hover:bg-white/25 active:scale-95 text-white font-semibold rounded-full shadow-[0_6px_20px_rgba(0,0,0,0.3),inset_0_1px_1px_rgba(255,255,255,0.4),0_0_15px_rgba(255,255,255,0.12)] hover:shadow-[0_8px_25px_rgba(0,0,0,0.4),inset_0_1px_2px_rgba(255,255,255,0.6),0_0_25px_rgba(168,85,247,0.3)] backdrop-blur-md border border-white/35 hover:border-white/55 transition-all duration-300 cursor-pointer text-sm disabled:opacity-50"
+                className={"ui-button ui-primary " + ("w-full sm:w-auto px-7 py-2.5 bg-(--surface) hover:bg-(--surface) active:scale-95 text-(--ink) font-semibold rounded-full    border border-(--border) hover:border-(--border) transition-colors duration-300 cursor-pointer text-sm disabled:opacity-50")}
               >
                 {salvandoPerfil ? 'Salvando...' : 'Salvar Alterações'}
-              </button>
+               <Tecla>Enter</Tecla></button>
             </div>
           </form>
         )}
@@ -335,8 +350,9 @@ export function ModalGerenciarConta({ usuario, aoAtualizarUsuario, aoExcluirCont
         {/* ==================================================================== */}
         {abaAtiva === 'senha' && (
           <form onSubmit={handleAtualizarSenha} className="space-y-4">
+{seguranca?.senhaConfigurada ? <div className="field"><label htmlFor="current-password">Senha atual</label><input id="current-password" type="password" autoComplete="current-password" required value={senhaAtual} onChange={e => setSenhaAtual(e.target.value)} /></div> : <p className="text-sm text-(--muted)">Crie uma senha para também entrar com seu e-mail. O acesso com Google continua disponível.</p>}
             <div>
-              <label className="block text-sm font-medium text-purple-200 mb-1.5 text-left pl-1">
+              <label className="block text-sm font-medium text-(--ink) mb-1.5 text-left pl-1">
                 Nova Senha
               </label>
               <div className="relative flex items-center">
@@ -347,10 +363,10 @@ export function ModalGerenciarConta({ usuario, aoAtualizarUsuario, aoExcluirCont
                   onFocus={() => setNovaSenhaFocada(true)}
                   onBlur={() => setNovaSenhaFocada(false)}
                   placeholder="Mínimo 8 caracteres"
-                  className={`w-full pl-5 pr-12 py-3 rounded-2xl text-left focus:outline-none focus:ring-4 transition-all font-medium border shadow-md ${
+                  className={`w-full pl-5 pr-12 py-3 rounded-2xl text-left focus:outline-none focus:ring-4 transition-colors font-medium border  ${
                     ehDark
-                      ? 'bg-white/10 hover:bg-white/[0.14] focus:bg-white/[0.16] text-white placeholder-purple-200/50 border-white/20 focus:border-purple-400 focus:ring-purple-400/50'
-                      : 'bg-[#d9d9d9]/95 hover:bg-white focus:bg-white text-gray-900 placeholder-gray-500 border-white/30 focus:border-purple-400 focus:ring-purple-400/50'
+                      ? 'bg-(--surface) hover:bg-(--surface) focus:bg-(--surface) text-(--ink) placeholder-(--muted) border-(--border) focus:border-(--border) focus:ring-(--accent)'
+                      : 'bg-(--surface) hover:bg-(--surface) focus:bg-(--surface) text-(--ink) placeholder-gray-500 border-(--border) focus:border-(--border) focus:ring-(--accent)'
                   }`}
                   required
                 />
@@ -358,11 +374,11 @@ export function ModalGerenciarConta({ usuario, aoAtualizarUsuario, aoExcluirCont
                   type="button"
                   onMouseDown={(e) => e.preventDefault()}
                   onClick={() => setMostrarNovaSenha(!mostrarNovaSenha)}
-                  className={`absolute right-3.5 p-1 rounded-full transition-colors cursor-pointer focus:outline-none ${
+                  className={"ui-button " + (`absolute right-3.5 p-1 rounded-full transition-colors cursor-pointer focus:outline-none ${
                     ehDark
-                      ? 'text-purple-200/70 hover:text-white hover:bg-white/10'
-                      : 'text-gray-500 hover:text-gray-900 hover:bg-gray-300/50'
-                  }`}
+                      ? 'text-(--ink) hover:text-(--ink) hover:bg-(--surface)'
+                      : 'text-(--muted) hover:text-(--ink) hover:bg-(--surface-muted)'
+                  }`)}
                   title={mostrarNovaSenha ? 'Ocultar senha' : 'Ver senha'}
                   aria-label={mostrarNovaSenha ? 'Ocultar senha' : 'Ver senha'}
                 >
@@ -370,22 +386,22 @@ export function ModalGerenciarConta({ usuario, aoAtualizarUsuario, aoExcluirCont
                 </button>
               </div>
               {novaSenhaFocada && (
-                <div className={`text-xs space-y-1.5 border rounded-2xl p-3 text-left transition-all animate-fade-in shadow-inner mt-2 ${
-                  ehDark ? 'bg-black/40 border-white/15 text-purple-200/80' : 'bg-white/5 border-white/10 text-purple-200/80'
+                <div className={`text-xs space-y-1.5 border rounded-2xl p-3 text-left transition-colors   mt-2 ${
+                  ehDark ? 'bg-black/40 border-(--border) text-(--ink)' : 'bg-(--surface) border-(--border) text-(--ink)'
                 }`}>
-                  <p className="font-semibold text-purple-100 text-xs mb-1">Requisitos de segurança:</p>
+                  <p className="font-semibold text-(--ink) text-xs mb-1">Requisitos de segurança:</p>
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                    <span className={`flex items-center gap-1.5 ${novaSenha.length >= 8 ? 'text-green-400 font-semibold' : 'text-purple-300/70'}`}>
-                      {novaSenha.length >= 8 ? '✓' : '○'} Mínimo 8 caracteres
+                    <span className={`flex items-center gap-1.5 ${novaSenha.length >= 8 ? 'text-(--accent) font-semibold' : 'text-(--muted)'}`}>
+                      {novaSenha.length >= 8 ? '' : '○'} Mínimo 8 caracteres
                     </span>
-                    <span className={`flex items-center gap-1.5 ${/[A-Z]/.test(novaSenha) ? 'text-green-400 font-semibold' : 'text-purple-300/70'}`}>
-                      {/[A-Z]/.test(novaSenha) ? '✓' : '○'} 1 Letra maiúscula
+                    <span className={`flex items-center gap-1.5 ${/[A-Z]/.test(novaSenha) ? 'text-(--accent) font-semibold' : 'text-(--muted)'}`}>
+                      {/[A-Z]/.test(novaSenha) ? '' : '○'} 1 Letra maiúscula
                     </span>
-                    <span className={`flex items-center gap-1.5 ${/[0-9]/.test(novaSenha) ? 'text-green-400 font-semibold' : 'text-purple-300/70'}`}>
-                      {/[0-9]/.test(novaSenha) ? '✓' : '○'} 1 Número
+                    <span className={`flex items-center gap-1.5 ${/[0-9]/.test(novaSenha) ? 'text-(--accent) font-semibold' : 'text-(--muted)'}`}>
+                      {/[0-9]/.test(novaSenha) ? '' : '○'} 1 Número
                     </span>
-                    <span className={`flex items-center gap-1.5 ${/[!@#$%^&*()_+\-=[\]{}|;:,.<>?~`\\/'"]/.test(novaSenha) ? 'text-green-400 font-semibold' : 'text-purple-300/70'}`}>
-                      {/[!@#$%^&*()_+\-=[\]{}|;:,.<>?~`\\/'"]/.test(novaSenha) ? '✓' : '○'} 1 Caractere especial
+                    <span className={`flex items-center gap-1.5 ${/[!@#$%^&*()_+\-=[\]{}|;:,.<>?~`\\/'"]/.test(novaSenha) ? 'text-(--accent) font-semibold' : 'text-(--muted)'}`}>
+                      {/[!@#$%^&*()_+\-=[\]{}|;:,.<>?~`\\/'"]/.test(novaSenha) ? '' : '○'} 1 Caractere especial
                     </span>
                   </div>
                 </div>
@@ -393,7 +409,7 @@ export function ModalGerenciarConta({ usuario, aoAtualizarUsuario, aoExcluirCont
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-purple-200 mb-1.5 text-left pl-1">
+              <label className="block text-sm font-medium text-(--ink) mb-1.5 text-left pl-1">
                 Confirmar Nova Senha
               </label>
               <div className="relative flex items-center">
@@ -402,10 +418,10 @@ export function ModalGerenciarConta({ usuario, aoAtualizarUsuario, aoExcluirCont
                   value={confirmarSenha}
                   onChange={(e) => setConfirmarSenha(e.target.value)}
                   placeholder="Repita a nova senha"
-                  className={`w-full pl-5 pr-12 py-3 rounded-2xl text-left focus:outline-none focus:ring-4 transition-all font-medium border shadow-md ${
+                  className={`w-full pl-5 pr-12 py-3 rounded-2xl text-left focus:outline-none focus:ring-4 transition-colors font-medium border  ${
                     ehDark
-                      ? 'bg-white/10 hover:bg-white/[0.14] focus:bg-white/[0.16] text-white placeholder-purple-200/50 border-white/20 focus:border-purple-400 focus:ring-purple-400/50'
-                      : 'bg-[#d9d9d9]/95 hover:bg-white focus:bg-white text-gray-900 placeholder-gray-500 border-white/30 focus:border-purple-400 focus:ring-purple-400/50'
+                      ? 'bg-(--surface) hover:bg-(--surface) focus:bg-(--surface) text-(--ink) placeholder-(--muted) border-(--border) focus:border-(--border) focus:ring-(--accent)'
+                      : 'bg-(--surface) hover:bg-(--surface) focus:bg-(--surface) text-(--ink) placeholder-gray-500 border-(--border) focus:border-(--border) focus:ring-(--accent)'
                   }`}
                   required
                 />
@@ -413,11 +429,11 @@ export function ModalGerenciarConta({ usuario, aoAtualizarUsuario, aoExcluirCont
                   type="button"
                   onMouseDown={(e) => e.preventDefault()}
                   onClick={() => setMostrarConfirmarSenha(!mostrarConfirmarSenha)}
-                  className={`absolute right-3.5 p-1 rounded-full transition-colors cursor-pointer focus:outline-none ${
+                  className={"ui-button " + (`absolute right-3.5 p-1 rounded-full transition-colors cursor-pointer focus:outline-none ${
                     ehDark
-                      ? 'text-purple-200/70 hover:text-white hover:bg-white/10'
-                      : 'text-gray-500 hover:text-gray-900 hover:bg-gray-300/50'
-                  }`}
+                      ? 'text-(--ink) hover:text-(--ink) hover:bg-(--surface)'
+                      : 'text-(--muted) hover:text-(--ink) hover:bg-(--surface-muted)'
+                  }`)}
                   title={mostrarConfirmarSenha ? 'Ocultar senha' : 'Ver senha'}
                   aria-label={mostrarConfirmarSenha ? 'Ocultar senha' : 'Ver senha'}
                 >
@@ -427,20 +443,20 @@ export function ModalGerenciarConta({ usuario, aoAtualizarUsuario, aoExcluirCont
             </div>
 
             <div className="pt-3 flex flex-col-reverse sm:flex-row justify-end gap-2.5 sm:gap-3">
-              <button
+              <button aria-keyshortcuts="Escape"
                 type="button"
                 onClick={aoFechar}
-                className="w-full sm:w-auto px-5 py-2.5 bg-white/10 hover:bg-white/20 text-purple-200 hover:text-white rounded-full transition-all cursor-pointer text-sm font-medium"
+                className={"ui-button " + ("w-full sm:w-auto px-5 py-2.5 bg-(--surface) hover:bg-(--surface) text-(--ink) hover:text-(--ink) rounded-full transition-colors cursor-pointer text-sm font-medium")}
               >
                 Cancelar
-              </button>
+               <Tecla>Esc</Tecla></button>
               <button
                 type="submit"
-                disabled={salvandoSenha}
-                className="w-full sm:w-auto px-7 py-2.5 bg-white/15 hover:bg-white/25 active:scale-95 text-white font-semibold rounded-full shadow-[0_6px_20px_rgba(0,0,0,0.3),inset_0_1px_1px_rgba(255,255,255,0.4),0_0_15px_rgba(255,255,255,0.12)] hover:shadow-[0_8px_25px_rgba(0,0,0,0.4),inset_0_1px_2px_rgba(255,255,255,0.6),0_0_25px_rgba(168,85,247,0.3)] backdrop-blur-md border border-white/35 hover:border-white/55 transition-all duration-300 cursor-pointer text-sm disabled:opacity-50"
+                disabled={salvandoSenha || !seguranca}
+                className={"ui-button ui-primary " + ("w-full sm:w-auto px-7 py-2.5 bg-(--surface) hover:bg-(--surface) active:scale-95 text-(--ink) font-semibold rounded-full    border border-(--border) hover:border-(--border) transition-colors duration-300 cursor-pointer text-sm disabled:opacity-50")}
               >
                 {salvandoSenha ? 'Atualizando...' : 'Atualizar Senha'}
-              </button>
+               <Tecla>Enter</Tecla></button>
             </div>
           </form>
         )}
@@ -450,12 +466,13 @@ export function ModalGerenciarConta({ usuario, aoAtualizarUsuario, aoExcluirCont
         {/* ==================================================================== */}
         {abaAtiva === 'excluir' && (
           <form onSubmit={handleExcluirConta} className="space-y-4 text-left">
+{seguranca?.senhaConfigurada && <div className="field"><label htmlFor="delete-password">Confirme sua senha</label><input id="delete-password" type="password" autoComplete="current-password" required value={senhaExclusao} onChange={e => setSenhaExclusao(e.target.value)} /></div>}
             <div className="p-4 bg-red-950/50 border border-red-500/40 rounded-2xl text-red-200 text-sm space-y-2">
               <p className="font-bold text-red-300 flex items-center gap-1.5">
-                ⚠️ Ação Permanente e Irreversível
+                 Ação Permanente e Irreversível
               </p>
               <p className="text-xs text-red-200/90 leading-relaxed">
-                Ao excluir sua conta, todas as suas tarefas, dados pessoais e acessos serão apagados permanentemente do sistema e do banco de dados do Supabase. Não será possível recuperar nenhuma informação.
+                Ao excluir sua conta, suas tarefas, seu perfil e suas sessões serão apagados permanentemente. Salve um backup antes de continuar.
               </p>
             </div>
 
@@ -465,15 +482,15 @@ export function ModalGerenciarConta({ usuario, aoAtualizarUsuario, aoExcluirCont
                 id="confirma-exclusao"
                 checked={confirmouExclusao}
                 onChange={(e) => setConfirmouExclusao(e.target.checked)}
-                className="mt-1 w-4 h-4 rounded text-red-600 focus:ring-red-500 border-white/30 cursor-pointer"
+                className="mt-1 w-4 h-4 rounded text-red-600 focus:ring-red-500 border-(--border) cursor-pointer"
               />
-              <label htmlFor="confirma-exclusao" className="text-xs text-purple-100 cursor-pointer select-none">
+              <label htmlFor="confirma-exclusao" className="text-xs text-(--ink) cursor-pointer select-none">
                 Estou ciente e concordo com a exclusão definitiva de todos os meus dados e tarefas.
               </label>
             </div>
 
             <div>
-              <label className="block text-xs font-semibold text-purple-200 mb-1">
+              <label className="block text-xs font-semibold text-(--ink) mb-1">
                 Para confirmar, digite <span className="text-red-400 font-bold">EXCLUIR</span> no campo abaixo:
               </label>
               <input
@@ -481,25 +498,25 @@ export function ModalGerenciarConta({ usuario, aoAtualizarUsuario, aoExcluirCont
                 value={textoConfirmacao}
                 onChange={(e) => setTextoConfirmacao(e.target.value)}
                 placeholder="EXCLUIR"
-                className="w-full px-4 py-2.5 bg-red-950/40 border border-red-400/50 text-white rounded-xl focus:outline-none focus:ring-2 focus:ring-red-400 placeholder-red-300/40 text-sm font-semibold tracking-wider uppercase"
+                className="w-full px-4 py-2.5 bg-red-950/40 border border-red-400/50 text-(--ink) rounded-xl focus:outline-none focus:ring-2 focus:ring-red-400 placeholder-red-300/40 text-sm font-semibold  "
               />
             </div>
 
             <div className="pt-3 flex flex-col-reverse sm:flex-row justify-end gap-2.5 sm:gap-3">
-              <button
+              <button aria-keyshortcuts="Escape"
                 type="button"
                 onClick={aoFechar}
-                className="w-full sm:w-auto px-5 py-2.5 bg-white/10 hover:bg-white/20 text-purple-200 hover:text-white rounded-full transition-all cursor-pointer text-sm font-medium"
+                className={"ui-button " + ("w-full sm:w-auto px-5 py-2.5 bg-(--surface) hover:bg-(--surface) text-(--ink) hover:text-(--ink) rounded-full transition-colors cursor-pointer text-sm font-medium")}
               >
                 Voltar
-              </button>
+               <Tecla>Esc</Tecla></button>
               <button
                 type="submit"
-                disabled={excluindo || !confirmouExclusao || textoConfirmacao.trim().toUpperCase() !== 'EXCLUIR'}
-                className="w-full sm:w-auto px-6 py-2.5 bg-red-600 hover:bg-red-700 active:scale-95 text-white font-bold rounded-full shadow-lg shadow-red-900/40 border border-red-400/40 transition-all cursor-pointer text-sm disabled:opacity-40 disabled:cursor-not-allowed"
+                disabled={!seguranca || excluindo || !confirmouExclusao || textoConfirmacao.trim().toUpperCase() !== 'EXCLUIR'}
+                className={"ui-button ui-danger " + ("w-full sm:w-auto px-6 py-2.5 bg-red-600 hover:bg-red-700 active:scale-95 text-(--ink) font-bold rounded-full   border border-red-400/40 transition-colors cursor-pointer text-sm disabled:opacity-40 disabled:cursor-not-allowed")}
               >
                 {excluindo ? 'Excluindo...' : 'Excluir Minha Conta'}
-              </button>
+               <Tecla>Enter</Tecla></button>
             </div>
           </form>
         )}
@@ -508,4 +525,3 @@ export function ModalGerenciarConta({ usuario, aoAtualizarUsuario, aoExcluirCont
     </div>
   );
 }
-

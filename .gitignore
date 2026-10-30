@@ -21,3 +21,11 @@ Thumbs.db
 .vscode/
 .idea/
 
+# Estado local do Cloudflare, segredos e backups pessoais
+.wrangler/
+.dev.vars
+.dev.vars.*
+!.dev.vars.example
+backups/
+.taste-skill/
+
